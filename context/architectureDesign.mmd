@@ -1,0 +1,81 @@
+
+flowchart TD
+    User[User] -->|Submit Business Idea| IdeaAgent[Idea Understanding Agent]
+    
+    IdeaAgent -->|User Input| NormalVal[Normal Validation]
+    NormalVal -->|Check Fields| LLMVal[LLM Validation Agent]
+    LLMVal -->|Evaluate: Clarity, Actionability, Uniqueness| StructJSON[Structured JSON Output with Score]
+    StructJSON --> DecisionEngine{Decision Engine}
+    
+    DecisionEngine -->|Score < 50| Clarify[Ask Clarification]
+    Clarify -->|Resubmit| IdeaAgent
+    
+    DecisionEngine -->|Score 50-80| CollectMore[Collect More Details]
+    CollectMore -->|Proceed| BizCollection[Business Information Collection]
+    
+    DecisionEngine -->|Score > 80| BizCollection
+    
+    BizCollection -->|AI-Guided Questionnaire| Questions["Location, Budget, Target Customers<br/>Business Type, Experience Level<br/>Goal Type, Core Painpoint<br/>Launch Timeline"]
+    Questions --> PlanningLayer[AI Agent Planning Layer]
+    
+    PlanningLayer --> StartupMgr[Startup Manager Agent<br/>Agent Orchestrator]
+    StartupMgr -->|Distribute Tasks| AgentPool[Specialized AI Agents Pool]
+    
+    AgentPool --> Market[Market Research Agent]
+    AgentPool --> Finance[Finance Agent]
+    AgentPool --> Brand[Brand Agent]
+    AgentPool --> Website[Website/Product Agent]
+    AgentPool --> Marketing[Marketing Agent]
+    
+    Market -->|Competitor Analysis<br/>Customer Trends<br/>Market Size| MarketOut[Market Intelligence]
+    Finance -->|Cost Estimation<br/>Revenue Prediction<br/>Break-even Analysis| FinanceOut[Financial Model]
+    Brand -->|Brand Identity<br/>Name Suggestions<br/>Logo & Palette| BrandOut[Brand Package]
+    Website -->|Landing Page Design<br/>Feature Suggestions<br/>Prototype| WebOut[Digital Presence]
+    Marketing -->|Social Strategy<br/>Customer Acquisition<br/>90-day Roadmap| MarketingOut[Growth Plan]
+    
+    MarketOut --> FatalCheck{Fatal Flaw<br/>Detection?}
+    FinanceOut --> FatalCheck
+    BrandOut --> FatalCheck
+    WebOut --> FatalCheck
+    MarketingOut --> FatalCheck
+    
+    FatalCheck -->|Critical Issue| Pivot[Signal to Startup Manager<br/>Pause/Pivot Workflow]
+    Pivot -->|Reassess| StartupMgr
+    
+    FatalCheck -->|No Issues| Persistence[Persistence & Versioning Layer<br/>Decision Log + Real-Time Data<br/>Tavily Search API Integration]
+    
+    Persistence --> Dashboard[Startup Blueprint Dashboard]
+    Dashboard -->|Render Output| InteractiveRef[Interactive Refinement Phase]
+    
+    InteractiveRef -->|User Command| RefinementLogic{User Requests<br/>Changes?}
+    RefinementLogic -->|Make it Cheaper| UpdateBudget[Update Cost Model]
+    RefinementLogic -->|Target New Segment| UpdatePersona[Update Customer Persona]
+    RefinementLogic -->|Other Changes| UpdateGeneral[Update Relevant Sections]
+    
+    UpdateBudget --> VersionControl[Version Control & Context Management]
+    UpdatePersona --> VersionControl
+    UpdateGeneral --> VersionControl
+    
+    VersionControl -->|Apply Changes| Dashboard
+    VersionControl -->|Or Rollback| Dashboard
+    
+    Dashboard -->|Ready to Export| FinalBlueprint[Final Startup Blueprint]
+    FinalBlueprint -->|Markdown/HTML/CSS| Output1[Beautiful Interactive Dashboard]
+    FinalBlueprint -->|Export to PDF| Output2[Investor-Ready PDF]
+    
+    Output1 --> End["✓ Business Overview<br/>✓ Market Intelligence<br/>✓ Financial Model<br/>✓ Brand Package<br/>✓ Digital Presence<br/>✓ Growth Plan"]
+    Output2 --> End
+    
+    classDef userNode stroke:#f87171,fill:#fef2f2
+    classDef validationNode stroke:#a78bfa,fill:#f5f3ff
+    classDef collectionNode stroke:#38bdf8,fill:#f0f9ff
+    classDef agentNode stroke:#4ade80,fill:#f0fdf4
+    classDef outputNode stroke:#facc15,fill:#fefce8
+    classDef decisionNode stroke:#fb923c,fill:#fff7ed
+    
+    class User userNode
+    class IdeaAgent,NormalVal,LLMVal,StructJSON validationNode
+    class BizCollection,Questions collectionNode
+    class PlanningLayer,StartupMgr,Market,Finance,Brand,Website,Marketing agentNode
+    class Dashboard,FinalBlueprint,Output1,Output2,End outputNode
+    class DecisionEngine,FatalCheck,RefinementLogic decisionNode
