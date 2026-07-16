@@ -1,0 +1,227 @@
+:root {
+  --color-primary: #1b0624;
+  --color-primary-hover: #2e0a42;
+  --color-accent: #aeec1d;
+  --color-background: #ffffff;
+  --color-surface-light: #f7f7f5;
+  --color-surface-medium: #edece7;
+  --color-text-primary: #000000;
+  --color-text-secondary: #1a1816;
+  --color-text-muted: #4d4846;
+  --color-text-light-muted: #898683;
+  --color-text-inverse: #ffffff;
+  --color-link: #1b0624;
+  --color-link-footer: #46838c;
+  --color-link-footer-hover: #2e6369;
+  --color-border-light: #dbd9cd;
+  --color-border-dark: rgba(255, 255, 255, 0.08);
+
+  --typography-display-family: 'GT America Regular', sans-serif;
+  --typography-heading-family: 'GT America Regular', sans-serif;
+  --typography-body-family: 'Inter', sans-serif;
+  --typography-caption-family: 'Inter', sans-serif;
+
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 999px;
+
+  --elevation-card: rgba(45, 32, 50, 0.08) 0px 0.602187px 1.80656px -0.666667px, rgba(45, 32, 50, 0.09) 0px 2.28853px 6.8656px -1.33333px, rgba(45, 32, 50, 0.12) 0px 10px 30px -2px;
+  --elevation-hover: rgba(45, 32, 50, 0.12) 0px 2px 6px -1px, rgba(45, 32, 50, 0.15) 0px 8px 24px -2px;
+  --elevation-overlay: rgba(45, 32, 50, 0.2) 0px 10px 30px -5px;
+
+  --motion-duration-base: 0.4s;
+  --motion-easing-standard: ease-out;
+
+  --spacing-4: 4px;
+  --spacing-8: 8px;
+  --spacing-12: 12px;
+  --spacing-16: 16px;
+  --spacing-20: 20px;
+  --spacing-24: 24px;
+  --spacing-32: 32px;
+  --spacing-40: 40px;
+  --spacing-48: 48px;
+  --spacing-64: 64px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--typography-body-family);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--typography-heading-family);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.display {
+  font-size: 80px;
+}
+
+h1 { font-size: 44px; }
+h2 { font-size: 32px; }
+
+p { margin: 0 0 var(--spacing-20); }
+a { text-decoration: none; }
+
+/* Components */
+.button-primary {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-family: var(--typography-body-family);
+  font-size: 16px;
+  font-weight: 500;
+  min-height: 44px;
+  padding: 12px 22px;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--motion-duration-base) var(--motion-easing-standard), transform 0.1s ease-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+}
+
+.button-primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.button-primary:active {
+  transform: translateY(1px);
+}
+
+.button-primary:disabled {
+  background-color: var(--color-text-light-muted);
+  color: var(--color-text-inverse);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.button-secondary {
+  background-color: var(--color-background);
+  color: var(--color-primary);
+  font-family: var(--typography-body-family);
+  font-size: 16px;
+  font-weight: 500;
+  min-height: 44px;
+  padding: 12px 22px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color var(--motion-duration-base) var(--motion-easing-standard), border-color var(--motion-duration-base) var(--motion-easing-standard);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-8);
+}
+
+.button-secondary:hover {
+  background-color: var(--color-surface-light);
+  border-color: var(--color-text-light-muted);
+}
+
+.button-secondary:active {
+  background-color: var(--color-surface-medium);
+  transform: translateY(1px);
+  transition: transform 0.1s ease-out;
+}
+
+.card {
+  background-color: var(--color-surface-medium);
+  color: var(--color-text-primary);
+  padding: var(--spacing-32);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elevation-card);
+  transition: box-shadow var(--motion-duration-base) var(--motion-easing-standard), transform var(--motion-duration-base) var(--motion-easing-standard);
+}
+
+.card:hover {
+  box-shadow: var(--elevation-hover);
+  transform: translateY(-2px);
+}
+
+.input-text {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--typography-body-family);
+  font-size: 16px;
+  font-weight: 500;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--motion-duration-base) var(--motion-easing-standard), box-shadow var(--motion-duration-base) var(--motion-easing-standard);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-text:focus {
+  border-color: var(--color-primary);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-background), 0 0 0 4px var(--color-primary);
+}
+
+.badge-primary {
+  background-color: var(--color-primary);
+  color: var(--color-text-inverse);
+  font-family: var(--typography-caption-family);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge-accent {
+  background-color: var(--color-accent);
+  color: var(--color-primary);
+  font-family: var(--typography-caption-family);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-48);
+}
+
+.section-padding {
+  padding: var(--spacing-64) 0;
+}
+
+@media (max-width: 719.98px) {
+  .section-padding {
+    padding: var(--spacing-32) 0;
+  }
+  .container {
+    padding: 0 var(--spacing-24);
+  }
+  .display { font-size: 48px; }
+  h1 { font-size: 36px; }
+  h2 { font-size: 28px; }
+}
+
+.text-muted { color: var(--color-text-muted); }
+.text-secondary { color: var(--color-text-secondary); }
