@@ -46,7 +46,8 @@ CRITICAL GUARDRAILS:
 - Realistic MMK Pricing: Ensure all values are realistic for Myanmar market economics (for example, a single bottle of drink is around 2,000 to 4,000 MMK, not 400 MMK; software/hosting/marketing items are typically in tens/hundreds of thousands or millions of MMK). Do not just copy dollar amounts and append 'MMK'; scale the values properly (1 USD is roughly equivalent to 3,000 - 4,500 MMK in local purchasing power/exchange).
 - Financial constraints: All costs, price points, and revenues must be strictly positive numbers.
 - Value Matching: Total cost estimates must be aligned with the user's declared budget (which is in MMK). For instance, if the budget is 5,000,000 MMK, do not propose 20,000,000 MMK in capital expenditures; propose lean items within the budget constraints.
-- Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Financial Model & Projections Report". Use headers (H2, H3), bullet points, and markdown tables.`;
+- Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Financial Model & Projections Report". Use headers (H2, H3), bullet points, and markdown tables.
+- Language Alignment: Generate all textual properties, cost item names, revenue forecast descriptions, pricing strategy copy, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).`;
 
 export async function runFinanceAgent(refinedConcept, businessInfo, marketResearch, apiKey) {
   const model = new ChatGoogleGenerativeAI({
@@ -56,6 +57,9 @@ export async function runFinanceAgent(refinedConcept, businessInfo, marketResear
   });
 
   const structuredModel = model.withStructuredOutput(FinancialModelSchema);
+
+  const isBurmese = /[\u1000-\u109F]/.test(refinedConcept.concept);
+  const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `
 Refined Startup Concept:
@@ -77,7 +81,7 @@ Market Research Insights:
 
   const response = await structuredModel.invoke([
     { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: `Analyze financial metrics and build the model:\n\n${promptContent}` }
+    { role: 'user', content: `Analyze financial metrics and build the model. IMPORTANT: You MUST write/generate all output fields (thinking, markdown_deliverable, costBreakdown item names, revenueForecast, pricingStrategy, etc.) in the ${targetLanguage}. Do NOT write them in English:\n\n${promptContent}` }
   ]);
 
   if (!response) {

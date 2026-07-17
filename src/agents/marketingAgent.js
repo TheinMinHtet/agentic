@@ -34,7 +34,8 @@ const SYSTEM_PROMPT = `You are the Marketing Agent. Your role is to design marke
 CRITICAL GUARDRAILS:
 - Budget constraints: If the user's questionnaire budget is small (under 15,000,000 MMK), you must NOT suggest expensive advertising routes like television commercials or physical billboards; prioritize lean organic channels.
 - Currency: Always use MMK (Myanmar Kyat) as the primary currency for any costs or pricing references. Do NOT use the dollar symbol ($) or USD.
-- Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Marketing Strategy & 90-Day Roadmap". Use headers (H2, H3) and lists.`;
+- Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Marketing Strategy & 90-Day Roadmap". Use headers (H2, H3) and lists.
+- Language Alignment: Generate all recommended channels, acquisition plan copy, 90-day roadmap milestones, thinking, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).`;
 
 export async function runMarketingAgent(refinedConcept, businessInfo, marketResearch, apiKey) {
   const model = new ChatGoogleGenerativeAI({
@@ -44,6 +45,9 @@ export async function runMarketingAgent(refinedConcept, businessInfo, marketRese
   });
 
   const structuredModel = model.withStructuredOutput(GrowthPlanSchema);
+
+  const isBurmese = /[\u1000-\u109F]/.test(refinedConcept.concept);
+  const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `
 Refined Startup Concept:
@@ -64,7 +68,7 @@ Market Research:
 
   const response = await structuredModel.invoke([
     { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: `Create marketing strategy and roadmap:\n\n${promptContent}` }
+    { role: 'user', content: `Create marketing strategy and roadmap. IMPORTANT: You MUST write/generate all output fields (thinking, markdown_deliverable, channels, acquisitionPlan, roadmap90Day, etc.) in the ${targetLanguage}. Do NOT write them in English:\n\n${promptContent}` }
   ]);
 
   if (!response) {
