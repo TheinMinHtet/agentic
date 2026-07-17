@@ -29,7 +29,7 @@ export default function RefinementPage() {
                 <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto' }}>
                     <h4>Active Blueprint Document</h4>
                     <p className="text-muted" style={{ fontSize: '14px' }}>Drafting changes dynamically based on refinement conversation...</p>
-                    <div style={{ marginTop: '16px', border: '1px dashed var(--color-primary)', padding: '16px', borderRadius: '8px' }}>
+                    <div style={{ marginTop: '16px', border: '1px dashed #c7d2fe', background: 'var(--color-accent-soft)', padding: '16px', borderRadius: '16px' }}>
                         <h5>Current Tech Stack</h5>
                         <p className="text-secondary" style={{ fontSize: '14px' }}>Web App with React, Node.js backend</p>
                     </div>
@@ -39,13 +39,13 @@ export default function RefinementPage() {
                 </div>
 
                 {/* Right Side: Chat Interface */}
-                <div className="card" style={{ display: 'flex', flexDirection: 'column', backgroundColor: 'var(--color-surface-light)' }}>
+                <div className="card" style={{ display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)' }}>
                     <h3 style={{ marginBottom: '8px' }}>Refinement Agent</h3>
-                    <div style={{ flex: 1, backgroundColor: 'var(--color-background)', borderRadius: '8px', padding: '16px', marginBottom: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ flex: 1, backgroundColor: '#ffffff', border: '1px solid var(--color-border-light)', borderRadius: '16px', padding: '16px', marginBottom: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         {chat.map((msg, i) => (
                             <div key={i} style={{
                                 alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
-                                backgroundColor: msg.role === 'user' ? 'var(--color-primary)' : 'var(--color-surface-medium)',
+                                background: msg.role === 'user' ? 'var(--gradient-ai)' : 'var(--color-accent-soft)',
                                 color: msg.role === 'user' ? 'white' : 'inherit',
                                 padding: '12px', borderRadius: '12px', fontSize: '14px', maxWidth: '85%', lineHeight: 1.4
                             }}>

@@ -24,8 +24,9 @@ export default function PlanningPage() {
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
                 <div style={{
                     width: '64px', height: '64px', borderRadius: '50%',
-                    border: '4px solid var(--color-surface-medium)',
-                    borderTopColor: 'var(--color-primary)',
+                    border: '4px solid #e2e8f0',
+                    borderTopColor: 'var(--color-accent)',
+                    boxShadow: '0 12px 26px rgba(99, 102, 241, 0.16)',
                     animation: 'spin 1s linear infinite'
                 }} />
                 <p className="text-muted">Analyzing requirements & delegating tasks...</p>
