@@ -6,10 +6,9 @@ import Typewriter from 'typewriter-effect';
 import { ArrowRight } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 
-export default function LandingPage({ isAuthenticated: propIsAuth }) {
+export default function LandingPage() {
     const router = useRouter();
-    const { isAuthenticated: contextIsAuth } = useAuth();
-    const isAuthenticated = propIsAuth !== undefined ? propIsAuth : contextIsAuth;
+    const { isAuthenticated } = useAuth();
 
     return (
         <section className="hero-section section-padding container">
@@ -37,8 +36,8 @@ export default function LandingPage({ isAuthenticated: propIsAuth }) {
                 <h3>Ready to build your startup?</h3>
                 <p className="text-muted">Start with one focused idea and let the workflow collect the signals it needs.</p>
                 <div className="hero-actions">
-                    <button className="button-primary" onClick={() => router.push(isAuthenticated ? '/idea-prompt' : '/login')}>
-                        {isAuthenticated ? 'Continue workflow' : 'Login to get started'}
+                    <button className="button-primary" onClick={() => router.push(isAuthenticated ? '/idea-prompt' : '/register')}>
+                        {isAuthenticated ? 'Continue workflow' : 'Create account'}
                         <ArrowRight size={18} />
                     </button>
                 </div>

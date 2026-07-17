@@ -1,0 +1,150 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { FormEvent, useMemo, useState } from 'react';
+import { ArrowRight, UserPlus } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+
+export default function RegisterPage() {
+  const router = useRouter();
+  const supabase = useMemo(() => createClient(), []);
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleRegister = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setErrorMessage('');
+
+    if (password !== confirmPassword) {
+      setErrorMessage('Password and confirm password must match.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          username,
+        },
+      },
+    });
+
+    if (signUpError) {
+      setIsSubmitting(false);
+      setErrorMessage(signUpError.message);
+      return;
+    }
+
+    if (!data.user) {
+      setIsSubmitting(false);
+      setErrorMessage('Registration succeeded, but no authenticated user was returned.');
+      return;
+    }
+
+    const { error: profileError } = await supabase.from('users').insert({
+      user_id: data.user.id,
+      username,
+      email,
+    });
+
+    setIsSubmitting(false);
+
+    if (profileError) {
+      setErrorMessage(profileError.message);
+      return;
+    }
+
+    const { error: signOutError } = await supabase.auth.signOut();
+
+    if (signOutError) {
+      setErrorMessage(signOutError.message);
+      return;
+    }
+
+    router.replace('/login');
+    router.refresh();
+  };
+
+  return (
+    <section className="auth-section section-padding container">
+      <div className="auth-card card">
+        <span className="badge-accent auth-badge">
+          <UserPlus size={14} />
+          Create account
+        </span>
+        <h2>Start your workspace</h2>
+        <p className="text-muted auth-copy">
+          Register with email and password to save your startup blueprint.
+        </p>
+        <form onSubmit={handleRegister} className="auth-form">
+          <div className="form-field">
+            <label htmlFor="username">Username</label>
+            <input
+              id="username"
+              type="text"
+              className="input-text"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              placeholder="Your username"
+              required
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              className="input-text"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+              required
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              className="input-text"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Create a password"
+              required
+              minLength={6}
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="confirm-password">Confirm Password</label>
+            <input
+              id="confirm-password"
+              type="password"
+              className="input-text"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              placeholder="Repeat your password"
+              required
+              minLength={6}
+            />
+          </div>
+          {errorMessage && <p className="auth-error">{errorMessage}</p>}
+          <button type="submit" className="button-primary button-full" disabled={isSubmitting}>
+            {isSubmitting ? 'Creating account...' : 'Create account'}
+            <ArrowRight size={18} />
+          </button>
+        </form>
+        <p className="auth-switch text-muted">
+          Already have an account? <Link href="/login">Log in</Link>
+        </p>
+      </div>
+    </section>
+  );
+}
