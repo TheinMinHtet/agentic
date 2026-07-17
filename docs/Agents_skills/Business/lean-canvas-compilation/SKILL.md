@@ -44,3 +44,6 @@ Output:
 * **Data Mismatch**: Ensure the inputs from upstream agents are fully populated before running this skill to avoid blank/uninformative Lean Canvas segments.
 * **Information Overload**: Summarize dense data blocks (like comprehensive financial lists) into key takeaways (e.g. major cost categories) so the canvas remains readable.
 * **Lack of Alignment**: Double-check that the marketing channels proposed match the target personas specified in the market intelligence input.
+
+## Link to reference
+https://fulcrum.rocks/blog/fill-in-lean-canvas

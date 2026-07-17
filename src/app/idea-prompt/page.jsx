@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useWorkflow } from '../context/WorkflowContext';
 import {
     evaluateIdeaAsync,
     getCompositeValidationScore,
@@ -10,10 +11,16 @@ import {
 
 export default function IdeaPromptPage() {
     const router = useRouter();
+    const { rawUserIdea, updateStartupIdea, validationResult, setValidationResult, setActiveStep } = useWorkflow();
     const [idea, setIdea] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [validationResult, setValidationResult] = useState(null);
     const [toastMessage, setToastMessage] = useState('');
+
+    useEffect(() => {
+        if (rawUserIdea) {
+            setIdea(rawUserIdea);
+        }
+    }, [rawUserIdea]);
 
     const handleLaunch = async () => {
         if (!idea.trim() || isSubmitting) {
@@ -25,7 +32,8 @@ export default function IdeaPromptPage() {
         try {
             const result = await evaluateIdeaAsync(idea);
             const compositeScore = getCompositeValidationScore(result);
-            setValidationResult({ ...result, compositeScore });
+            const fullResult = { ...result, compositeScore };
+            setValidationResult(fullResult);
 
             if (getIdeaRouteDecision(result) === 'clarify') {
                 setToastMessage(result.constructive_feedback);
@@ -34,14 +42,16 @@ export default function IdeaPromptPage() {
                 return;
             }
 
-            // Save idea to localStorage for subsequent mock pages to use
-            localStorage.setItem('agentic:startupIdea', idea.trim());
+            // Save idea to context and localStorage
+            updateStartupIdea(idea.trim());
+            setActiveStep('business-info');
 
             router.push('/business-info');
         } finally {
             setIsSubmitting(false);
         }
     };
+
 
     return (
         <section className="workflow-section section-padding container" style={{ textAlign: 'center', minHeight: 'calc(100vh - 56px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
