@@ -13,6 +13,8 @@
     "@langchain/core": "^1.2.3",
     "@langchain/google-genai": "^2.2.0",
     "@langchain/langgraph": "^1.4.8",
+    "@supabase/ssr": "^0.7.0",
+    "@supabase/supabase-js": "^2.57.0",
     "deepagents": "^1.11.0",
     "langchain": "^1.5.3",
     "lucide-react": "^1.24.0",
@@ -23,8 +25,10 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@types/node": "20.17.6",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "oxlint": "^1.71.0"
+    "oxlint": "^1.71.0",
+    "typescript": "5.8.2"
   }
 }
