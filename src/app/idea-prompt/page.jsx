@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWorkflow } from '../context/WorkflowContext';
+import { useAuth } from '../context/AuthContext';
+import { createClient } from '@/lib/supabase/client';
 import {
     evaluateIdeaAsync,
     getCompositeValidationScore,
@@ -12,8 +14,13 @@ import { autoRefineIdeaAsync } from '../../agents/autoRefineAgent';
 
 export default function IdeaPromptPage() {
     const router = useRouter();
+    const supabase = useMemo(() => createClient(), []);
+    const { user, loading } = useAuth();
     const { rawUserIdea, updateStartupIdea, validationResult, setValidationResult, setActiveStep } = useWorkflow();
     const [idea, setIdea] = useState('');
+    const [ideaHistory, setIdeaHistory] = useState([]);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+    const [historyError, setHistoryError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
     const [isAutoRefining, setIsAutoRefining] = useState(false);
@@ -45,6 +52,54 @@ export default function IdeaPromptPage() {
             setIdea(rawUserIdea);
         }
     }, [rawUserIdea]);
+
+    useEffect(() => {
+        let mounted = true;
+
+        const loadIdeaHistory = async () => {
+            if (loading) return;
+
+            if (!user?.id) {
+                setIdeaHistory([]);
+                return;
+            }
+
+            setIsLoadingHistory(true);
+            setHistoryError('');
+
+            const { data, error } = await supabase
+                .from('ideas')
+                .select('id, title, status, created_at, updated_at')
+                .eq('user_id', user.id)
+                .order('created_at', { ascending: false })
+                .limit(12);
+
+            if (!mounted) return;
+
+            if (error) {
+                setHistoryError(error.message || 'Unable to load idea history.');
+                setIdeaHistory([]);
+            } else {
+                setIdeaHistory(data || []);
+            }
+
+            setIsLoadingHistory(false);
+        };
+
+        loadIdeaHistory();
+
+        return () => {
+            mounted = false;
+        };
+    }, [loading, supabase, user?.id]);
+
+    const handleOpenHistoryIdea = (historyIdea) => {
+        if (historyIdea.title) {
+            updateStartupIdea(historyIdea.title);
+        }
+
+        router.push(`/dashboard?ideaId=${historyIdea.id}`);
+    };
 
     const handleLaunch = async () => {
         if (!idea.trim() || isSubmitting) {
@@ -78,11 +133,60 @@ export default function IdeaPromptPage() {
 
 
     return (
-        <section className="workflow-section section-padding container" style={{ textAlign: 'center', minHeight: 'calc(100vh - 56px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <h2 style={{ marginBottom: '24px', fontWeight: 900, fontFamily: 'var(--typography-heading-family)' }}>Step 1: Idea Understanding</h2>
-            <p className="text-secondary" style={{ marginBottom: '40px', fontSize: '18px', maxWidth: '640px', margin: '0 auto 40px auto' }}>
-                Tell us about your next big thing. Our NLP models will extract the core concepts and intent.
-            </p>
+        <section className="workflow-section section-padding container" style={{ textAlign: 'center', minHeight: 'calc(100vh - 56px)' }}>
+            <div className="idea-prompt-layout">
+                <aside className="idea-history-panel">
+                    <div className="idea-history-header">
+                        <div>
+                            <p className="idea-history-kicker">Workspace</p>
+                            <h3>Idea History</h3>
+                        </div>
+                        <span>{ideaHistory.length}</span>
+                    </div>
+
+                    {isLoadingHistory && (
+                        <p className="idea-history-empty">Loading history...</p>
+                    )}
+
+                    {!isLoadingHistory && historyError && (
+                        <p className="idea-history-error">{historyError}</p>
+                    )}
+
+                    {!isLoadingHistory && !historyError && !user?.id && (
+                        <p className="idea-history-empty">Log in to see saved ideas.</p>
+                    )}
+
+                    {!isLoadingHistory && !historyError && user?.id && ideaHistory.length === 0 && (
+                        <p className="idea-history-empty">No saved ideas yet.</p>
+                    )}
+
+                    <div className="idea-history-list">
+                        {ideaHistory.map((historyIdea) => (
+                            <button
+                                key={historyIdea.id}
+                                type="button"
+                                className="idea-history-card"
+                                onClick={() => handleOpenHistoryIdea(historyIdea)}
+                            >
+                                <span className="idea-history-title">{historyIdea.title || 'Untitled idea'}</span>
+                                <span className="idea-history-date">
+                                    {new Date(historyIdea.created_at).toLocaleDateString(undefined, {
+                                        month: 'short',
+                                        day: 'numeric',
+                                        year: 'numeric'
+                                    })}
+                                </span>
+                                <span className="idea-history-status">{historyIdea.status || 'saved'}</span>
+                            </button>
+                        ))}
+                    </div>
+                </aside>
+
+                <div className="idea-prompt-main">
+                    <h2 style={{ marginBottom: '24px', fontWeight: 900, fontFamily: 'var(--typography-heading-family)' }}>Step 1: Idea Understanding</h2>
+                    <p className="text-secondary" style={{ marginBottom: '40px', fontSize: '18px', maxWidth: '640px', margin: '0 auto 40px auto' }}>
+                        Tell us about your next big thing. Our NLP models will extract the core concepts and intent.
+                    </p>
 
             <div className="card" style={{
                 width: '100%',
@@ -248,6 +352,8 @@ export default function IdeaPromptPage() {
                         )}
                     </div>
                 )}
+                    </div>
+                </div>
             </div>
             {toastMessage && (
                 <div className="idea-toast" role="status" aria-live="polite">

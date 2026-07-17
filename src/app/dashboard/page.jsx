@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useMemo, useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useWorkflow } from '../context/WorkflowContext';
+import { createClient } from '@/lib/supabase/client';
 import MarkdownPreviewer from '../components/MarkdownPreviewer';
 import { 
   ArrowLeft, 
@@ -19,6 +20,9 @@ import {
 
 export default function DashboardPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const ideaId = searchParams.get('ideaId');
+    const supabase = useMemo(() => createClient(), []);
     const {
         refinedConcept,
         marketResearch,
@@ -27,11 +31,155 @@ export default function DashboardPage() {
         digitalPresence,
         growthPlan,
         businessPlan,
+        setRefinedConcept,
+        setMarketResearch,
+        setFinanceModel,
+        setBrandPackage,
+        setDigitalPresence,
+        setGrowthPlan,
+        setBusinessPlan,
+        updateCurrentIdeaId,
         resetWorkflow
     } = useWorkflow();
 
     const [activeTab, setActiveTab] = useState('overview');
     const [previewDoc, setPreviewDoc] = useState(false);
+    const [historyLoadError, setHistoryLoadError] = useState('');
+
+    useEffect(() => {
+        let mounted = true;
+
+        const fetchSingle = async (table) => {
+            const { data, error } = await supabase
+                .from(table)
+                .select('*')
+                .eq('idea_id', ideaId)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (error) {
+                throw error;
+            }
+
+            return data;
+        };
+
+        const loadHistoryDashboard = async () => {
+            if (!ideaId) return;
+
+            setHistoryLoadError('');
+            updateCurrentIdeaId(ideaId);
+
+            try {
+                const [refinement, market, finance, brand, digital, growth, business] = await Promise.all([
+                    fetchSingle('agent_refinements'),
+                    fetchSingle('agent_market_research'),
+                    fetchSingle('agent_finance_models'),
+                    fetchSingle('agent_brand_packages'),
+                    fetchSingle('agent_digital_presence'),
+                    fetchSingle('agent_growth_plans'),
+                    fetchSingle('agent_business_plans')
+                ]);
+
+                if (!mounted) return;
+
+                if (refinement) {
+                    setRefinedConcept(refinement.raw_output || {
+                        thinking: refinement.thinking,
+                        concept: refinement.concept,
+                        improved_summary: refinement.improved_summary,
+                        key_differentiators: refinement.key_differentiators || [],
+                        target_audience_refined: refinement.target_audience_refined
+                    });
+                }
+
+                if (market) {
+                    setMarketResearch(market.raw_output || {
+                        thinking: market.thinking,
+                        markdown_deliverable: market.markdown_deliverable,
+                        tam: market.tam,
+                        competitors: market.competitors || [],
+                        opportunities: market.opportunities || [],
+                        saturation_level: market.saturation_level,
+                        target_personas: market.target_personas || []
+                    });
+                }
+
+                if (finance) {
+                    setFinanceModel(finance.raw_output || {
+                        thinking: finance.thinking,
+                        markdown_deliverable: finance.markdown_deliverable,
+                        costBreakdown: finance.cost_breakdown || [],
+                        revenueForecast: finance.revenue_forecast,
+                        pricingStrategy: finance.pricing_strategy,
+                        breakevenMonth: finance.breakeven_month
+                    });
+                }
+
+                if (brand) {
+                    setBrandPackage(brand.raw_output || {
+                        thinking: brand.thinking,
+                        markdown_deliverable: brand.markdown_deliverable,
+                        names: brand.names || [],
+                        tagline: brand.tagline,
+                        voice: brand.voice,
+                        palette: brand.palette || {},
+                        logoConcept: brand.logo_concept
+                    });
+                }
+
+                if (digital) {
+                    setDigitalPresence(digital.raw_output || {
+                        thinking: digital.thinking,
+                        markdown_deliverable: digital.markdown_deliverable,
+                        landingPageOutline: digital.landing_page_outline || [],
+                        features: digital.features || [],
+                        stack: digital.stack || []
+                    });
+                }
+
+                if (growth) {
+                    setGrowthPlan(growth.raw_output || {
+                        thinking: growth.thinking,
+                        markdown_deliverable: growth.markdown_deliverable,
+                        channels: growth.channels || [],
+                        acquisitionPlan: growth.acquisition_plan,
+                        roadmap90Day: growth.roadmap_90_day || []
+                    });
+                }
+
+                if (business) {
+                    setBusinessPlan(business.raw_output || {
+                        thinking: business.thinking,
+                        lean_canvas_markdown: business.lean_canvas_markdown
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load saved dashboard:', error);
+                if (mounted) {
+                    setHistoryLoadError(error.message || 'Unable to load saved dashboard.');
+                }
+            }
+        };
+
+        loadHistoryDashboard();
+
+        return () => {
+            mounted = false;
+        };
+    }, [
+        ideaId,
+        supabase,
+        setRefinedConcept,
+        setMarketResearch,
+        setFinanceModel,
+        setBrandPackage,
+        setDigitalPresence,
+        setGrowthPlan,
+        setBusinessPlan,
+        updateCurrentIdeaId
+    ]);
 
     // Fallback data in case the user visits dashboard directly without executing agents
     const fallbackConcept = refinedConcept || {
