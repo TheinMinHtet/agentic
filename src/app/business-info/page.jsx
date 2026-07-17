@@ -99,7 +99,7 @@ export default function BusinessInfoPage() {
 
     return (
         <section className="workflow-section section-padding container" style={{ textAlign: 'center', minHeight: 'calc(100vh - 56px)' }}>
-            <h2 style={{ marginBottom: '24px', fontWeight: 900, fontSize: '36px', fontFamily: 'var(--typography-heading-family)', letterSpacing: '-0.02em' }}>
+            <h2 style={{ marginBottom: '24px', fontWeight: 900, fontSize: '36px', fontFamily: 'var(--typography-heading-family)', letterSpacing: 0 }}>
                 Step 2: Business Information Collection
             </h2>
             <p className="text-secondary" style={{ marginBottom: '48px', fontSize: '18px', maxWidth: '640px', margin: '0 auto 48px auto', lineHeight: '1.6' }}>
@@ -282,7 +282,7 @@ export default function BusinessInfoPage() {
                             height: '52px',
                             fontSize: '16px',
                             fontWeight: 700,
-                            boxShadow: '0 8px 20px -4px rgba(27, 6, 36, 0.25)',
+                            boxShadow: '0 12px 24px rgba(79, 70, 229, 0.22)',
                             transition: 'all 0.2s ease-in-out'
                             }}
                     >
