@@ -6,10 +6,9 @@ import { ArrowRight, Sparkles, Play } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
 import WarRoomNodeGraph from './components/WarRoomNodeGraph';
 
-export default function LandingPage({ isAuthenticated: propIsAuth }) {
+export default function LandingPage() {
     const router = useRouter();
-    const { isAuthenticated: contextIsAuth } = useAuth();
-    const isAuthenticated = propIsAuth !== undefined ? propIsAuth : contextIsAuth;
+    const { isAuthenticated } = useAuth();
 
     const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
     const [isSimulating, setIsSimulating] = useState(false);
@@ -35,16 +34,13 @@ export default function LandingPage({ isAuthenticated: propIsAuth }) {
 
         const timer = setTimeout(() => {
             if (!isDeleting) {
-                // Typing forward
                 setTypedText(currentPhrase.slice(0, charIndex + 1));
                 setCharIndex(prev => prev + 1);
 
                 if (charIndex + 1 === currentPhrase.length) {
-                    // Finished typing — pause then start deleting
                     setTimeout(() => setIsDeleting(true), pauseAtEnd);
                 }
             } else {
-                // Deleting backward
                 setTypedText(currentPhrase.slice(0, charIndex - 1));
                 setCharIndex(prev => prev - 1);
 
@@ -75,7 +71,6 @@ export default function LandingPage({ isAuthenticated: propIsAuth }) {
             return;
         }
         setIsSimulating(true);
-        // Trigger high-velocity data flow for 2.2s before navigating into AI Studio
         setTimeout(() => {
             router.push(isAuthenticated ? '/idea-prompt' : '/login');
         }, 2200);

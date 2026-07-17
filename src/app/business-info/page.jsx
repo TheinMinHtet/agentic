@@ -1,38 +1,40 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '../context/AuthContext';
+import { useWorkflow } from '../context/WorkflowContext';
+import { createClient } from '@/lib/supabase/client';
 
-const BUSINESS_INFO_KEY = 'agentic:businessInfo';
 
 export default function BusinessInfoPage() {
     const router = useRouter();
+    const supabase = useMemo(() => createClient(), []);
+    const { user, loading } = useAuth();
+    const { businessInfo, updateBusinessInfo } = useWorkflow();
 
-    // Default form state containing all 8 target fields + 1 original field
     const [formData, setFormData] = useState({
+        title: '',
         location: '',
         budget: '',
         target_customers: '',
         business_type: '',
         experience_level: '',
-        goal: 'scalable', // Default to scalable startup
+        goal: 'scalable',
         core_painpoint: '',
         launch_timeline: '',
         revenue_stream: 'Subscription'
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [isSaved, setIsSaved] = useState(false);
 
-    // Load initial data from localStorage on mount
+    // Sync context values to form on load/update
     useEffect(() => {
-        const savedData = localStorage.getItem(BUSINESS_INFO_KEY);
-        if (savedData) {
-            try {
-                const parsed = JSON.parse(savedData);
-                setFormData(prev => ({ ...prev, ...parsed }));
-            } catch (e) {
-                console.error('Error parsing business info from localStorage', e);
-            }
+        if (businessInfo) {
+            setFormData(prev => ({ ...prev, ...businessInfo }));
         }
-    }, []);
+    }, [businessInfo]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -42,16 +44,67 @@ export default function BusinessInfoPage() {
         }));
     };
 
-    const handleNext = (e) => {
+    const handleNext = async (e) => {
         e.preventDefault();
-        // Save the complete state object to localStorage
-        localStorage.setItem(BUSINESS_INFO_KEY, JSON.stringify(formData));
-        router.push('/planning');
+
+        if (isSubmitting) {
+            return;
+        }
+
+        if (!formData.title.trim()) {
+            setErrorMessage('Please add a title for your idea.');
+            return;
+        }
+
+        if (loading) {
+            setErrorMessage('Checking your session. Please try again in a moment.');
+            return;
+        }
+
+        if (!user?.id) {
+            setErrorMessage('Please log in before creating an idea.');
+            return;
+        }
+
+        setIsSubmitting(true);
+        setErrorMessage('');
+        setIsSaved(false);
+
+        const ideaPayload = {
+            user_id: user.id,
+            title: formData.title.trim(),
+            location: formData.location.trim(),
+            budget: formData.budget.trim(),
+            target_customers: formData.target_customers.trim(),
+            business_type: formData.business_type.trim(),
+            experience_level: formData.experience_level.trim(),
+            goal: formData.goal,
+            core_painpoint: formData.core_painpoint.trim(),
+            launch_timeline: formData.launch_timeline.trim(),
+            revenue_stream: formData.revenue_stream,
+            status: 'processing'
+        };
+
+        const { error } = await supabase.from('ideas').insert(ideaPayload);
+
+        if (error) {
+            setErrorMessage(error.message || 'Unable to save your idea. Please try again.');
+            setIsSubmitting(false);
+            return;
+        }
+
+        updateBusinessInfo(formData);
+        setIsSaved(true);
+
+        setTimeout(() => {
+            router.push('/planning');
+        }, 700);
     };
+
 
     return (
         <section className="workflow-section section-padding container" style={{ textAlign: 'center', minHeight: 'calc(100vh - 56px)' }}>
-            <h2 style={{ marginBottom: '24px', fontWeight: 900, fontSize: '36px', fontFamily: 'var(--typography-heading-family)', letterSpacing: '-0.02em' }}>
+            <h2 style={{ marginBottom: '24px', fontWeight: 900, fontSize: '36px', fontFamily: 'var(--typography-heading-family)', letterSpacing: 0 }}>
                 Step 2: Business Information Collection
             </h2>
             <p className="text-secondary" style={{ marginBottom: '48px', fontSize: '18px', maxWidth: '640px', margin: '0 auto 48px auto', lineHeight: '1.6' }}>
@@ -97,6 +150,19 @@ export default function BusinessInfoPage() {
 
                     {/* 2-column input layout */}
                     <div className="business-form-grid">
+                        <div className="business-field">
+                            <label>Title</label>
+                            <input
+                                type="text"
+                                name="title"
+                                required
+                                className="input-text"
+                                placeholder="e.g., Neighborhood bakery marketplace"
+                                value={formData.title}
+                                onChange={handleChange}
+                            />
+                        </div>
+
                         <div className="business-field">
                             <label>Business Type / Category</label>
                             <input 
@@ -214,18 +280,31 @@ export default function BusinessInfoPage() {
                     <button 
                         type="submit" 
                         className="button-primary" 
+                        disabled={isSubmitting || loading}
                         style={{ 
                             width: '100%',
                             borderRadius: '16px',
                             height: '52px',
                             fontSize: '16px',
                             fontWeight: 700,
-                            boxShadow: '0 8px 20px -4px rgba(27, 6, 36, 0.25)',
+                            boxShadow: '0 12px 24px rgba(79, 70, 229, 0.22)',
                             transition: 'all 0.2s ease-in-out'
-                        }}
+                            }}
                     >
-                        Submit Information & Orchestrate Agents
+                        {isSubmitting ? 'Saving idea...' : 'Submit Information & Orchestrate Agents'}
                     </button>
+
+                    {errorMessage && (
+                        <p role="alert" style={{ color: '#b42318', margin: '16px 0 0 0', fontWeight: 700 }}>
+                            {errorMessage}
+                        </p>
+                    )}
+
+                    {isSaved && (
+                        <p role="status" style={{ color: '#247a32', margin: '16px 0 0 0', fontWeight: 700 }}>
+                            Idea saved. Preparing the planning layer...
+                        </p>
+                    )}
                 </form>
             </div>
         </section>
