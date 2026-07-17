@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function BusinessInfoPage() {
     const router = useRouter();
-    const { businessInfo, updateBusinessInfo, setActiveStep } = useWorkflow();
+    const { businessInfo, updateBusinessInfo, setActiveStep, updateCurrentIdeaId } = useWorkflow();
     const supabase = useMemo(() => createClient(), []);
     const { user, loading } = useAuth();
 
@@ -229,7 +229,7 @@ export default function BusinessInfoPage() {
                                 name="budget" 
                                 required 
                                 className="input-text" 
-                                placeholder="e.g., $10,000" 
+                                placeholder="e.g., $10,000 or 15,000,000 MMK" 
                                 value={formData.budget}
                                 onChange={handleChange}
                             />
