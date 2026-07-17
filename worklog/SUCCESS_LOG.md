@@ -60,6 +60,113 @@ command 2
 
 ## 📅 Entries
 
+### [2026-07-17] [Phase 1 | Idea Validation] Integrated DeepAgent (deepagents/browser) with ChatGoogleGenerativeAI and strict Input Sanity Guardrails
+
+**Status:** ✅ Complete
+**Duration:** 35 minutes
+**Files Changed:**
+- `package.json` - Added `deepagents`, `@langchain/google-genai`, `langchain`, `@langchain/core`, `@langchain/langgraph`, and `zod` to package dependencies (installed using D:\ drive redirection to bypass C:\ drive disk space constraints).
+- `src/agents/ideaUnderstandingAgent.js` - Integrated `createDeepAgent` from `'deepagents/browser'` and `ChatGoogleGenerativeAI` from `'@langchain/google-genai'`. Defined a plain JSON Schema `ValidationResultSchema` (matching validation rules in `docs/AGENT_HARNESS.md`) to prevent `$schema` and `additionalProperties` API payload rejection. Enforced strict Input Sanity guardrails in `SYSTEM_PROMPT` to score vague ideas (such as joke/gibberish pitches like "ha ha he he ho ho") as `0` and mark them as invalid. Bypassed local hardcoded checks to allow the LLM to reason and generate constructive feedback dynamically.
+
+**Commands Run:**
+```bash
+npm install deepagents langchain @langchain/core @langchain/langgraph @langchain/google-genai zod --legacy-peer-deps
+npm run lint
+npm run build
+```
+
+**Verification:**
+- [x] Linter runs and returns 0 warnings and 0 errors.
+- [x] Application builds successfully without errors.
+- [x] Confirmed the Deep Agent correctly validates raw startup pitches and returns structured `ValidationResult` objects.
+- [x] Verified input sanity rejects joke pitches.
+
+**Notes:**
+- Used a plain JSON schema for `responseFormat` instead of standard Zod to prevent Gemini API from throwing `400 Bad Request` on unsupported `$schema` or `additionalProperties` properties.
+- Converted `modelName` parameter to `model` parameter inside `ChatGoogleGenerativeAI` constructor to avoid constructor validation failures.
+
+**Tags:** #phase-1 #idea #deepagents #google-genai #validation #harness
+
+---
+
+### [2026-07-17] [Phase 1 | Idea Validation] Integrated Gemini LLM support for Idea Understanding Agent
+
+**Status:** ✅ Complete
+**Duration:** 15 minutes
+**Files Changed:**
+- `vite.config.js` - Configured Vite using `loadEnv` to load environment variables from system env, `.env`, or `.env.local` files, exposing the `process.env.GOOGLE_API_KEY` to the client app.
+- `src/agents/ideaUnderstandingAgent.js` - Integrated real Gemini API requests (`gemini-2.5-flash` model via HTTP fetch) inside `evaluateIdeaAsync`. Formulated system instruction and parsing logic to enforce structured outputs matching the schema. Added a robust fallback to local rules-based engine on failure or missing API key.
+
+**Commands Run:**
+```bash
+npm run lint
+npm run build
+```
+
+**Verification:**
+- [x] Linter runs and returns 0 warnings and 0 errors.
+- [x] Application builds successfully without errors.
+- [x] Fallback logic works correctly when the API key is not configured or fails.
+
+**Notes:**
+- Used a standard JSON response formatting configuration (`responseMimeType: "application/json"`) to get reliable, structured responses from Gemini.
+- Preserved local checks for empty and random inputs before making external API requests to save token costs.
+
+**Tags:** #phase-1 #gemini #llm #backend #frontend
+
+---
+
+### [2026-07-17] [Phase 1 | UI/UX] Fixed page layout responsiveness and scrolling issue
+
+**Status:** ✅ Complete
+**Duration:** 10 minutes
+**Files Changed:**
+- `src/App.css` - Removed `height` and `overflow: hidden` constraints from `.workflow-section` and updated the mobile overrides to use `min-height` and `height: auto` so that the pages are fully scrollable when content overflows the viewport.
+
+**Commands Run:**
+```bash
+npm run lint
+npm run build
+```
+
+**Verification:**
+- [x] Linter runs and returns 0 warnings and 0 errors.
+- [x] Application builds successfully without errors.
+
+**Notes:**
+- This resolves the issue where users could not scroll to view clarification questions or validation results when the UI content exceeded viewport height.
+
+**Tags:** #phase-1 #ui #frontend #responsiveness
+
+---
+
+### [2026-07-17] [Phase 1 | Idea Validation] Refactored Idea validation agent and UI page
+
+**Status:** ✅ Complete
+**Duration:** 25 minutes
+**Files Changed:**
+- `src/agents/ideaUnderstandingAgent.js` - Refactored match count, hasRandomCharacterPattern, structuredIdea extraction, and score output to match the target schema. Added detailed inline clarification questions.
+- `src/pages/IdeaPromptPage.jsx` - Refactored the layout to match a premium "Perplexity" design aesthetic with rounded-32px containers, increased whitespace, font-black headings, fade-in animations, and inline rendering of clarification questions. Saved the idea to `localStorage`.
+
+**Commands Run:**
+```bash
+npm run lint
+npm run build
+```
+
+**Verification:**
+- [x] Linter runs and returns 0 warnings and 0 errors.
+- [x] Application builds successfully without errors.
+- [x] Confirmed the validation routing logic handles both pass (>=50) and clarification (<50) cases gracefully.
+
+**Notes:**
+- Used self-contained styling and animation in `IdeaPromptPage.jsx` for clean encapsulation.
+- Extracted and structured the startup idea (concept, targetAudience, problem) rules-based heuristics in `ideaUnderstandingAgent.js`.
+
+**Tags:** #phase-1 #idea #frontend #ui
+
+---
+
 ### [2026-07-16] [Pre-Phase 0 | Documentation] Worklog System Created
 
 **Status:** ✅ Complete
