@@ -49,7 +49,7 @@ CRITICAL GUARDRAILS:
 - Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Financial Model & Projections Report". Use headers (H2, H3), bullet points, and markdown tables.
 - Language Alignment: Generate all textual properties, cost item names, revenue forecast descriptions, pricing strategy copy, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).`;
 
-export async function runFinanceAgent(refinedConcept, businessInfo, marketResearch, apiKey) {
+export async function runFinanceAgent(refinedConcept, businessInfo, marketResearch, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -58,7 +58,7 @@ export async function runFinanceAgent(refinedConcept, businessInfo, marketResear
 
   const structuredModel = model.withStructuredOutput(FinancialModelSchema);
 
-  const isBurmese = /[\u1000-\u109F]/.test(refinedConcept.concept);
+  const isBurmese = language === 'my' || /[\u1000-\u109F]/.test(refinedConcept.concept);
   const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `

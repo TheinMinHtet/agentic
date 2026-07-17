@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useMemo, useState } from 'react';
 import { ArrowRight, UserPlus } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { language, t } = useLanguage();
   const supabase = useMemo(() => createClient(), []);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -21,7 +23,7 @@ export default function RegisterPage() {
     setErrorMessage('');
 
     if (password !== confirmPassword) {
-      setErrorMessage('Password and confirm password must match.');
+      setErrorMessage(language === 'en' ? 'Password and confirm password must match.' : 'စကားဝှက်နှစ်ခု ကိုက်ညီမှုမရှိပါ။');
       return;
     }
 
@@ -45,7 +47,7 @@ export default function RegisterPage() {
 
     if (!data.user) {
       setIsSubmitting(false);
-      setErrorMessage('Registration succeeded, but no authenticated user was returned.');
+      setErrorMessage(language === 'en' ? 'Registration succeeded, but no authenticated user was returned.' : 'အကောင့်ဖွင့်ခြင်း အောင်မြင်သော်လည်း user အချက်အလက် မတွေ့ရှိပါ။');
       return;
     }
 
@@ -78,27 +80,27 @@ export default function RegisterPage() {
       <div className="auth-card card">
         <span className="badge-accent auth-badge">
           <UserPlus size={14} />
-          Create account
+          {language === 'en' ? 'Create account' : 'အကောင့်သစ်ဖွင့်ရန်'}
         </span>
-        <h2>Start your workspace</h2>
+        <h2>{t('auth.createAccount')}</h2>
         <p className="text-muted auth-copy">
-          Register with email and password to save your startup blueprint.
+          {t('auth.signUpDesc')}
         </p>
         <form onSubmit={handleRegister} className="auth-form">
           <div className="form-field">
-            <label htmlFor="username">Username</label>
+            <label htmlFor="username">{language === 'en' ? 'Username' : 'အသုံးပြုသူအမည်'}</label>
             <input
               id="username"
               type="text"
               className="input-text"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              placeholder="Your username"
+              placeholder={language === 'en' ? "Your username" : "သင့်အသုံးပြုသူအမည်"}
               required
             />
           </div>
           <div className="form-field">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t('auth.email')}</label>
             <input
               id="email"
               type="email"
@@ -110,39 +112,39 @@ export default function RegisterPage() {
             />
           </div>
           <div className="form-field">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t('auth.password')}</label>
             <input
               id="password"
               type="password"
               className="input-text"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Create a password"
+              placeholder={language === 'en' ? "Create a password" : "စကားဝှက်အသစ်သတ်မှတ်ပါ"}
               required
               minLength={6}
             />
           </div>
           <div className="form-field">
-            <label htmlFor="confirm-password">Confirm Password</label>
+            <label htmlFor="confirm-password">{language === 'en' ? 'Confirm Password' : 'စကားဝှက်ကို အတည်ပြုပါ'}</label>
             <input
               id="confirm-password"
               type="password"
               className="input-text"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              placeholder="Repeat your password"
+              placeholder={language === 'en' ? "Repeat your password" : "စကားဝှက်ကို ထပ်မံရိုက်ထည့်ပါ"}
               required
               minLength={6}
             />
           </div>
           {errorMessage && <p className="auth-error">{errorMessage}</p>}
           <button type="submit" className="button-primary button-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating account...' : 'Create account'}
+            {isSubmitting ? (language === 'en' ? 'Creating account...' : 'အကောင့်ဖွင့်နေသည်...') : t('auth.signUp')}
             <ArrowRight size={18} />
           </button>
         </form>
         <p className="auth-switch text-muted">
-          Already have an account? <Link href="/login">Log in</Link>
+          {t('auth.haveAccount')} <Link href="/login">{t('auth.signIn')}</Link>
         </p>
       </div>
     </section>

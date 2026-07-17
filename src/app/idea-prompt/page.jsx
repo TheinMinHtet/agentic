@@ -11,11 +11,13 @@ import {
     getIdeaRouteDecision,
 } from '../../agents/ideaUnderstandingAgent';
 import { autoRefineIdeaAsync } from '../../agents/autoRefineAgent';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function IdeaPromptPage() {
     const router = useRouter();
     const supabase = useMemo(() => createClient(), []);
     const { user, loading } = useAuth();
+    const { language, t } = useLanguage();
     const { rawUserIdea, updateStartupIdea, validationResult, setValidationResult, setActiveStep } = useWorkflow();
     const [idea, setIdea] = useState('');
     const [ideaHistory, setIdeaHistory] = useState([]);
@@ -34,7 +36,7 @@ export default function IdeaPromptPage() {
             setIdea(refinedText);
             
             // Re-evaluate automatically to update the score
-            const result = await evaluateIdeaAsync(refinedText);
+            const result = await evaluateIdeaAsync(refinedText, language);
             const compositeScore = getCompositeValidationScore(result);
             setValidationResult({ ...result, compositeScore });
             
@@ -109,7 +111,7 @@ export default function IdeaPromptPage() {
         setIsSubmitting(true);
 
         try {
-            const result = await evaluateIdeaAsync(idea);
+            const result = await evaluateIdeaAsync(idea, language);
             const compositeScore = getCompositeValidationScore(result);
             const fullResult = { ...result, compositeScore };
             setValidationResult(fullResult);
@@ -138,14 +140,14 @@ export default function IdeaPromptPage() {
                 <aside className="idea-history-panel">
                     <div className="idea-history-header">
                         <div>
-                            <p className="idea-history-kicker">Workspace</p>
-                            <h3>Idea History</h3>
+                            <p className="idea-history-kicker">{language === 'en' ? 'Workspace' : 'လုပ်ငန်းခွင်'}</p>
+                            <h3>{language === 'en' ? 'Idea History' : 'စိတ်ကူးမှတ်တမ်း'}</h3>
                         </div>
                         <span>{ideaHistory.length}</span>
                     </div>
 
                     {isLoadingHistory && (
-                        <p className="idea-history-empty">Loading history...</p>
+                        <p className="idea-history-empty">{language === 'en' ? 'Loading history...' : 'မှတ်တမ်းဖတ်နေသည်...'}</p>
                     )}
 
                     {!isLoadingHistory && historyError && (
@@ -153,11 +155,11 @@ export default function IdeaPromptPage() {
                     )}
 
                     {!isLoadingHistory && !historyError && !user?.id && (
-                        <p className="idea-history-empty">Log in to see saved ideas.</p>
+                        <p className="idea-history-empty">{language === 'en' ? 'Log in to see saved ideas.' : 'မှတ်တမ်းကြည့်ရန် လော့ဂ်အင်ဝင်ပါ'}</p>
                     )}
 
                     {!isLoadingHistory && !historyError && user?.id && ideaHistory.length === 0 && (
-                        <p className="idea-history-empty">No saved ideas yet.</p>
+                        <p className="idea-history-empty">{language === 'en' ? 'No saved ideas yet.' : 'မှတ်တမ်းမရှိသေးပါ။'}</p>
                     )}
 
                     <div className="idea-history-list">
@@ -183,9 +185,9 @@ export default function IdeaPromptPage() {
                 </aside>
 
                 <div className="idea-prompt-main">
-                    <h2 style={{ marginBottom: '24px', fontWeight: 900, fontFamily: 'var(--typography-heading-family)' }}>Step 1: Idea Understanding</h2>
+                    <h2 style={{ marginBottom: '24px', fontWeight: 900, fontFamily: 'var(--typography-heading-family)' }}>{t('ideaPrompt.title')}</h2>
                     <p className="text-secondary" style={{ marginBottom: '40px', fontSize: '18px', maxWidth: '640px', margin: '0 auto 40px auto' }}>
-                        Tell us about your next big thing. Our NLP models will extract the core concepts and intent.
+                        {t('ideaPrompt.desc')}
                     </p>
 
             <div className="card" style={{
@@ -198,9 +200,9 @@ export default function IdeaPromptPage() {
                 boxShadow: 'var(--elevation-card)',
                 transition: 'box-shadow var(--motion-duration-base) var(--motion-easing-standard), transform var(--motion-duration-base) var(--motion-easing-standard)'
             }}>
-                <h3 style={{ marginBottom: '20px', fontWeight: 900, fontFamily: 'var(--typography-heading-family)' }}>Idea Understanding Agent</h3>
+                <h3 style={{ marginBottom: '20px', fontWeight: 900, fontFamily: 'var(--typography-heading-family)' }}>{language === 'en' ? 'Idea Understanding Agent' : 'စိတ်ကူးဆန်းစစ်မှု အေဂျင့်'}</h3>
                 <textarea
-                    placeholder="Example: A mobile app that connects local bakers with nearby customers"
+                    placeholder={t('ideaPrompt.placeholder')}
                     className="input-text idea-input"
                     value={idea}
                     onChange={(e) => setIdea(e.target.value)}
@@ -229,7 +231,7 @@ export default function IdeaPromptPage() {
                     onClick={handleLaunch}
                     disabled={!idea.trim() || isSubmitting}
                 >
-                    {isSubmitting ? 'Evaluating idea...' : 'Launch AI Workflow'}
+                    {isSubmitting ? (language === 'en' ? 'Evaluating idea...' : 'ဆန်းစစ်ချက်လုပ်ဆောင်နေသည်...') : t('ideaPrompt.buttonValidate')}
                 </button>
 
                 {validationResult && (
@@ -241,7 +243,7 @@ export default function IdeaPromptPage() {
                         borderRadius: '16px'
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
-                            <p className="idea-validation-title" style={{ margin: 0, fontWeight: 900, fontSize: '14px', letterSpacing: '0.05em' }}>Validation Result</p>
+                            <p className="idea-validation-title" style={{ margin: 0, fontWeight: 900, fontSize: '14px', letterSpacing: '0.05em' }}>{language === 'en' ? 'Validation Result' : 'ဆန်းစစ်မှုရလဒ်'}</p>
                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                 <span style={{
                                     padding: '5px 12px',
@@ -253,7 +255,7 @@ export default function IdeaPromptPage() {
                                     color: validationResult.evaluatedBy === 'gemini' ? 'var(--color-accent-strong)' : 'var(--color-text-muted)',
                                     border: validationResult.evaluatedBy === 'gemini' ? '1px solid #c7d2fe' : '1px solid var(--color-border-light)'
                                 }}>
-                                    {validationResult.evaluatedBy === 'gemini' ? 'GEMINI AI' : 'LOCAL ENGINE'}
+                                    {validationResult.evaluatedBy === 'gemini' ? 'GEMINI AI' : (language === 'en' ? 'LOCAL ENGINE' : 'စက်တွင်းဆော့ဝဲလ်')}
                                 </span>
                                 <span style={{
                                     padding: '6px 16px',
@@ -264,28 +266,28 @@ export default function IdeaPromptPage() {
                                     background: validationResult.score >= 50 ? 'linear-gradient(135deg, #0f766e 0%, var(--color-success) 100%)' : 'var(--gradient-ai)',
                                     color: 'var(--color-text-inverse)'
                                 }}>
-                                    {validationResult.score >= 50 ? 'PASSED' : 'REFINEMENT NEEDED'}
+                                    {validationResult.score >= 50 ? (language === 'en' ? 'PASSED' : 'အောင်မြင်သည်') : (language === 'en' ? 'REFINEMENT NEEDED' : 'မွမ်းမံရန် လိုအပ်သည်')}
                                 </span>
                             </div>
                         </div>
                         
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '24px', textAlign: 'center' }}>
                             <div style={{ padding: '16px 8px', background: 'var(--color-background)', borderRadius: '16px', border: '1px solid var(--color-border-light)' }}>
-                                <p style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Clarity</p>
+                                <p style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{language === 'en' ? 'Clarity' : 'ရှင်းလင်းမှု'}</p>
                                 <p style={{ margin: '8px 0 0 0', fontSize: '24px', fontWeight: 900 }}>{validationResult.clarity}%</p>
                             </div>
                             <div style={{ padding: '16px 8px', background: 'var(--color-background)', borderRadius: '16px', border: '1px solid var(--color-border-light)' }}>
-                                <p style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Actionability</p>
+                                <p style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{language === 'en' ? 'Actionability' : 'အကောင်အထည်ဖော်နိုင်မှု'}</p>
                                 <p style={{ margin: '8px 0 0 0', fontSize: '24px', fontWeight: 900 }}>{validationResult.actionability}%</p>
                             </div>
                             <div style={{ padding: '16px 8px', background: 'var(--color-background)', borderRadius: '16px', border: '1px solid var(--color-border-light)' }}>
-                                <p style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Uniqueness</p>
+                                <p style={{ margin: 0, fontSize: '12px', fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{language === 'en' ? 'Uniqueness' : 'ထူးခြားမှု'}</p>
                                 <p style={{ margin: '8px 0 0 0', fontSize: '24px', fontWeight: 900 }}>{validationResult.uniqueness}%</p>
                             </div>
                         </div>
 
                         <div style={{ marginBottom: '24px' }}>
-                            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Composite Score</p>
+                            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{language === 'en' ? 'Composite Score' : 'စုစုပေါင်းရမှတ်'}</p>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                                 <div style={{ flex: 1, height: '10px', background: 'var(--color-border-light)', borderRadius: '5px', overflow: 'hidden' }}>
                                     <div style={{
@@ -301,7 +303,7 @@ export default function IdeaPromptPage() {
                         </div>
 
                         <div style={{ padding: '16px', background: 'var(--color-background)', borderRadius: '16px', border: '1px solid var(--color-border-light)', marginBottom: validationResult.score < 50 ? '24px' : '0' }}>
-                            <p style={{ margin: '0 0 6px 0', fontSize: '12px', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Constructive Feedback</p>
+                            <p style={{ margin: '0 0 6px 0', fontSize: '12px', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t('ideaPrompt.feedbackTitle')}</p>
                             <p style={{ margin: 0, fontSize: '15px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>
                                 {validationResult.constructive_feedback}
                             </p>
@@ -313,9 +315,9 @@ export default function IdeaPromptPage() {
                                 backgroundColor: 'var(--color-accent-soft)',
                                 borderRadius: '16px',
                                 borderLeft: '4px solid var(--color-accent)'
-                            }}>
+                              }}>
                                 <p style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 900, color: 'var(--color-primary)' }}>
-                                    Clarifying Questions to Address:
+                                    {t('ideaPrompt.questionsTitle')}
                                 </p>
                                 <ul style={{ paddingLeft: '20px', margin: 0, fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>
                                     {validationResult.clarificationQuestions.map((q, idx) => (
@@ -342,22 +344,48 @@ export default function IdeaPromptPage() {
                                             transition: 'opacity 0.2s'
                                         }}
                                     >
-                                        {isAutoRefining ? '✨ Refining Idea...' : '✨ Auto-Refine Idea'}
+                                        {isAutoRefining ? (language === 'en' ? '✨ Refining Idea...' : '✨ စိတ်ကူးကို မွမ်းမံနေသည်...') : t('ideaPrompt.buttonAutoRefine')}
                                     </button>
                                     <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic', textAlign: 'center' }}>
-                                        Or adjust your pitch manually and click "Launch AI Workflow".
+                                        {language === 'en' ? 'Or adjust your pitch manually and click "Launch AI Workflow".' : 'သို့မဟုတ် စိတ်ကူးကို ကိုယ်တိုင်ပြင်ဆင်ပြီး "Validate Idea" ကို နှိပ်ပါ။'}
                                     </p>
                                 </div>
                             </div>
                         )}
                     </div>
                 )}
-                    </div>
+            </div>
+            {validationResult && validationResult.score >= 50 && (
+                <div style={{ marginTop: '24px', width: '100%', maxWidth: '800px', marginLeft: 'auto', marginRight: 'auto' }}>
+                    <button 
+                        className="button-primary"
+                        onClick={() => {
+                            updateStartupIdea(idea.trim());
+                            setActiveStep('business-info');
+                            router.push('/business-info');
+                        }}
+                        style={{
+                            width: '100%',
+                            height: '52px',
+                            borderRadius: '16px',
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '8px'
+                        }}
+                    >
+                        {t('ideaPrompt.buttonProceed')}
+                        <ArrowRight size={18} />
+                    </button>
                 </div>
+            )}
+            </div>
             </div>
             {toastMessage && (
                 <div className="idea-toast" role="status" aria-live="polite">
-                    <p className="idea-toast-title">Clarification Needed (Score {validationResult?.score})</p>
+                    <p className="idea-toast-title">{language === 'en' ? 'Clarification Needed' : 'အချက်အလက် ထပ်မံလိုအပ်သည်'} (Score {validationResult?.score})</p>
                     <p className="idea-toast-copy">{toastMessage}</p>
                 </div>
             )}

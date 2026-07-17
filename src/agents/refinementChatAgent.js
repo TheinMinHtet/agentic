@@ -139,7 +139,7 @@ CRITICAL GUARDRAILS:
 - Currency & Scale Preservation: All updated costs, price points, and TAM metrics must be formatted and scaled in MMK (Myanmar Kyat). Use realistic Myanmar market pricing rules (e.g., 3,000 - 4,000 MMK for items, not 400 MMK). Do NOT use USD or insert dollar ($) symbols.
 - Language Alignment: Generate the reply_message, updated descriptions, guidelines, cost item names, and updated markdown deliverables in the same language as the user's input/instruction. If the instruction or the baseline blueprint is in Burmese, generate all outputs in Burmese; if in English, write in English.`;
 
-export async function runRefinementChatAgent(userMessage, currentBlueprint, businessInfo, apiKey) {
+export async function runRefinementChatAgent(userMessage, currentBlueprint, businessInfo, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -148,7 +148,8 @@ export async function runRefinementChatAgent(userMessage, currentBlueprint, busi
 
   const structuredModel = model.withStructuredOutput(RefinementResponseSchema);
 
-  const isBurmese = /[\u1000-\u109F]/.test(userMessage) || 
+  const isBurmese = language === 'my' ||
+                    /[\u1000-\u109F]/.test(userMessage) || 
                     (currentBlueprint.financeModel && /[\u1000-\u109F]/.test(currentBlueprint.financeModel.markdown_deliverable)) ||
                     (currentBlueprint.marketResearch && /[\u1000-\u109F]/.test(currentBlueprint.marketResearch.markdown_deliverable));
   const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";

@@ -65,7 +65,7 @@ CRITICAL GUARDRAILS:
 - Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Market Intelligence Report". Use headers (H2, H3), bullet points, and markdown tables. Outline Target Market, Competitors Mapping, and Trends/Saturation.
 - Language Alignment: Generate all textual properties, descriptions, target personas (names, roles, pain points, budget limits), competitor weaknesses, opportunities list, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).`;
 
-export async function runMarketResearchAgent(refinedConcept, businessInfo, apiKey) {
+export async function runMarketResearchAgent(refinedConcept, businessInfo, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -74,7 +74,7 @@ export async function runMarketResearchAgent(refinedConcept, businessInfo, apiKe
 
   const structuredModel = model.withStructuredOutput(MarketIntelligenceSchema);
 
-  const isBurmese = /[\u1000-\u109F]/.test(refinedConcept.concept);
+  const isBurmese = language === 'my' || /[\u1000-\u109F]/.test(refinedConcept.concept);
   const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `

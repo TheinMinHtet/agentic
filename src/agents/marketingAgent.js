@@ -37,7 +37,7 @@ CRITICAL GUARDRAILS:
 - Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Marketing Strategy & 90-Day Roadmap". Use headers (H2, H3) and lists.
 - Language Alignment: Generate all recommended channels, acquisition plan copy, 90-day roadmap milestones, thinking, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).`;
 
-export async function runMarketingAgent(refinedConcept, businessInfo, marketResearch, apiKey) {
+export async function runMarketingAgent(refinedConcept, businessInfo, marketResearch, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -46,7 +46,7 @@ export async function runMarketingAgent(refinedConcept, businessInfo, marketRese
 
   const structuredModel = model.withStructuredOutput(GrowthPlanSchema);
 
-  const isBurmese = /[\u1000-\u109F]/.test(refinedConcept.concept);
+  const isBurmese = language === 'my' || /[\u1000-\u109F]/.test(refinedConcept.concept);
   const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `

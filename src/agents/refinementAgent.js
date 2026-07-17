@@ -36,7 +36,7 @@ CRITICAL GUARDRAILS:
 - Currency Alignment: Always describe and align any monetary references, targets, or pricing examples in terms of MMK (Myanmar Kyat) rather than USD ($) or standard dollar units.
 - Language Alignment: Generate all textual properties in the output schema (such as thinking, concept, improved_summary, key_differentiators, target_audience_refined) in the same language as the user's input raw idea/concept (e.g. if the raw startup idea is in Burmese, write all properties in Burmese; if in English, write in English).`;
 
-export async function runRefinementAgent(rawIdea, businessInfo, apiKey) {
+export async function runRefinementAgent(rawIdea, businessInfo, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -45,7 +45,7 @@ export async function runRefinementAgent(rawIdea, businessInfo, apiKey) {
 
   const structuredModel = model.withStructuredOutput(RefinedConceptSchema);
 
-  const isBurmese = /[\u1000-\u109F]/.test(rawIdea);
+  const isBurmese = language === 'my' || /[\u1000-\u109F]/.test(rawIdea);
   const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `

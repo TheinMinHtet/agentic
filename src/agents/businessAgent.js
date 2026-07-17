@@ -22,7 +22,7 @@ CRITICAL GUARDRAILS:
 - Information fidelity: Use only details directly derived from other agent outputs; do not fabricate numbers or metrics.
 - Language Alignment: Generate all textual descriptions, 9-box fields in the Lean Canvas, thinking explanation, and the final markdown deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these fields/documents in Burmese; if in English, write in English).`;
 
-export async function runBusinessAgent(refinedConcept, marketResearch, financeModel, brandPackage, digitalPresence, growthPlan, apiKey) {
+export async function runBusinessAgent(refinedConcept, marketResearch, financeModel, brandPackage, digitalPresence, growthPlan, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -31,7 +31,7 @@ export async function runBusinessAgent(refinedConcept, marketResearch, financeMo
 
   const structuredModel = model.withStructuredOutput(LeanCanvasOutputSchema);
 
-  const isBurmese = /[\u1000-\u109F]/.test(refinedConcept.concept);
+  const isBurmese = language === 'my' || /[\u1000-\u109F]/.test(refinedConcept.concept);
   const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `

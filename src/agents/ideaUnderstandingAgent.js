@@ -418,7 +418,7 @@ Do not use a generic or hardcoded template; customize your reasoning and constru
 CRITICAL GUARDRAIL - LANGUAGE ALIGNMENT:
 - Generate all feedback, comments, and constructive suggestions in the same language as the user's input (e.g. if the user prompts in Burmese, write the feedback in Burmese; if in English, write in English).`;
 
-async function evaluateIdeaWithGemini(rawInput, apiKey) {
+async function evaluateIdeaWithGemini(rawInput, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -427,10 +427,13 @@ async function evaluateIdeaWithGemini(rawInput, apiKey) {
 
   const structuredModel = model.withStructuredOutput(ValidationResultSchema);
 
+  const isBurmese = language === 'my' || /[\u1000-\u109F]/.test(rawInput);
+  const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
+
   console.log('Invoking structured Gemini model...');
   const parsed = await structuredModel.invoke([
     { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: `Evaluate this startup idea:\n\n"${rawInput}"` }
+    { role: 'user', content: `Evaluate this startup idea. IMPORTANT: You MUST write/generate all output fields (thinking, constructive_feedback) in the ${targetLanguage}. Do NOT write them in English:\n\n"${rawInput}"` }
   ]);
 
   if (!parsed) {
@@ -472,14 +475,14 @@ async function evaluateIdeaWithGemini(rawInput, apiKey) {
   return mappedResult;
 }
 
-export async function evaluateIdeaAsync(rawIdeaInput) {
+export async function evaluateIdeaAsync(rawIdeaInput, language) {
   const rawInput = (rawIdeaInput ?? '').trim();
   const apiKey = process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || process.env.VITE_GOOGLE_API_KEY;
 
   if (apiKey && apiKey.trim()) {
     try {
       console.log('Evaluating idea with Gemini Deep Agent...');
-      const result = await evaluateIdeaWithGemini(rawInput, apiKey);
+      const result = await evaluateIdeaWithGemini(rawInput, apiKey, language);
       console.log('Gemini Deep Agent evaluation succeeded.');
       return result;
     } catch (error) {

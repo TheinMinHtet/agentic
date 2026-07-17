@@ -46,7 +46,7 @@ CRITICAL GUARDRAILS:
 - Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Digital Presence & Wireframe Specification". Use headers (H2, H3) and lists.
 - Language Alignment: Generate all textual properties, section titles, body copywriting, CTA buttons text, core service features list, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English). Technical terms (like technologies in stack) may remain in standard technical terms/English if appropriate.`;
 
-export async function runWebsiteAgent(refinedConcept, businessInfo, brandPackage, apiKey) {
+export async function runWebsiteAgent(refinedConcept, businessInfo, brandPackage, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -55,7 +55,7 @@ export async function runWebsiteAgent(refinedConcept, businessInfo, brandPackage
 
   const structuredModel = model.withStructuredOutput(DigitalPresenceSchema);
 
-  const isBurmese = /[\u1000-\u109F]/.test(refinedConcept.concept);
+  const isBurmese = language === 'my' || /[\u1000-\u109F]/.test(refinedConcept.concept);
   const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `

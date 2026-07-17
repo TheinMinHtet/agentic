@@ -50,7 +50,7 @@ CRITICAL GUARDRAILS:
 - Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Brand Identity & Style Guide". Use headers (H2, H3), lists, and visual code blocks showing hex colors.
 - Language Alignment: Generate all textual properties, descriptions, tagline, tone of voice guidelines, logo concept, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).`;
 
-export async function runBrandAgent(refinedConcept, businessInfo, apiKey) {
+export async function runBrandAgent(refinedConcept, businessInfo, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -59,7 +59,7 @@ export async function runBrandAgent(refinedConcept, businessInfo, apiKey) {
 
   const structuredModel = model.withStructuredOutput(BrandPackageSchema);
 
-  const isBurmese = /[\u1000-\u109F]/.test(refinedConcept.concept);
+  const isBurmese = language === 'my' || /[\u1000-\u109F]/.test(refinedConcept.concept);
   const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `
