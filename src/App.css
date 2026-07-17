@@ -39,6 +39,12 @@
   box-shadow: rgba(99, 102, 241, 0.34) 0 12px 28px -10px;
 }
 
+.nav-center-links {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-16);
+}
+
 .nav-actions {
   display: flex;
   align-items: center;
@@ -68,11 +74,128 @@
   text-decoration: none;
 }
 
+/* pi.dev inspired navbar overrides specifically for Landing Page */
+.navbar.navbar-dark-landing {
+  position: sticky !important;
+  top: 14px !important;
+  z-index: 50 !important;
+  width: min(100% - 48px, 960px) !important;
+  margin: 14px auto -66px auto !important;
+  min-height: 52px !important;
+  padding: 8px 20px !important;
+  background: rgba(20, 23, 31, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-top-color: rgba(255, 255, 255, 0.22) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+.navbar.navbar-dark-landing .brand-link {
+  color: #F8FAFC !important;
+  font-family: var(--font-jakarta, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.navbar.navbar-dark-landing .brand-mark {
+  width: 26px !important;
+  height: 26px !important;
+  background: rgba(139, 92, 246, 0.22) !important;
+  color: #C4B5FD !important;
+  border: 1px solid rgba(139, 92, 246, 0.45) !important;
+  border-radius: 6px !important;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.35) !important;
+}
+
+/* Center navigation links styled exactly like pi.dev */
+.navbar.navbar-dark-landing .nav-center-links {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: clamp(14px, 2.5vw, 28px) !important;
+}
+
+.navbar.navbar-dark-landing .nav-link {
+  color: #94A3B8 !important;
+  font-family: var(--font-inter, 'Inter', system-ui, sans-serif) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  padding: 6px 4px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  position: relative !important;
+}
+
+.navbar.navbar-dark-landing .nav-link:hover {
+  color: #FFFFFF !important;
+  background: transparent !important;
+}
+
+.navbar.navbar-dark-landing .nav-link.active {
+  color: #FFFFFF !important;
+  background: transparent !important;
+}
+
+.navbar.navbar-dark-landing .nav-link.active::after {
+  content: "" !important;
+  position: absolute !important;
+  right: 0 !important;
+  bottom: -4px !important;
+  left: 0 !important;
+  height: 2px !important;
+  background: #00F2FE !important;
+  box-shadow: 0 0 8px rgba(0, 242, 254, 0.8) !important;
+}
+
+/* Right action buttons */
+.navbar.navbar-dark-landing .nav-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.navbar.navbar-dark-landing .nav-auth-button.button-primary {
+  background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%) !important;
+  color: #FFFFFF !important;
+  font-family: var(--font-inter, 'Inter', system-ui, sans-serif) !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  padding: 7px 16px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35) !important;
+}
+
+.navbar.navbar-dark-landing .nav-auth-button.button-secondary {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #E2E8F0 !important;
+  font-family: var(--font-inter, 'Inter', system-ui, sans-serif) !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  padding: 7px 14px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.navbar.navbar-dark-landing .nav-auth-button.button-secondary:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #FFFFFF !important;
+}
+
 .app-main {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
+
 
 .hero-section {
   display: flex;
