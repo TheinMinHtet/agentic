@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWorkflow } from '../context/WorkflowContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function PlanningPage() {
     const router = useRouter();
@@ -12,6 +13,7 @@ export default function PlanningPage() {
         runSequentialPlanning,
         setActiveStep
     } = useWorkflow();
+    const { language } = useLanguage();
 
     const [error, setError] = useState(null);
     const terminalEndRef = useRef(null);
@@ -60,10 +62,10 @@ export default function PlanningPage() {
     return (
         <section className="workflow-section section-padding container" style={{ minHeight: 'calc(100vh - 56px)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h2 style={{ marginBottom: '16px', fontWeight: 900, fontSize: '32px', fontFamily: 'var(--typography-heading-family)', textAlign: 'center' }}>
-                Step 3: AI Agent Planning Layer
+                {language === 'en' ? 'Step 3: AI Agent Planning Layer' : 'အဆင့် ၃ - AI အေဂျင့်များ စီမံချက်ချခြင်း'}
             </h2>
             <p className="text-secondary" style={{ marginBottom: '40px', fontSize: '18px', textAlign: 'center', maxWidth: '600px', margin: '0 auto 40px auto' }}>
-                Our orchestrator is refining your concept and drafting initial market intelligence...
+                {language === 'en' ? 'Our orchestrator is refining your concept and drafting initial market intelligence...' : 'AI အေဂျင့်များမှ သင့်လုပ်ငန်းစိတ်ကူးကို မွမ်းမံခြင်းနှင့် ဈေးကွက်အခြေအနေကို ဆန်းစစ်နေပါသည်...'}
             </p>
 
             <div className="card" style={{
@@ -90,7 +92,7 @@ export default function PlanningPage() {
                         }} />
                     )}
                     <h4 style={{ margin: 0, fontWeight: 900 }}>
-                        {error ? 'Execution Interrupted' : `Active Agent: ${activeAgentName}`}
+                        {error ? (language === 'en' ? 'Execution Interrupted' : 'လုပ်ဆောင်မှု ရပ်တန့်သွားသည်') : (language === 'en' ? `Active Agent: ${activeAgentName}` : `လက်ရှိဆောင်ရွက်နေသော အေဂျင့် - ${activeAgentName === 'Market Research Agent' ? 'ဈေးကွက်ဆန်းစစ်ရေး အေဂျင့်' : 'စိတ်ကူးမွမ်းမံရေး အေဂျင့်'}`)}
                     </h4>
                 </div>
 
@@ -118,7 +120,7 @@ export default function PlanningPage() {
                     
                     {agentProgress.market === 'completed' && (
                         <div style={{ color: 'var(--color-accent)', fontWeight: 'bold', marginTop: '8px' }}>
-                            [SUCCESS] Planning steps completed. Advancing to Specialized Agents Pool...
+                            {language === 'en' ? '[SUCCESS] Planning steps completed. Advancing to Specialized Agents Pool...' : '[အောင်မြင်သည်] စီမံချက်ချခြင်း အောင်မြင်ပါသည်။ အထူးပြု AI အေဂျင့်စနစ်များဆီသို့ ဆက်လက်လုပ်ဆောင်နေပါသည်...'}
                         </div>
                     )}
 
@@ -133,10 +135,10 @@ export default function PlanningPage() {
                 {error && (
                     <div style={{ marginTop: '24px', display: 'flex', gap: '16px' }}>
                         <button className="button-primary" onClick={() => window.location.reload()} style={{ borderRadius: '12px' }}>
-                            Retry Execution
+                            {language === 'en' ? 'Retry Execution' : 'ပြန်လည်စမ်းသပ်မည်'}
                         </button>
                         <button className="button-secondary" onClick={() => router.push('/business-info')} style={{ borderRadius: '12px' }}>
-                            Back to Details
+                            {language === 'en' ? 'Back to Details' : 'နောက်သို့'}
                         </button>
                     </div>
                 )}

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWorkflow } from '../context/WorkflowContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function SpecializedAgentsPage() {
     const router = useRouter();
@@ -12,6 +13,7 @@ export default function SpecializedAgentsPage() {
         runParallelSpecializedPlanning,
         setActiveStep
     } = useWorkflow();
+    const { language, t } = useLanguage();
 
     const [error, setError] = useState(null);
 
@@ -49,30 +51,30 @@ export default function SpecializedAgentsPage() {
     const getStatusStyles = (status) => {
         switch (status) {
             case 'completed':
-                return { label: 'COMPLETED', bg: 'rgba(174, 236, 29, 0.15)', color: '#3d6b00' };
+                return { label: language === 'en' ? 'COMPLETED' : 'ပြီးစီးသည်', bg: 'rgba(174, 236, 29, 0.15)', color: '#3d6b00' };
             case 'running':
-                return { label: 'RUNNING', bg: 'rgba(56, 189, 248, 0.15)', color: '#0369a1' };
+                return { label: language === 'en' ? 'RUNNING' : 'လုပ်ဆောင်နေသည်', bg: 'rgba(56, 189, 248, 0.15)', color: '#0369a1' };
             case 'failed':
-                return { label: 'FAILED', bg: 'rgba(239, 68, 68, 0.15)', color: '#b91c1c' };
+                return { label: language === 'en' ? 'FAILED' : 'မအောင်မြင်ပါ', bg: 'rgba(239, 68, 68, 0.15)', color: '#b91c1c' };
             default:
-                return { label: 'PENDING', bg: 'var(--color-surface-light)', color: 'var(--color-text-muted)' };
+                return { label: language === 'en' ? 'PENDING' : 'စောင့်ဆိုင်းဆဲ', bg: 'var(--color-surface-light)', color: 'var(--color-text-muted)' };
         }
     };
 
     const agentsList = [
-        { key: 'finance', title: 'Finance Agent', desc: 'Sizing capital requirements, operational margins & revenue tiers.' },
-        { key: 'brand', title: 'Brand Agent', desc: 'Crafting guidelines, taglines, suggested names & visual palette.' },
-        { key: 'website', title: 'Website Agent', desc: 'Defining wireframe sections, product capabilities & tech stacks.' },
-        { key: 'marketing', title: 'Marketing Agent', desc: 'Formulating acquisition strategies and 90-day launch roadmap.' }
+        { key: 'finance', title: language === 'en' ? 'Finance Agent' : 'ဘဏ္ဍာရေး အေဂျင့်', desc: language === 'en' ? 'Sizing capital requirements, operational margins & revenue tiers.' : 'ကနဦးကုန်ကျစရိတ်များ၊ လည်ပတ်မှုစရိတ်များနှင့် ဝင်ငွေပုံစံများကို တွက်ချက်ခြင်း။' },
+        { key: 'brand', title: language === 'en' ? 'Brand Agent' : 'အမှတ်တံဆိပ် အေဂျင့်', desc: language === 'en' ? 'Crafting guidelines, taglines, suggested names & visual palette.' : 'အမှတ်တံဆိပ် အမည်များ၊ ဆောင်ပုဒ်များ၊ လိုဂိုနှင့် အရောင်အသွေးများကို ဖန်တီးခြင်း။' },
+        { key: 'website', title: language === 'en' ? 'Website Agent' : 'ဝဘ်ဆိုက် အေဂျင့်', desc: language === 'en' ? 'Defining wireframe sections, product capabilities & tech stacks.' : 'ဝဘ်ဆိုက်ပုံစံ (Wireframe Layout)၊ လုပ်ဆောင်ချက်များနှင့် နည်းပညာစနစ်များကို သတ်မှတ်ခြင်း။' },
+        { key: 'marketing', title: language === 'en' ? 'Marketing Agent' : 'စျေးကွက် အေဂျင့်', desc: language === 'en' ? 'Formulating acquisition strategies and 90-day launch roadmap.' : 'သုံးစွဲသူရရှိမည့် စျေးကွက်ဗျူဟာများနှင့် ရက်ပေါင်း ၉၀ စီမံကိန်းကို ဖန်တီးခြင်း။' }
     ];
 
     return (
         <section className="workflow-section section-padding container" style={{ minHeight: 'calc(100vh - 56px)' }}>
             <h2 style={{ marginBottom: '16px', fontWeight: 900, fontSize: '32px', fontFamily: 'var(--typography-heading-family)', textAlign: 'center' }}>
-                Step 4: Specialized AI Agents Pool
+                {language === 'en' ? 'Step 4: Specialized AI Agents Pool' : 'အဆင့် ၄ - အထူးပြု AI အေဂျင့်များ စုစည်းရာ'}
             </h2>
             <p className="text-secondary" style={{ marginBottom: '48px', fontSize: '18px', textAlign: 'center', maxWidth: '640px', margin: '0 auto 48px auto' }}>
-                Watch our specialized business planning agents execute in parallel to compile your blueprint.
+                {language === 'en' ? 'Watch our specialized business planning agents execute in parallel to compile your blueprint.' : 'သင့်လုပ်ငန်းစီမံချက်ကို အတူတကွ ပူးပေါင်းတည်ဆောက်ပေးမည့် အထူးပြု AI အေဂျင့်များ၏ အပြိုင်လုပ်ဆောင်နေမှုကို စောင့်ကြည့်ပါ။'}
             </p>
 
             {/* Grid layout of 4 agents */}
@@ -127,7 +129,7 @@ export default function SpecializedAgentsPage() {
                             }}>
                                 {agentThinking[key].length === 0 ? (
                                     <div style={{ color: 'var(--color-text-light-muted)', fontStyle: 'italic' }}>
-                                        Waiting for start signal...
+                                        {language === 'en' ? 'Waiting for start signal...' : 'စတင်ရန် အချက်ပေးစနစ် စောင့်ဆိုင်းနေသည်...'}
                                     </div>
                                 ) : (
                                     agentThinking[key].map((log, i) => (
@@ -161,8 +163,8 @@ export default function SpecializedAgentsPage() {
                         )}
                         <h4 style={{ margin: 0, fontWeight: 900 }}>
                             {agentProgress.business === 'completed' 
-                                ? '✓ Business Concept & Lean Canvas Integrated' 
-                                : 'Business Agent: Integrating specialized reports...'}
+                                ? (language === 'en' ? '✓ Business Concept & Lean Canvas Integrated' : '✓ လုပ်ငန်းစိတ်ကူးနှင့် Lean Canvas စနစ် ပေါင်းစပ်ပြီးစီးပါပြီ')
+                                : (language === 'en' ? 'Business Agent: Integrating specialized reports...' : 'လက်ရှိအေဂျင့် - အစီရင်ခံစာများ စုစည်းပေါင်းစပ်နေသည်...')}
                         </h4>
                     </div>
                     <div style={{
@@ -186,10 +188,10 @@ export default function SpecializedAgentsPage() {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '16px' }}>
                         <button className="button-primary" onClick={() => window.location.reload()} style={{ borderRadius: '12px' }}>
-                            Retry Execution
+                            {language === 'en' ? 'Retry Execution' : 'ပြန်လည်စမ်းသပ်မည်'}
                         </button>
                         <button className="button-secondary" onClick={() => router.push('/business-info')} style={{ borderRadius: '12px' }}>
-                            Back to Details
+                            {language === 'en' ? 'Back to Details' : 'နောက်သို့'}
                         </button>
                     </div>
                 </div>

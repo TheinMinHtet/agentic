@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useMemo, useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useLanguage } from './LanguageContext';
 import {
   evaluateIdeaAsync,
   runRefinementAgent,
@@ -117,6 +118,7 @@ const DEFAULT_MARKETING_FALLBACK = {
 
 export function WorkflowProvider({ children }) {
   const supabase = useMemo(() => createClient(), []);
+  const { language } = useLanguage();
   const [rawUserIdea, setRawUserIdea] = useState('');
   const [validationResult, setValidationResult] = useState(null);
   const [businessInfo, setBusinessInfo] = useState(DEFAULT_BUSINESS_INFO);
@@ -249,7 +251,7 @@ export function WorkflowProvider({ children }) {
 
     let refinedResult;
     try {
-      refinedResult = await runRefinementAgent(rawUserIdea, businessInfo, key);
+      refinedResult = await runRefinementAgent(rawUserIdea, businessInfo, key, language);
       setRefinedConcept(refinedResult);
       await persistAgentOutput('agent_refinements', refinedResult, (output) => ({
         thinking: output.thinking,
@@ -276,7 +278,7 @@ export function WorkflowProvider({ children }) {
     addThinkingLog('market', 'Analyzing saturation index & target segment demographics...');
 
     try {
-      const researchResult = await runMarketResearchAgent(refinedResult, businessInfo, key);
+      const researchResult = await runMarketResearchAgent(refinedResult, businessInfo, key, language);
       setMarketResearch(researchResult);
       await persistAgentOutput('agent_market_research', researchResult, (output) => ({
         thinking: output.thinking,
@@ -330,7 +332,7 @@ export function WorkflowProvider({ children }) {
       addThinkingLog('finance', 'Simulating monthly breakeven timeline metrics...');
       
       try {
-        const result = await runFinanceAgent(refinedConcept, businessInfo, marketResearch, key);
+        const result = await runFinanceAgent(refinedConcept, businessInfo, marketResearch, key, language);
         setFinanceModel(result);
         await persistAgentOutput('agent_finance_models', result, (output) => ({
           thinking: output.thinking,
@@ -362,7 +364,7 @@ export function WorkflowProvider({ children }) {
       addThinkingLog('brand', 'Formulating visual branding tagline options...');
       
       try {
-        const result = await runBrandAgent(refinedConcept, businessInfo, key);
+        const result = await runBrandAgent(refinedConcept, businessInfo, key, language);
         setBrandPackage(result);
         await persistAgentOutput('agent_brand_packages', result, (output) => ({
           thinking: output.thinking,
@@ -395,7 +397,7 @@ export function WorkflowProvider({ children }) {
       addThinkingLog('website', 'Selecting recommended technical stack components...');
       
       try {
-        const result = await runWebsiteAgent(refinedConcept, businessInfo, brandPackage || { palette: { primary: '#1b0624', secondary: '#aeec1d' }, names: ['Brand'] }, key);
+        const result = await runWebsiteAgent(refinedConcept, businessInfo, brandPackage || { palette: { primary: '#1b0624', secondary: '#aeec1d' }, names: ['Brand'] }, key, language);
         setDigitalPresence(result);
         await persistAgentOutput('agent_digital_presence', result, (output) => ({
           thinking: output.thinking,
@@ -426,7 +428,7 @@ export function WorkflowProvider({ children }) {
       addThinkingLog('marketing', 'Structuring first 90-day roadmap phases...');
       
       try {
-        const result = await runMarketingAgent(refinedConcept, businessInfo, marketResearch, key);
+        const result = await runMarketingAgent(refinedConcept, businessInfo, marketResearch, key, language);
         setGrowthPlan(result);
         await persistAgentOutput('agent_growth_plans', result, (output) => ({
           thinking: output.thinking,
@@ -471,7 +473,8 @@ export function WorkflowProvider({ children }) {
         brandRes,
         websiteRes,
         marketingRes,
-        key
+        key,
+        language
       );
 
       setBusinessPlan(bizPlanResult);
@@ -511,7 +514,7 @@ export function WorkflowProvider({ children }) {
     };
 
     try {
-      const response = await runRefinementChatAgent(userMessage, currentBlueprint, businessInfo, key);
+      const response = await runRefinementChatAgent(userMessage, currentBlueprint, businessInfo, key, language);
       
       if (response.updated_financeModel) setFinanceModel(response.updated_financeModel);
       if (response.updated_marketResearch) setMarketResearch(response.updated_marketResearch);
@@ -527,7 +530,8 @@ export function WorkflowProvider({ children }) {
         response.updated_brandPackage,
         response.updated_digitalPresence,
         response.updated_growthPlan,
-        key
+        key,
+        language
       );
       setBusinessPlan(bizPlanResult);
 

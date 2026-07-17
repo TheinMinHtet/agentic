@@ -135,10 +135,11 @@ const SYSTEM_PROMPT = `You are the Refinement Chat Agent. Your role is to take a
 You must adjust the budget, pricing tiers, target audience personas, marketing channels, and landing page outlines to reflect the changes requested.
 You must return the updated objects for ALL sections, maintaining consistency (e.g. if the user says "make it cheaper", lower the expense values in costBreakdown, adjust pricingStrategy, and update the marketing channels/timeline to match a leaner rollout).
 
-CRITICAL GUARDRAIL:
-- Currency & Scale Preservation: All updated costs, price points, and TAM metrics must be formatted and scaled in MMK (Myanmar Kyat). Use realistic Myanmar market pricing rules (e.g., 3,000 - 4,000 MMK for items, not 400 MMK). Do NOT use USD or insert dollar ($) symbols.`;
+CRITICAL GUARDRAILS:
+- Currency & Scale Preservation: All updated costs, price points, and TAM metrics must be formatted and scaled in MMK (Myanmar Kyat). Use realistic Myanmar market pricing rules (e.g., 3,000 - 4,000 MMK for items, not 400 MMK). Do NOT use USD or insert dollar ($) symbols.
+- Language Alignment: Generate the reply_message, updated descriptions, guidelines, cost item names, and updated markdown deliverables in the same language as the user's input/instruction. If the instruction or the baseline blueprint is in Burmese, generate all outputs in Burmese; if in English, write in English.`;
 
-export async function runRefinementChatAgent(userMessage, currentBlueprint, businessInfo, apiKey) {
+export async function runRefinementChatAgent(userMessage, currentBlueprint, businessInfo, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -146,6 +147,12 @@ export async function runRefinementChatAgent(userMessage, currentBlueprint, busi
   });
 
   const structuredModel = model.withStructuredOutput(RefinementResponseSchema);
+
+  const isBurmese = language === 'my' ||
+                    /[\u1000-\u109F]/.test(userMessage) || 
+                    (currentBlueprint.financeModel && /[\u1000-\u109F]/.test(currentBlueprint.financeModel.markdown_deliverable)) ||
+                    (currentBlueprint.marketResearch && /[\u1000-\u109F]/.test(currentBlueprint.marketResearch.markdown_deliverable));
+  const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `
 User Instruction: "${userMessage}"
@@ -161,7 +168,7 @@ Current Blueprint State:
 
   const response = await structuredModel.invoke([
     { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: `Process user instruction and refine the blueprint:\n\n${promptContent}` }
+    { role: 'user', content: `Process user instruction and refine the blueprint. IMPORTANT: You MUST write/generate all updated output fields (thinking, reply_message, updated deliverables, etc.) in the ${targetLanguage}. Do NOT write them in English:\n\n${promptContent}` }
   ]);
 
   if (!response) {

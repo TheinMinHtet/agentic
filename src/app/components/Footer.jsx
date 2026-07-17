@@ -12,6 +12,7 @@ import {
     Sparkles
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 /* ── Inline SVG social icons (lucide-react doesn't ship brand marks) ── */
 function GitHubIcon({ size = 18 }) {
@@ -49,6 +50,7 @@ function LinkedInIcon({ size = 18 }) {
 export default function Footer({ isLanding = true }) {
     const router = useRouter();
     const { isAuthenticated } = useAuth();
+    const { t } = useLanguage();
 
     return (
         <footer className="footer-root">
@@ -432,7 +434,7 @@ export default function Footer({ isLanding = true }) {
                             </span>
                         </Link>
                         <p className="footer-brand-desc">
-                            The autonomous multi-agent simulation studio for founders, architects, and venture strategists.
+                            {t('footer.builtWith')}
                         </p>
                         <div className="footer-status-chip">
                             <span className="footer-status-dot" />
@@ -489,7 +491,7 @@ export default function Footer({ isLanding = true }) {
 
                 {/* ── Bottom bar ── */}
                 <div className="footer-bottom">
-                    <p className="footer-copy">© 2026 Agentic Workflow Inc. All rights reserved.</p>
+                    <p className="footer-copy">{t('footer.rights')}</p>
                     <div className="footer-socials">
                         <a href="https://github.com" target="_blank" rel="noreferrer" className="footer-social-btn" aria-label="GitHub">
                             <GitHubIcon size={17} />

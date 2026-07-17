@@ -6,10 +6,12 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const { isAuthenticated, loading } = useAuth();
+  const { language, t } = useLanguage();
   const supabase = useMemo(() => createClient(), []);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,15 +50,15 @@ export default function LoginPage() {
       <div className="auth-card card">
         <span className="badge-accent auth-badge">
           <ShieldCheck size={14} />
-          Secure workspace
+          {language === 'en' ? 'Secure workspace' : 'လုံခြုံစိတ်ချရသော လုပ်ငန်းခွင်'}
         </span>
-        <h2>Welcome back</h2>
+        <h2>{t('auth.welcome')}</h2>
         <p className="text-muted auth-copy">
-          Sign in to continue shaping your startup blueprint with the agent workflow.
+          {t('auth.welcomeDesc')}
         </p>
         <form onSubmit={handleLogin} className="auth-form">
           <div className="form-field">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">{t('auth.email')}</label>
             <input
               id="email"
               type="email"
@@ -68,25 +70,25 @@ export default function LoginPage() {
             />
           </div>
           <div className="form-field">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">{t('auth.password')}</label>
             <input
               id="password"
               type="password"
               className="input-text"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Enter your password"
+              placeholder={language === 'en' ? "Enter your password" : "စကားဝှက်ထည့်ပါ"}
               required
             />
           </div>
           {errorMessage && <p className="auth-error">{errorMessage}</p>}
           <button type="submit" className="button-primary button-full" disabled={isSubmitting}>
-            {isSubmitting ? 'Signing in...' : 'Continue to home'}
+            {isSubmitting ? (language === 'en' ? 'Signing in...' : 'လော့ဂ်အင်ဝင်နေသည်...') : t('auth.buttonLogin')}
             <ArrowRight size={18} />
           </button>
         </form>
         <p className="auth-switch text-muted">
-          New here? <Link href="/register">Create an account</Link>
+          {t('auth.noAccount')} <Link href="/register">{t('auth.signUp')}</Link>
         </p>
       </div>
     </section>
