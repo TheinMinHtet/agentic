@@ -1,4 +1,3 @@
-import { createDeepAgent } from 'deepagents/browser';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 
 const RefinementResponseSchema = {
@@ -143,11 +142,7 @@ export async function runRefinementChatAgent(userMessage, currentBlueprint, busi
     maxOutputTokens: 2048,
   });
 
-  const agent = createDeepAgent({
-    model: model,
-    systemPrompt: SYSTEM_PROMPT,
-    responseFormat: RefinementResponseSchema,
-  });
+  const structuredModel = model.withStructuredOutput(RefinementResponseSchema);
 
   const promptContent = `
 User Instruction: "${userMessage}"
@@ -161,15 +156,14 @@ Current Blueprint State:
 - Growth Plan: ${JSON.stringify(currentBlueprint.growthPlan)}
   `.trim();
 
-  const response = await agent.invoke({
-    messages: [
-      { role: 'user', content: `Process user instruction and refine the blueprint:\n\n${promptContent}` }
-    ]
-  });
+  const response = await structuredModel.invoke([
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: `Process user instruction and refine the blueprint:\n\n${promptContent}` }
+  ]);
 
-  if (!response.structuredResponse) {
+  if (!response) {
     throw new Error('Refinement Chat Agent did not return a structured response');
   }
 
-  return response.structuredResponse;
+  return response;
 }
