@@ -1,4 +1,3 @@
-import { createDeepAgent } from 'deepagents/browser';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 
 const MarketIntelligenceSchema = {
@@ -71,12 +70,6 @@ export async function runMarketResearchAgent(refinedConcept, businessInfo, apiKe
     maxOutputTokens: 2048,
   });
 
-  const agent = createDeepAgent({
-    model: model,
-    systemPrompt: SYSTEM_PROMPT,
-    responseFormat: MarketIntelligenceSchema,
-  });
-
   const promptContent = `
 Refined Startup Concept:
 - Concept Summary: ${refinedConcept.concept}
@@ -91,15 +84,29 @@ Business Info questionnaire:
 - Core Painpoint: ${businessInfo.core_painpoint}
   `.trim();
 
-  const response = await agent.invoke({
-    messages: [
-      { role: 'user', content: `Perform market research for this startup concept:\n\n${promptContent}` }
-    ]
-  });
+  const response = await model.invoke([
+    {
+      role: 'system',
+      content: `${SYSTEM_PROMPT}
 
-  if (!response.structuredResponse) {
+Return only valid JSON matching this JSON Schema:
+${JSON.stringify(MarketIntelligenceSchema)}`
+    },
+    {
+      role: 'user',
+      content: `Perform market research for this startup concept:\n\n${promptContent}`
+    }
+  ]);
+
+  const content = Array.isArray(response.content)
+    ? response.content.map(part => typeof part === 'string' ? part : part.text || '').join('')
+    : response.content;
+  const jsonText = content.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+  const structuredResponse = JSON.parse(jsonText);
+
+  if (!structuredResponse) {
     throw new Error('Market Research Agent did not return a structured response');
   }
 
-  return response.structuredResponse;
+  return structuredResponse;
 }

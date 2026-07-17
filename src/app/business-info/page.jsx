@@ -3,14 +3,15 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
+import { useWorkflow } from '../context/WorkflowContext';
 import { createClient } from '@/lib/supabase/client';
 
-const BUSINESS_INFO_KEY = 'agentic:businessInfo';
 
 export default function BusinessInfoPage() {
     const router = useRouter();
     const supabase = useMemo(() => createClient(), []);
     const { user, loading } = useAuth();
+    const { businessInfo, updateBusinessInfo } = useWorkflow();
 
     const [formData, setFormData] = useState({
         title: '',
@@ -92,7 +93,7 @@ export default function BusinessInfoPage() {
             return;
         }
 
-        localStorage.setItem(BUSINESS_INFO_KEY, JSON.stringify(formData));
+        updateBusinessInfo(formData);
         setIsSaved(true);
 
         setTimeout(() => {
