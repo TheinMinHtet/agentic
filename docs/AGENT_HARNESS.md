@@ -22,6 +22,7 @@ The harness configuration ensures:
 | **Guardrails** | Safety constraints | Bullet list |
 | **Shared State (share_schema)** | Read/Write boundaries | YAML-style |
 | **Response Format (response_format)** | Output schema | Pydantic code |
+| **Deliverable (.md / Downloadable)** | Exportable document specifications | Bullet list with checked items |
 
 ---
 
@@ -158,6 +159,12 @@ class MarketIntelligence(BaseModel):
     )
 ```
 
+**Deliverable (.md File / Downloadable):**
+- **Market Intelligence** (`market_intelligence.md`):
+  - ✓ Target market (Ideal customer personas and demographics)
+  - ✓ Competitors (Competitor mapping and weaknesses)
+  - ✓ Opportunities (Market trends and saturation level)
+
 ---
 
 ### 4. Finance Agent
@@ -210,6 +217,12 @@ class FinancialModel(BaseModel):
         description="Estimated months to profitability"
     )
 ```
+
+**Deliverable (.md File / Downloadable):**
+- **Financial Model** (`financial_model.md`):
+  - ✓ Cost breakdown (Initial setup and monthly operating costs)
+  - ✓ Revenue forecast (Break-even timeframe and projections)
+  - ✓ Pricing strategy (Proposed tiers and models)
 
 ---
 
@@ -265,6 +278,12 @@ class BrandPackage(BaseModel):
     )
 ```
 
+**Deliverable (.md File / Downloadable):**
+- **Brand Package** (`brand_package.md`):
+  - ✓ Logo (Suggested brand names and visual style)
+  - ✓ Brand voice (Tone of voice guidelines)
+  - ✓ Visual identity (Color palette hex codes and typography guidance)
+
 ---
 
 ### 6. Website/Product Agent
@@ -317,6 +336,11 @@ class DigitalPresence(BaseModel):
     )
 ```
 
+**Deliverable (.md File / Downloadable):**
+- **Digital Presence** (`digital_presence.md`):
+  - ✓ Website prototype (Layout blocks and key app capabilities)
+  - ✓ Landing page (CTA elements and wireframe structure)
+
 ---
 
 ### 7. Marketing Agent
@@ -365,6 +389,53 @@ class GrowthPlan(BaseModel):
         description="The definitive first 90-day execution steps"
     )
 ```
+
+**Deliverable (.md File / Downloadable):**
+- **Growth Plan** (`growth_plan.md`):
+  - ✓ Marketing strategy (Customer acquisition channels)
+  - ✓ First 90-day roadmap (Actionable execution milestones)
+
+---
+
+### 8. Business Agent (The Integrator)
+
+**Role:** Consolidates outputs from all specialized downstream agents to compile a comprehensive, unified Lean Canvas deliverable in Markdown format.
+
+**Skills:**
+- [Lean Canvas Compilation](../../Agents_skills/Business/lean-canvas-compilation/SKILL.md)
+
+**Tools:**
+- None (Consolidates downstream agent states)
+
+**Guardrails:**
+- **Structure Preserving:** Must output a standard 9-box Lean Canvas (Problem, Solution, Key Metrics, Unique Value Proposition, Unfair Advantage, Channels, Customer Segments, Cost Structure, Revenue Streams) as a well-formed Markdown document.
+- **Information Fidelity:** Must not hallucinate metrics or values; it must only use information directly derived from the outputs of the Market Research, Finance, Brand, Website/Product, and Marketing agents.
+
+**Shared State Read/Write (`share_schema`):**
+```yaml
+reads:
+  - raw_user_idea
+  - market_intelligence
+  - financial_model
+  - brand_package
+  - digital_presence
+  - growth_plan
+
+writes:
+  - lean_canvas_markdown
+```
+
+**Response Format (`response_format`):**
+```python
+from pydantic import BaseModel, Field
+
+class LeanCanvasOutput(BaseModel):
+    lean_canvas_markdown: str = Field(..., description="Complete, formatted Markdown string of the 9-box Lean Canvas")
+```
+
+**Deliverable (.md File / Downloadable):**
+- **Business Overview** (`business_overview.md`):
+  - ✓ Business concept (Consolidated Lean Canvas and business model)
 
 ---
 
@@ -438,6 +509,7 @@ class StartupBlueprintState(BaseModel):
     brand_package: Optional[BrandPackage] = None
     digital_presence: Optional[DigitalPresence] = None
     growth_plan: Optional[GrowthPlan] = None
+    lean_canvas_markdown: Optional[str] = None
     
     # Metadata
     session_id: str
@@ -464,15 +536,22 @@ graph TD
     E --> J[Marketing Agent]
     
     F --> K[market_intelligence]
-    G --> K
-    H --> K
-    I --> K
-    J --> K
+    G --> L[financial_model]
+    H --> M[brand_package]
+    I --> N[digital_presence]
+    J --> O[growth_plan]
     
-    K --> L[Startup Manager Merges Results]
-    L --> M[Check Fatal Flaws]
-    M -->|No Issues| N[Dashboard]
-    M -->|Critical Issue| O[Pause/Pivot]
+    K --> P[Business Agent]
+    L --> P
+    M --> P
+    N --> P
+    O --> P
+    
+    P --> Q[lean_canvas_markdown]
+    Q --> R[Startup Manager Merges Results]
+    R --> S[Check Fatal Flaws]
+    S -->|No Issues| T[Dashboard]
+    S -->|Critical Issue| U[Pause/Pivot]
 ```
 
 ---
@@ -504,6 +583,7 @@ interface WorkflowStore {
   brandPackage: BrandPackage | null;
   digitalPresence: DigitalPresence | null;
   growthPlan: GrowthPlan | null;
+  leanCanvasMarkdown: string | null;
   
   // Actions
   setValidationData: (data: ValidationResult) => void;
@@ -526,6 +606,7 @@ export const useWorkflowStore = create<WorkflowStore>((set) => ({
   brandPackage: null,
   digitalPresence: null,
   growthPlan: null,
+  leanCanvasMarkdown: null,
   
   // Actions
   setValidationData: (data) => set({ validationData: data }),
@@ -541,6 +622,12 @@ export const useWorkflowStore = create<WorkflowStore>((set) => ({
     currentStep: 'idea',
     fatalFlaw: null,
     orchestrationPlan: null,
+    marketIntelligence: null,
+    financialModel: null,
+    brandPackage: null,
+    digitalPresence: null,
+    growthPlan: null,
+    leanCanvasMarkdown: null,
   }),
 }));
 ```
@@ -573,6 +660,10 @@ export interface MarketIntelligence {
   saturation_level: number;
 }
 
+export interface LeanCanvasOutput {
+  lean_canvas_markdown: string;
+}
+
 // ... etc for all agent outputs
 ```
 
@@ -596,6 +687,8 @@ export interface MarketIntelligence {
 |---------|------|--------|---------|
 | 1.0 | 2026-07-16 | - | Initial harness documentation |
 | 1.1 | 2026-07-16 | - | Added skill file references for all 7 agents |
+| 1.2 | 2026-07-17 | Antigravity | Added Business Agent harness spec for Lean Canvas compilation |
+| 1.3 | 2026-07-17 | Antigravity | Associated downloadable .md deliverables with specialized agents |
 
 ---
 
@@ -654,6 +747,10 @@ Agents_skills/
     ├── marketing-pipeline-planning/
     │   └── SKILL.md
     └── ninety-day-launch-roadmap/
+        └── SKILL.md
+│
+└── Business/
+    └── lean-canvas-compilation/
         └── SKILL.md
 ```
 

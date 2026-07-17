@@ -19,7 +19,7 @@ export default function BusinessInfoPage() {
         target_customers: '',
         business_type: '',
         experience_level: '',
-        goal: 'scalable', // Default to scalable startup
+        goal: 'scalable',
         core_painpoint: '',
         launch_timeline: '',
         revenue_stream: 'Subscription'
@@ -28,18 +28,12 @@ export default function BusinessInfoPage() {
     const [errorMessage, setErrorMessage] = useState('');
     const [isSaved, setIsSaved] = useState(false);
 
-    // Load initial data from localStorage on mount
+    // Sync context values to form on load/update
     useEffect(() => {
-        const savedData = localStorage.getItem(BUSINESS_INFO_KEY);
-        if (savedData) {
-            try {
-                const parsed = JSON.parse(savedData);
-                setFormData(prev => ({ ...prev, ...parsed }));
-            } catch (e) {
-                console.error('Error parsing business info from localStorage', e);
-            }
+        if (businessInfo) {
+            setFormData(prev => ({ ...prev, ...businessInfo }));
         }
-    }, []);
+    }, [businessInfo]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -105,6 +99,7 @@ export default function BusinessInfoPage() {
             router.push('/planning');
         }, 700);
     };
+
 
     return (
         <section className="workflow-section section-padding container" style={{ textAlign: 'center', minHeight: 'calc(100vh - 56px)' }}>

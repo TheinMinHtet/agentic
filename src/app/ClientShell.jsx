@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogIn, LogOut, Sparkles } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { WorkflowProvider } from './context/WorkflowContext';
 
 function Navbar() {
   const { isAuthenticated, loading, logout } = useAuth();
@@ -48,12 +49,15 @@ function Navbar() {
 export default function ClientShell({ children }) {
   return (
     <AuthProvider>
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-        <Navbar />
-        <main className="app-main">
-          {children}
-        </main>
-      </div>
+      <WorkflowProvider>
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <Navbar />
+          <main className="app-main">
+            {children}
+          </main>
+        </div>
+      </WorkflowProvider>
     </AuthProvider>
   );
 }
+
