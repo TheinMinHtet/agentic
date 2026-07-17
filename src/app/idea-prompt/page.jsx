@@ -8,6 +8,7 @@ import {
     getCompositeValidationScore,
     getIdeaRouteDecision,
 } from '../../agents/ideaUnderstandingAgent';
+import { autoRefineIdeaAsync } from '../../agents/autoRefineAgent';
 
 export default function IdeaPromptPage() {
     const router = useRouter();
@@ -15,6 +16,29 @@ export default function IdeaPromptPage() {
     const [idea, setIdea] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
+    const [isAutoRefining, setIsAutoRefining] = useState(false);
+
+    const handleAutoRefine = async () => {
+        if (!idea.trim() || isAutoRefining || !validationResult?.clarificationQuestions) return;
+        
+        setIsAutoRefining(true);
+        try {
+            const refinedText = await autoRefineIdeaAsync(idea, validationResult.clarificationQuestions);
+            setIdea(refinedText);
+            
+            // Re-evaluate automatically to update the score
+            const result = await evaluateIdeaAsync(refinedText);
+            const compositeScore = getCompositeValidationScore(result);
+            setValidationResult({ ...result, compositeScore });
+            
+        } catch (error) {
+            console.error("Failed to auto-refine:", error);
+            setToastMessage('Failed to refine idea. Please try again.');
+            setTimeout(() => setToastMessage(''), 4000);
+        } finally {
+            setIsAutoRefining(false);
+        }
+    };
 
     useEffect(() => {
         if (rawUserIdea) {
@@ -66,7 +90,7 @@ export default function IdeaPromptPage() {
                 margin: '0 auto',
                 textAlign: 'left',
                 padding: '40px',
-                borderRadius: '32px',
+                borderRadius: '16px',
                 boxShadow: 'var(--elevation-card)',
                 transition: 'box-shadow var(--motion-duration-base) var(--motion-easing-standard), transform var(--motion-duration-base) var(--motion-easing-standard)'
             }}>
@@ -108,9 +132,9 @@ export default function IdeaPromptPage() {
                     <div className="idea-validation-card" style={{
                         marginTop: '32px',
                         padding: '28px',
-                        backgroundColor: 'var(--color-surface-light)',
+                        background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
                         border: '1px solid var(--color-border-light)',
-                        borderRadius: '24px'
+                        borderRadius: '16px'
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '8px' }}>
                             <p className="idea-validation-title" style={{ margin: 0, fontWeight: 900, fontSize: '14px', letterSpacing: '0.05em' }}>Validation Result</p>
@@ -121,11 +145,11 @@ export default function IdeaPromptPage() {
                                     fontSize: '10px',
                                     fontWeight: 700,
                                     letterSpacing: '0.05em',
-                                    backgroundColor: validationResult.evaluatedBy === 'gemini' ? 'rgba(174, 236, 29, 0.15)' : 'var(--color-surface-medium)',
-                                    color: validationResult.evaluatedBy === 'gemini' ? '#3d6b00' : 'var(--color-text-muted)',
-                                    border: validationResult.evaluatedBy === 'gemini' ? '1px solid rgba(174, 236, 29, 0.4)' : '1px solid var(--color-border-light)'
+                                    backgroundColor: validationResult.evaluatedBy === 'gemini' ? 'var(--color-accent-soft)' : 'var(--color-surface-medium)',
+                                    color: validationResult.evaluatedBy === 'gemini' ? 'var(--color-accent-strong)' : 'var(--color-text-muted)',
+                                    border: validationResult.evaluatedBy === 'gemini' ? '1px solid #c7d2fe' : '1px solid var(--color-border-light)'
                                 }}>
-                                    {validationResult.evaluatedBy === 'gemini' ? '✦ GEMINI AI' : '⚙ LOCAL ENGINE'}
+                                    {validationResult.evaluatedBy === 'gemini' ? 'GEMINI AI' : 'LOCAL ENGINE'}
                                 </span>
                                 <span style={{
                                     padding: '6px 16px',
@@ -133,8 +157,8 @@ export default function IdeaPromptPage() {
                                     fontSize: '11px',
                                     fontWeight: 800,
                                     letterSpacing: '0.05em',
-                                    backgroundColor: validationResult.score >= 50 ? 'var(--color-accent)' : 'var(--color-primary)',
-                                    color: validationResult.score >= 50 ? 'var(--color-primary)' : 'var(--color-text-inverse)'
+                                    background: validationResult.score >= 50 ? 'linear-gradient(135deg, #0f766e 0%, var(--color-success) 100%)' : 'var(--gradient-ai)',
+                                    color: 'var(--color-text-inverse)'
                                 }}>
                                     {validationResult.score >= 50 ? 'PASSED' : 'REFINEMENT NEEDED'}
                                 </span>
@@ -163,7 +187,7 @@ export default function IdeaPromptPage() {
                                     <div style={{
                                         width: `${validationResult.score}%`,
                                         height: '100%',
-                                        background: validationResult.score >= 50 ? 'linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent) 100%)' : 'var(--color-primary)',
+                                        background: validationResult.score >= 50 ? 'var(--gradient-accent)' : 'var(--gradient-ai)',
                                         borderRadius: '5px',
                                         transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
                                     }}></div>
@@ -182,27 +206,49 @@ export default function IdeaPromptPage() {
                         {validationResult.score < 50 && validationResult.clarificationQuestions && (
                             <div style={{
                                 padding: '20px',
-                                backgroundColor: 'rgba(27, 6, 36, 0.03)',
-                                borderRadius: '20px',
-                                borderLeft: '4px solid var(--color-primary)'
+                                backgroundColor: 'var(--color-accent-soft)',
+                                borderRadius: '16px',
+                                borderLeft: '4px solid var(--color-accent)'
                             }}>
                                 <p style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 900, color: 'var(--color-primary)' }}>
-                                    💡 Clarifying Questions to Address:
+                                    Clarifying Questions to Address:
                                 </p>
                                 <ul style={{ paddingLeft: '20px', margin: 0, fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>
                                     {validationResult.clarificationQuestions.map((q, idx) => (
                                         <li key={idx} style={{ marginBottom: '8px' }}>{q}</li>
                                     ))}
                                 </ul>
-                                <p style={{ margin: '14px 0 0 0', fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>
-                                    Adjust your pitch above to address these points, then click "Launch AI Workflow" to re-evaluate.
-                                </p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '16px' }}>
+                                    <button 
+                                        className="button-primary"
+                                        onClick={handleAutoRefine}
+                                        disabled={isAutoRefining}
+                                        style={{
+                                            padding: '12px 24px',
+                                            borderRadius: '12px',
+                                            fontWeight: 'bold',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: '8px',
+                                            border: 'none',
+                                            cursor: isAutoRefining ? 'not-allowed' : 'pointer',
+                                            background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                                            color: 'white',
+                                            transition: 'opacity 0.2s'
+                                        }}
+                                    >
+                                        {isAutoRefining ? '✨ Refining Idea...' : '✨ Auto-Refine Idea'}
+                                    </button>
+                                    <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-text-muted)', fontStyle: 'italic', textAlign: 'center' }}>
+                                        Or adjust your pitch manually and click "Launch AI Workflow".
+                                    </p>
+                                </div>
                             </div>
                         )}
                     </div>
                 )}
             </div>
-
             {toastMessage && (
                 <div className="idea-toast" role="status" aria-live="polite">
                     <p className="idea-toast-title">Clarification Needed (Score {validationResult?.score})</p>

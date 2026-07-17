@@ -1,50 +1,38 @@
-# Agentic Workflow
+# Agentic Workflow (Next.js Version)
 
-## Supabase Auth Setup
+Welcome to **Agentic Workflow**, a multi-agent startup blueprint generator.
 
-Install the new dependencies:
+This project has been migrated to **Next.js 15.5** featuring the App Router. The backend agents execute directly in the browser via `deepagents/browser` using the configured `NEXT_PUBLIC_GOOGLE_API_KEY`.
+
+---
+
+## 🚀 Getting Started
+
+First, install the package dependencies:
 
 ```bash
 npm install
 ```
 
-Create `.env` from `.env.example`:
+Configure your environment variables by adding a `.env` file in the root directory:
+
+```env
+NEXT_PUBLIC_GOOGLE_API_KEY="your-gemini-api-key"
+```
+
+Start the Next.js development server:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=your_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+npm run dev
 ```
 
-In Supabase Auth settings, disable email confirmation so email/password signup returns an active session immediately.
+Visit [http://localhost:3000](http://localhost:3000) to view the application.
 
-Create the `users` table with these columns:
+---
 
-```sql
-create table public.users (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  username text not null,
-  email text not null unique,
-  created_at timestamptz not null default now()
-);
-```
+## 🛠️ Development Commands
 
-Recommended RLS policy if Row Level Security is enabled:
-
-```sql
-alter table public.users enable row level security;
-
-create policy "Users can insert their own profile"
-on public.users for insert
-with check (auth.uid() = user_id);
-
-create policy "Users can read their own profile"
-on public.users for select
-using (auth.uid() = user_id);
-```
-
-Auth routes:
-
-- `/register` creates a Supabase Auth user, validates matching passwords, then inserts `user_id`, `username`, and `email` into `public.users`.
-- `/login` signs in with Supabase Auth.
-- `/dashboard` is protected by `src/app/dashboard/layout.tsx`; unauthenticated users are redirected to `/login`.
-- Logout is handled from the navbar with `supabase.auth.signOut()`.
+*   `npm run dev`: Start Next.js development server
+*   `npm run build`: Compile and build production-ready optimized assets
+*   `npm run start`: Start production server
+*   `npm run lint`: Run code syntax verification check
