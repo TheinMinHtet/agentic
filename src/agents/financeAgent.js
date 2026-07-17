@@ -1,4 +1,3 @@
-import { createDeepAgent } from 'deepagents/browser';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 
 const FinancialModelSchema = {
@@ -54,11 +53,7 @@ export async function runFinanceAgent(refinedConcept, businessInfo, marketResear
     maxOutputTokens: 2048,
   });
 
-  const agent = createDeepAgent({
-    model: model,
-    systemPrompt: SYSTEM_PROMPT,
-    responseFormat: FinancialModelSchema,
-  });
+  const structuredModel = model.withStructuredOutput(FinancialModelSchema);
 
   const promptContent = `
 Refined Startup Concept:
@@ -78,15 +73,14 @@ Market Research Insights:
 - Target TAM: ${marketResearch.tam}
   `.trim();
 
-  const response = await agent.invoke({
-    messages: [
-      { role: 'user', content: `Analyze financial metrics and build the model:\n\n${promptContent}` }
-    ]
-  });
+  const response = await structuredModel.invoke([
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: `Analyze financial metrics and build the model:\n\n${promptContent}` }
+  ]);
 
-  if (!response.structuredResponse) {
+  if (!response) {
     throw new Error('Finance Agent did not return a structured response');
   }
 
-  return response.structuredResponse;
+  return response;
 }
