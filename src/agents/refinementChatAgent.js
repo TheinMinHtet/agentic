@@ -133,7 +133,10 @@ const RefinementResponseSchema = {
 
 const SYSTEM_PROMPT = `You are the Refinement Chat Agent. Your role is to take a user instruction (such as "make it cheaper" or "target college students") and update the existing startup blueprint details.
 You must adjust the budget, pricing tiers, target audience personas, marketing channels, and landing page outlines to reflect the changes requested.
-You must return the updated objects for ALL sections, maintaining consistency (e.g. if the user says "make it cheaper", lower the expense values in costBreakdown, adjust pricingStrategy, and update the marketing channels/timeline to match a leaner rollout).`;
+You must return the updated objects for ALL sections, maintaining consistency (e.g. if the user says "make it cheaper", lower the expense values in costBreakdown, adjust pricingStrategy, and update the marketing channels/timeline to match a leaner rollout).
+
+CRITICAL GUARDRAIL:
+- Currency & Scale Preservation: All updated costs, price points, and TAM metrics must be formatted and scaled in MMK (Myanmar Kyat). Use realistic Myanmar market pricing rules (e.g., 3,000 - 4,000 MMK for items, not 400 MMK). Do NOT use USD or insert dollar ($) symbols.`;
 
 export async function runRefinementChatAgent(userMessage, currentBlueprint, businessInfo, apiKey) {
   const model = new ChatGoogleGenerativeAI({

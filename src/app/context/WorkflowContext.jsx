@@ -22,11 +22,11 @@ const AUTH_KEY = 'agentic:isAuthenticated';
 const CURRENT_IDEA_ID_KEY = 'agentic:currentIdeaId';
 
 const DEFAULT_BUSINESS_INFO = {
-  location: "Online-only",
-  budget: "$1000",
+  location: "Yangon, Myanmar",
+  budget: "3,000,000 MMK",
   target_customers: "Billionare",
   business_type: "SaaS",
-  experience_level: "Begineer",
+  experience_level: "Beginner",
   goal: "local",
   core_painpoint: "Small to medium-sized non-profit organizations (NPOs) and independent researchers spend hundreds of hours annually searching for and writing grant proposals. They often lack the budget to hire full-time, specialized grant writers, which leads to high rejection rates caused by minor compliance errors, missed deadlines, or poorly structured narratives.",
   launch_timeline: "3 months",
@@ -47,7 +47,7 @@ const DEFAULT_CONCEPT_FALLBACK = {
 };
 
 const DEFAULT_MARKET_FALLBACK = {
-  tam: "$1.8B TAM",
+  tam: "5,400,000,000 MMK TAM",
   saturation_level: 25,
   competitors: [
     { name: "GrantWriter Pro", url: "https://grantwriterpro.com", weakness: "High subscription price points and manual templates." },
@@ -60,24 +60,24 @@ const DEFAULT_MARKET_FALLBACK = {
     "Higher academic institutions demanding faster micro-grant writing automation tools."
   ],
   target_personas: [
-    { name: "Executive Director Emily", role: "NPO Director", pain_points: ["Spends 20+ hours per grant proposal", "Lacks writing budget"], budget_limit: "$100/mo max" },
-    { name: "Researcher Roger", role: "University Grant Applicant", pain_points: ["Compliance checklist overload", "Missed submission deadlines"], budget_limit: "$150/mo research budget" }
+    { name: "Executive Director Emily", role: "NPO Director", pain_points: ["Spends 20+ hours per grant proposal", "Lacks writing budget"], budget_limit: "300,000 MMK/mo max" },
+    { name: "Researcher Roger", role: "University Grant Applicant", pain_points: ["Compliance checklist overload", "Missed submission deadlines"], budget_limit: "450,000 MMK/mo research budget" }
   ],
   markdown_deliverable: `# Market Intelligence Report: GrantFlow AI\n\n## Target Market & Personas\nGrantFlow AI targets small-to-medium non-profits, academic researchers, and social impact startups.\n\n### Ideal Customer Personas (ICPs)\n- **Executive Director Emily**: Manages a local community service non-profit. Spends 20+ hours per grant and has zero writing budget.\n- **Researcher Roger**: University researcher who deals with complex compliance requirements.\n\n## Competitor Mapping\n| Competitor | URL | Weakness |\n|---|---|---|\n| GrantWriter Pro | https://grantwriterpro.com | High pricing & templates only |\n| ProposalAI | https://proposalai.io | Generic copy, low compliance checks |\n| FundraisingHub | Not Publicly Available | Focuses on donation CRMs, not writing |\n\n## Market Trends & Opportunities\n- Growth in government micro-grants.\n- Increasing demand for low-cost automated proposal writers.\n- Saturation Level: **25%** (Low-medium market penetration).`
 };
 
 const DEFAULT_FINANCE_FALLBACK = {
   costBreakdown: [
-    { item: "Gemini API token costs", cost: 120 },
-    { item: "Hosting & Server infrastructure", cost: 80 },
-    { item: "Domain & SSL registration", cost: 15 },
-    { item: "Customer support software license", cost: 35 },
-    { item: "Basic marketing and ads", cost: 250 }
+    { item: "Gemini API token costs", cost: 360000 },
+    { item: "Hosting & Server infrastructure", cost: 240000 },
+    { item: "Domain & SSL registration", cost: 45000 },
+    { item: "Customer support software license", cost: 105000 },
+    { item: "Basic marketing and ads", cost: 750000 }
   ],
-  revenueForecast: "$5,000 monthly recurring revenue (MRR) projected in Month 6.",
-  pricingStrategy: "Tiered subscription model: Standard ($49/mo) and Premium ($99/mo) with credits-based drafting caps.",
+  revenueForecast: "15,000,000 MMK monthly recurring revenue (MRR) projected in Month 6.",
+  pricingStrategy: "Tiered subscription model: Standard (150,000 MMK/mo) and Premium (300,000 MMK/mo) with credits-based drafting caps.",
   breakevenMonth: 4,
-  markdown_deliverable: `# Financial Model & Projections: GrantFlow AI\n\n## Startup Capital Allocation\nBelow is the itemized budget allocation mapping back to our $1,000 setup limit:\n\n| Expense Item | Monthly Cost ($) |\n|---|---|\n| Gemini API token costs | $120.00 |\n| Hosting & Server infrastructure | $80.00 |\n| Domain & SSL registration | $15.00 |\n| Customer support software | $35.00 |\n| Marketing campaigns | $250.00 |\n| **Total Estimated Run-rate** | **$500.00/mo** |\n\n## Revenue Forecast\n- Projecting **Month 4 Breakeven**.\n- Targeting 100 active non-profit subscribers by Month 6 ($5,000 MRR).\n\n## Pricing Strategy\n- **Standard Plan**: $49/mo (up to 3 proposals monthly)\n- **Premium Plan**: $99/mo (unlimited proposals & compliance checking)`
+  markdown_deliverable: `# Financial Model & Projections: GrantFlow AI\n\n## Startup Capital Allocation\nBelow is the itemized budget allocation mapping back to our 3,000,000 MMK setup limit:\n\n| Expense Item | Monthly Cost (MMK) |\n|---|---|\n| Gemini API token costs | 360,000 MMK |\n| Hosting & Server infrastructure | 240,000 MMK |\n| Domain & SSL registration | 45,000 MMK |\n| Customer support software | 105,000 MMK |\n| Marketing campaigns | 750,000 MMK |\n| **Total Estimated Run-rate** | **1,500,000 MMK/mo** |\n\n## Revenue Forecast\n- Projecting **Month 4 Breakeven**.\n- Targeting 100 active non-profit subscribers by Month 6 (15,000,000 MMK MRR).\n\n## Pricing Strategy\n- **Standard Plan**: 150,000 MMK/mo (up to 3 proposals monthly)\n- **Premium Plan**: 300,000 MMK/mo (unlimited proposals & compliance checking)`
 };
 
 const DEFAULT_BRAND_FALLBACK = {

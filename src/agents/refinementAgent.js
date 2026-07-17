@@ -30,7 +30,10 @@ const RefinedConceptSchema = {
 
 const SYSTEM_PROMPT = `You are the Refinement Agent. Your role is to take a raw business idea and questionnaire inputs (such as location, budget, target customers, business type, experience level, goal, core painpoint, and launch timeline) and synthesize it into a highly professional, cohesive, and refined startup concept.
 Formulate a clear value proposition, identify exactly 3 key competitive differentiators, and refine the target audience description.
-Focus on highlighting how the solution solves the core pain points under the specific business constraints (e.g. budget, timeline).`;
+Focus on highlighting how the solution solves the core pain points under the specific business constraints (e.g. budget, timeline).
+
+CRITICAL GUARDRAIL:
+- Currency Alignment: Always describe and align any monetary references, targets, or pricing examples in terms of MMK (Myanmar Kyat) rather than USD ($) or standard dollar units.`;
 
 export async function runRefinementAgent(rawIdea, businessInfo, apiKey) {
   const model = new ChatGoogleGenerativeAI({

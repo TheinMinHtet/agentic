@@ -8,12 +8,21 @@ import { ArrowLeft, Sparkles, Send } from 'lucide-react';
 export default function RefinementPage() {
     const router = useRouter();
     const {
+        businessInfo,
         financeModel,
         brandPackage,
         digitalPresence,
         marketResearch,
         executeRefinementChat
     } = useWorkflow();
+
+    const getCurrencySymbol = () => {
+        return 'MMK';
+    };
+
+    const formatCost = (cost) => {
+        return `${Math.round(cost).toLocaleString()} MMK`;
+    };
 
     const [message, setMessage] = useState('');
     const [isTyping, setIsTyping] = useState(false);
@@ -55,10 +64,10 @@ export default function RefinementPage() {
     const names = brandPackage?.names || ["GrantFlow AI", "ProposalLift", "FundForge"];
     const colors = brandPackage?.palette || { primary: '#1b0624', secondary: '#aeec1d' };
     const stack = digitalPresence?.stack || ["React Next.js", "Gemini API"];
-    const tam = marketResearch?.tam || "$1.8B TAM";
+    const tam = marketResearch?.tam || "5,400,000,000 MMK TAM";
     const setupCosts = financeModel?.costBreakdown || [
-        { item: "Gemini API token costs", cost: 120 },
-        { item: "Hosting & Server infrastructure", cost: 80 }
+        { item: "Gemini API token costs", cost: 360000 },
+        { item: "Hosting & Server infrastructure", cost: 240000 }
     ];
 
     return (
@@ -123,7 +132,7 @@ export default function RefinementPage() {
                                 {setupCosts.slice(0, 3).map((cost, i) => (
                                     <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
                                         <span style={{ color: 'var(--color-text-secondary)' }}>{cost.item}</span>
-                                        <strong>${cost.cost.toFixed(2)}</strong>
+                                        <strong>{formatCost(cost.cost)}</strong>
                                     </div>
                                 ))}
                             </div>
