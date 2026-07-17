@@ -7,12 +7,12 @@ import { LogIn, LogOut, Sparkles } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 function Navbar() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, loading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push('/');
   };
 
@@ -26,20 +26,20 @@ function Navbar() {
       </Link>
       <div className="nav-actions">
         <Link href="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>Home</Link>
-        {isAuthenticated && (
+        {!loading && isAuthenticated && (
           <Link href="/dashboard" className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}>Dashboard</Link>
         )}
-        {isAuthenticated ? (
+        {!loading && isAuthenticated ? (
           <button type="button" className="button-secondary nav-auth-button" onClick={handleLogout}>
             <LogOut size={18} />
             Logout
           </button>
-        ) : (
+        ) : !loading ? (
           <Link href="/login" className="button-primary nav-auth-button">
             <LogIn size={18} />
             Login
           </Link>
-        )}
+        ) : null}
       </div>
     </nav>
   );
