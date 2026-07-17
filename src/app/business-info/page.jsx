@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-
-const BUSINESS_INFO_KEY = 'agentic:businessInfo';
+import { useWorkflow } from '../context/WorkflowContext';
 
 export default function BusinessInfoPage() {
     const router = useRouter();
+    const { businessInfo, updateBusinessInfo, setActiveStep } = useWorkflow();
 
     // Default form state containing all 8 target fields + 1 original field
     const [formData, setFormData] = useState({
@@ -15,24 +15,18 @@ export default function BusinessInfoPage() {
         target_customers: '',
         business_type: '',
         experience_level: '',
-        goal: 'scalable', // Default to scalable startup
+        goal: 'scalable',
         core_painpoint: '',
         launch_timeline: '',
         revenue_stream: 'Subscription'
     });
 
-    // Load initial data from localStorage on mount
+    // Sync context values to form on load/update
     useEffect(() => {
-        const savedData = localStorage.getItem(BUSINESS_INFO_KEY);
-        if (savedData) {
-            try {
-                const parsed = JSON.parse(savedData);
-                setFormData(prev => ({ ...prev, ...parsed }));
-            } catch (e) {
-                console.error('Error parsing business info from localStorage', e);
-            }
+        if (businessInfo) {
+            setFormData(prev => ({ ...prev, ...businessInfo }));
         }
-    }, []);
+    }, [businessInfo]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -44,10 +38,12 @@ export default function BusinessInfoPage() {
 
     const handleNext = (e) => {
         e.preventDefault();
-        // Save the complete state object to localStorage
-        localStorage.setItem(BUSINESS_INFO_KEY, JSON.stringify(formData));
+        // Save the complete state object to context (and implicitly localStorage)
+        updateBusinessInfo(formData);
+        setActiveStep('planning');
         router.push('/planning');
     };
+
 
     return (
         <section className="workflow-section section-padding container" style={{ textAlign: 'center', minHeight: 'calc(100vh - 56px)' }}>
