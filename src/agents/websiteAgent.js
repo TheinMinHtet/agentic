@@ -1,4 +1,3 @@
-import { createDeepAgent } from 'deepagents/browser';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 
 const DigitalPresenceSchema = {
@@ -53,11 +52,7 @@ export async function runWebsiteAgent(refinedConcept, businessInfo, brandPackage
     maxOutputTokens: 2048,
   });
 
-  const agent = createDeepAgent({
-    model: model,
-    systemPrompt: SYSTEM_PROMPT,
-    responseFormat: DigitalPresenceSchema,
-  });
+  const structuredModel = model.withStructuredOutput(DigitalPresenceSchema);
 
   const promptContent = `
 Refined Startup Concept:
@@ -77,15 +72,14 @@ Brand Assets:
 - Recommended colors (primary, secondary): ${brandPackage.palette.primary}, ${brandPackage.palette.secondary}
   `.trim();
 
-  const response = await agent.invoke({
-    messages: [
-      { role: 'user', content: `Design website wireframe and recommend stack:\n\n${promptContent}` }
-    ]
-  });
+  const response = await structuredModel.invoke([
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: `Design website wireframe and recommend stack:\n\n${promptContent}` }
+  ]);
 
-  if (!response.structuredResponse) {
+  if (!response) {
     throw new Error('Website Agent did not return a structured response');
   }
 
-  return response.structuredResponse;
+  return response;
 }

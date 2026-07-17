@@ -1,4 +1,3 @@
-import { createDeepAgent } from 'deepagents/browser';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 
 const LeanCanvasOutputSchema = {
@@ -29,11 +28,7 @@ export async function runBusinessAgent(refinedConcept, marketResearch, financeMo
     maxOutputTokens: 2048,
   });
 
-  const agent = createDeepAgent({
-    model: model,
-    systemPrompt: SYSTEM_PROMPT,
-    responseFormat: LeanCanvasOutputSchema,
-  });
+  const structuredModel = model.withStructuredOutput(LeanCanvasOutputSchema);
 
   const promptContent = `
 Startup Concept:
@@ -66,15 +61,14 @@ Growth Plan:
 - 90-day roadmap milestones: ${growthPlan.roadmap90Day.join(', ')}
   `.trim();
 
-  const response = await agent.invoke({
-    messages: [
-      { role: 'user', content: `Consolidate these insights and compile a beautifully formatted Lean Canvas markdown table and description:\n\n${promptContent}` }
-    ]
-  });
+  const response = await structuredModel.invoke([
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: `Consolidate these insights and compile a beautifully formatted Lean Canvas markdown table and description:\n\n${promptContent}` }
+  ]);
 
-  if (!response.structuredResponse) {
+  if (!response) {
     throw new Error('Business Agent did not return a structured response');
   }
 
-  return response.structuredResponse;
+  return response;
 }

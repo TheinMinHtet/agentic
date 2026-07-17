@@ -26,10 +26,10 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
+    "@types/node": "20.17.6",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "oxlint": "^1.71.0",
-    "typescript": "^5.7.2"
+    "typescript": "5.8.2"
   }
 }
