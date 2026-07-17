@@ -69,11 +69,12 @@ export default function BusinessInfoPage() {
         setErrorMessage('');
         setIsSaved(false);
 
+        const normalizedBudget = Number(formData.budget.replace(/[^0-9.]/g, ''));
         const ideaPayload = {
             user_id: user.id,
             title: formData.title.trim(),
             location: formData.location.trim(),
-            budget: formData.budget.trim(),
+            budget: Number.isFinite(normalizedBudget) ? normalizedBudget : null,
             target_customers: formData.target_customers.trim(),
             business_type: formData.business_type.trim(),
             experience_level: formData.experience_level.trim(),
@@ -84,7 +85,11 @@ export default function BusinessInfoPage() {
             status: 'processing'
         };
 
-        const { error } = await supabase.from('ideas').insert(ideaPayload);
+        const { data: savedIdea, error } = await supabase
+            .from('ideas')
+            .insert(ideaPayload)
+            .select('id')
+            .single();
 
         if (error) {
             setErrorMessage(error.message || 'Unable to save your idea. Please try again.');
@@ -92,6 +97,7 @@ export default function BusinessInfoPage() {
             return;
         }
 
+        updateCurrentIdeaId(savedIdea.id);
         updateBusinessInfo(formData);
         setActiveStep('planning');
         setIsSaved(true);

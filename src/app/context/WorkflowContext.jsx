@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useMemo, useState, useEffect } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import {
   evaluateIdeaAsync,
   runRefinementAgent,
@@ -18,6 +19,7 @@ const WorkflowContext = createContext();
 const STARTUP_IDEA_KEY = 'agentic:startupIdea';
 const BUSINESS_INFO_KEY = 'agentic:businessInfo';
 const AUTH_KEY = 'agentic:isAuthenticated';
+const CURRENT_IDEA_ID_KEY = 'agentic:currentIdeaId';
 
 const DEFAULT_BUSINESS_INFO = {
   location: "Online-only",
@@ -114,9 +116,11 @@ const DEFAULT_MARKETING_FALLBACK = {
 };
 
 export function WorkflowProvider({ children }) {
+  const supabase = useMemo(() => createClient(), []);
   const [rawUserIdea, setRawUserIdea] = useState('');
   const [validationResult, setValidationResult] = useState(null);
   const [businessInfo, setBusinessInfo] = useState(DEFAULT_BUSINESS_INFO);
+  const [currentIdeaId, setCurrentIdeaId] = useState(null);
   
   // Agent outputs
   const [refinedConcept, setRefinedConcept] = useState(null);
@@ -176,7 +180,49 @@ export function WorkflowProvider({ children }) {
 
     // Force auth active for this agentic workflow
     localStorage.setItem(AUTH_KEY, 'true');
+
+    const savedIdeaId = localStorage.getItem(CURRENT_IDEA_ID_KEY);
+    if (savedIdeaId) {
+      setCurrentIdeaId(savedIdeaId);
+    }
   }, []);
+
+  const updateCurrentIdeaId = (ideaId) => {
+    if (ideaId) {
+      localStorage.setItem(CURRENT_IDEA_ID_KEY, ideaId);
+    } else {
+      localStorage.removeItem(CURRENT_IDEA_ID_KEY);
+    }
+
+    setCurrentIdeaId(ideaId);
+  };
+
+  const persistAgentOutput = async (table, output, mapOutput) => {
+    const ideaId = currentIdeaId || localStorage.getItem(CURRENT_IDEA_ID_KEY);
+
+    if (!ideaId) {
+      console.warn(`Skipping ${table} save because no current idea id is set.`);
+      return;
+    }
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user?.id) {
+      console.warn(`Skipping ${table} save because no authenticated user was found.`);
+      return;
+    }
+
+    const payload = {
+      idea_id: ideaId,
+      user_id: user.id,
+      ...mapOutput(output),
+      raw_output: output
+    };
+
+    const { error } = await supabase.from(table).insert(payload);
+    if (error) {
+      console.error(`Failed to save ${table}:`, error);
+    }
+  };
 
   const addThinkingLog = (agentKey, message) => {
     setAgentThinking(prev => ({
@@ -205,6 +251,13 @@ export function WorkflowProvider({ children }) {
     try {
       refinedResult = await runRefinementAgent(rawUserIdea, businessInfo, key);
       setRefinedConcept(refinedResult);
+      await persistAgentOutput('agent_refinements', refinedResult, (output) => ({
+        thinking: output.thinking,
+        concept: output.concept,
+        improved_summary: output.improved_summary,
+        key_differentiators: output.key_differentiators,
+        target_audience_refined: output.target_audience_refined
+      }));
       addThinkingLog('refinement', `Thinking Process: ${refinedResult.thinking}`);
       addThinkingLog('refinement', 'Concept successfully refined. Improved Summary generated.');
       setAgentProgress(prev => ({ ...prev, refinement: 'completed', market: 'running' }));
@@ -225,6 +278,15 @@ export function WorkflowProvider({ children }) {
     try {
       const researchResult = await runMarketResearchAgent(refinedResult, businessInfo, key);
       setMarketResearch(researchResult);
+      await persistAgentOutput('agent_market_research', researchResult, (output) => ({
+        thinking: output.thinking,
+        markdown_deliverable: output.markdown_deliverable,
+        tam: output.tam,
+        competitors: output.competitors,
+        opportunities: output.opportunities,
+        saturation_level: output.saturation_level,
+        target_personas: output.target_personas
+      }));
       addThinkingLog('market', `Thinking Process: ${researchResult.thinking}`);
       addThinkingLog('market', `TAM calculated: ${researchResult.tam}. Saturation index set.`);
       setAgentProgress(prev => ({ ...prev, market: 'completed' }));
@@ -270,6 +332,14 @@ export function WorkflowProvider({ children }) {
       try {
         const result = await runFinanceAgent(refinedConcept, businessInfo, marketResearch, key);
         setFinanceModel(result);
+        await persistAgentOutput('agent_finance_models', result, (output) => ({
+          thinking: output.thinking,
+          markdown_deliverable: output.markdown_deliverable,
+          cost_breakdown: output.costBreakdown,
+          revenue_forecast: output.revenueForecast,
+          pricing_strategy: output.pricingStrategy,
+          breakeven_month: output.breakevenMonth
+        }));
         addThinkingLog('finance', `Thinking Process: ${result.thinking}`);
         addThinkingLog('finance', 'Financial model synthesized successfully.');
         setAgentProgress(prev => ({ ...prev, finance: 'completed' }));
@@ -294,6 +364,15 @@ export function WorkflowProvider({ children }) {
       try {
         const result = await runBrandAgent(refinedConcept, businessInfo, key);
         setBrandPackage(result);
+        await persistAgentOutput('agent_brand_packages', result, (output) => ({
+          thinking: output.thinking,
+          markdown_deliverable: output.markdown_deliverable,
+          names: output.names,
+          tagline: output.tagline,
+          voice: output.voice,
+          palette: output.palette,
+          logo_concept: output.logoConcept
+        }));
         addThinkingLog('brand', `Thinking Process: ${result.thinking}`);
         addThinkingLog('brand', 'Brand guidelines and assets successfully resolved.');
         setAgentProgress(prev => ({ ...prev, brand: 'completed' }));
@@ -318,6 +397,13 @@ export function WorkflowProvider({ children }) {
       try {
         const result = await runWebsiteAgent(refinedConcept, businessInfo, brandPackage || { palette: { primary: '#1b0624', secondary: '#aeec1d' }, names: ['Brand'] }, key);
         setDigitalPresence(result);
+        await persistAgentOutput('agent_digital_presence', result, (output) => ({
+          thinking: output.thinking,
+          markdown_deliverable: output.markdown_deliverable,
+          landing_page_outline: output.landingPageOutline,
+          features: output.features,
+          stack: output.stack
+        }));
         addThinkingLog('website', `Thinking Process: ${result.thinking}`);
         addThinkingLog('website', 'Website structure and design specifications compiled.');
         setAgentProgress(prev => ({ ...prev, website: 'completed' }));
@@ -342,6 +428,13 @@ export function WorkflowProvider({ children }) {
       try {
         const result = await runMarketingAgent(refinedConcept, businessInfo, marketResearch, key);
         setGrowthPlan(result);
+        await persistAgentOutput('agent_growth_plans', result, (output) => ({
+          thinking: output.thinking,
+          markdown_deliverable: output.markdown_deliverable,
+          channels: output.channels,
+          acquisition_plan: output.acquisitionPlan,
+          roadmap_90_day: output.roadmap90Day
+        }));
         addThinkingLog('marketing', `Thinking Process: ${result.thinking}`);
         addThinkingLog('marketing', 'Launch growth plan successfully structured.');
         setAgentProgress(prev => ({ ...prev, marketing: 'completed' }));
@@ -382,6 +475,10 @@ export function WorkflowProvider({ children }) {
       );
 
       setBusinessPlan(bizPlanResult);
+      await persistAgentOutput('agent_business_plans', bizPlanResult, (output) => ({
+        thinking: output.thinking,
+        lean_canvas_markdown: output.lean_canvas_markdown
+      }));
       addThinkingLog('business', `Thinking Process: ${bizPlanResult.thinking}`);
       addThinkingLog('business', 'Lean Canvas compilation completed.');
       setAgentProgress(prev => ({ ...prev, business: 'completed' }));
@@ -450,6 +547,7 @@ export function WorkflowProvider({ children }) {
     setDigitalPresence(null);
     setGrowthPlan(null);
     setBusinessPlan(null);
+    updateCurrentIdeaId(null);
     setAgentProgress({
       refinement: 'idle',
       market: 'idle',
@@ -479,6 +577,8 @@ export function WorkflowProvider({ children }) {
       setValidationResult,
       businessInfo,
       updateBusinessInfo,
+      currentIdeaId,
+      updateCurrentIdeaId,
       refinedConcept,
       marketResearch,
       financeModel,
@@ -492,6 +592,7 @@ export function WorkflowProvider({ children }) {
       setGrowthPlan,
       setBusinessPlan,
       setRefinedConcept,
+      setMarketResearch,
       agentProgress,
       agentThinking,
       activeStep,
