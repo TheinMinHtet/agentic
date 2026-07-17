@@ -1,622 +1,329 @@
 ---
-name: Agentic
-url: https://duna.com/
+name: Agentic Studio (AI-Native Sleek Dark Mode & Neon Glass)
+url: https://agentic-studio.ai/
 colors:
-  primary: '#1b0624'
-  primary-hover: '#2e0a42'
-  accent: '#aeec1d'
-  background: '#ffffff'
-  surface-light: '#f7f7f5'
-  surface-medium: '#edece7'
-  text-primary: '#000000'
-  text-secondary: '#1a1816'
-  text-muted: '#4d4846'
-  text-light-muted: '#898683'
-  text-inverse: '#ffffff'
-  link: '#1b0624'
-  link-footer: '#46838c'
-  link-footer-hover: '#2e6369'
-  border-light: '#dbd9cd'
-  border-dark: 'rgba(255, 255, 255, 0.08)'
+  primary: '#6366F1'
+  primary-hover: '#4F46E5'
+  accent: '#00F2FE'
+  background: '#080B11'
+  surface-light: 'rgba(255, 255, 255, 0.08)'
+  surface-medium: 'rgba(20, 23, 31, 0.85)'
+  surface-card: 'rgba(18, 24, 38, 0.65)'
+  text-primary: '#F8FAFC'
+  text-secondary: '#94A3B8'
+  text-muted: '#64748B'
+  text-light-muted: '#475569'
+  text-inverse: '#080B11'
+  link: '#818CF8'
+  link-hover: '#C4B5FD'
+  border-light: 'rgba(255, 255, 255, 0.08)'
+  border-dark: 'rgba(255, 255, 255, 0.22)'
+  border-accent: 'rgba(0, 242, 254, 0.4)'
 typography:
   display:
-    family: 'GT America Regular'
-    size: 80px
-    weight: 400
+    family: 'Plus Jakarta Sans'
+    size: clamp(28px, 4.2vw, 52px)
+    weight: 800
     line-height: 1.2
   heading:
-    family: 'GT America Regular'
-    size: 44px
-    weight: 400
-    line-height: 1.2
+    family: 'Plus Jakarta Sans'
+    size: 26px
+    weight: 700
+    line-height: 1.25
   body:
     family: 'Inter'
-    size: 16px
-    weight: 500
-    line-height: 1.2
+    size: 15px
+    weight: 400
+    line-height: 1.6
   caption:
     family: 'Inter'
-    size: 12px
-    weight: 400
+    size: 13px
+    weight: 500
     line-height: 1.5
 spacing:
   base: 4px
-  scale: [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64]
+  scale: [0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, 96, 110]
 radius:
-  sm: 12px
-  md: 16px
+  sm: 8px
+  md: 12px
   lg: 24px
+  xl: 28px
   full: 999px
 elevation:
-  card: 'rgba(45, 32, 50, 0.08) 0px 0.602187px 1.80656px -0.666667px, rgba(45, 32, 50, 0.09) 0px 2.28853px 6.8656px -1.33333px, rgba(45, 32, 50, 0.12) 0px 10px 30px -2px'
-  hover: 'rgba(45, 32, 50, 0.12) 0px 2px 6px -1px, rgba(45, 32, 50, 0.15) 0px 8px 24px -2px'
-  overlay: 'rgba(45, 32, 50, 0.2) 0px 10px 30px -5px'
+  navbar: '0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08)'
+  card: '0 24px 60px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.1)'
+  hover: '0 30px 70px rgba(0, 0, 0, 0.75), 0 0 40px rgba(56, 189, 248, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.15)'
+  glow: '0 0 15px rgba(139, 92, 246, 0.35)'
 motion:
-  duration-base: '0.4s'
-  easing-standard: 'ease-out'
+  duration-base: '0.35s'
+  easing-standard: 'cubic-bezier(0.16, 1, 0.3, 1)'
 components:
+  navbar-floating:
+    bg: 'rgba(20, 23, 31, 0.85)'
+    border: '1px solid rgba(255, 255, 255, 0.1)'
+    border-top: 'rgba(255, 255, 255, 0.22)'
+    radius: '12px'
+    blur: '20px'
   button-primary:
-    bg: '{colors.primary}'
-    text: '{colors.text-inverse}'
-    radius: '{radius.sm}'
-    padding: '16px 24px'
+    bg: 'linear-gradient(135deg, #6366F1 0%, #3B82F6 100%)'
+    text: '#FFFFFF'
+    radius: '8px'
+    padding: '7px 16px'
+    border: '1px solid rgba(255, 255, 255, 0.22)'
   button-secondary:
-    bg: '{colors.background}'
-    text: '{colors.primary}'
-    radius: '{radius.sm}'
-    padding: '16px 24px'
-  card:
-    bg: '{colors.surface-medium}'
-    radius: '{radius.md}'
-    shadow: '{elevation.card}'
+    bg: 'rgba(255, 255, 255, 0.04)'
+    text: '#E2E8F0'
+    radius: '8px'
+    padding: '7px 14px'
+    border: '1px solid rgba(255, 255, 255, 0.15)'
+  glass-panel:
+    bg: 'rgba(18, 24, 38, 0.65)'
+    border: '1px solid rgba(255, 255, 255, 0.08)'
+    radius: '28px'
+    blur: '20px'
 ---
 
-# Design System Inspired by Duna
+# Design System Specification: AI-Native Sleek Dark Mode & Neon Glass
 
 ## 1. Visual Theme & Atmosphere
-Duna's design system conveys a refined and professional aesthetic, blending a dark, sophisticated primary color (`#1b0624`) with a vibrant lime green accent (`#aeec1d`). The visual experience is anchored by a unique painterly landscape illustration in the hero section, featuring soft, muted tones and natural elements. Typography is a key differentiator, employing the distinct `GT America Regular` font for impactful headlines up to `80px`, contrasted with the highly legible `Inter` sans-serif for body text at `16px` with a `500` weight.
+The **Agentic Workflow** design system embodies a state-of-the-art, AI-native aesthetic inspired by top tier platforms such as **pi.dev**, **Linear**, **Vercel**, and **Perplexity**. It relies on an deep space black canvas (`#080B11`), dual radial neon glow gradients (`#6366F1` indigo and `#00F2FE` cyan), and a subtle high-tech fine grid overlay (`22px x 22px`).
 
-The layout emphasizes clarity and spaciousness through generous use of whitespace, particularly `64px` vertical section padding and `48px` horizontal padding. Interactive elements like buttons and cards feature subtle `12px` to `16px` border radii and a complex, soft shadow (`rgba(45, 32, 50, 0.08) 0px...`) that adds a premium sense of depth. No significant animation is detected, maintaining a static, focused content delivery.
+Typography is paired intentionally:
+- **`Plus Jakarta Sans`** is used for all brand titles, hero headlines, and card headings to deliver high-impact, geometric, modern character curves (`a`, `g`, `e`).
+- **`Inter`** is used for all UI text, navigation items, buttons, badges, and body descriptions to ensure crisp antialiased rendering and maximum legibility.
 
-**Key Characteristics**
-*   Painterly landscape illustration in hero.
-*   `GT America Regular` for prominent headlines.
-*   Dark primary buttons (`#1b0624`) with `12px` radius.
-*   Subtle, multi-layered shadows on cards.
-*   Ample `48px` to `64px` section padding.
-*   `Inter` font `16px/500` for body text.
-*   Vibrant `#aeec1d` lime green accent.
+**Key Architectural & Visual Characteristics**
+* **Floating Glass Navbar (`pi.dev` specification):** A centered floating pill bar at `top: 14px` (`z-index: 50`) with `backdrop-filter: blur(20px)`, subtle dual border lighting (`rgba(255, 255, 255, 0.22)` top border highlight), and centered uppercase navigation items (`HOME`, `DASHBOARD`).
+* **Active Stripe Neon Glow:** Active navigation items display a razor-sharp bottom stripe (`::after`) in cyan (`#00F2FE`) with neon box-shadow diffusion.
+* **Negative Margin Shell Integration:** The floating navbar uses `margin-bottom: -66px` so that the underlying hero section starts directly at viewport top (`y = 0`), creating an uninterrupted background gradient across the top edge.
+* **Glassmorphic Cards:** Translucent panels (`rgba(18, 24, 38, 0.65)`) with `20px` background blur and reactive hover states (border illumination with `#38BDF8` and subtle elevation shift).
 
-## 2. Color Palette & Roles
-Duna employs a concise and impactful color palette, primarily leveraging dark tones for brand identity and text, complemented by a single vibrant accent.
+---
 
--   **Primary**
-    -   `primary: #1b0624` — A deep, dark purple-black. This serves as the dominant brand color for primary call-to-action buttons, prominent text accents, and navigation links.
-    -   `primary-hover: #2e0a42` — A slightly darker shade of the primary color, used for the hover state of primary interactive elements (inferred from screenshot).
--   **Accent Colors**
-    -   `accent: #aeec1d` — A bright, energetic lime green. Used sparingly for small highlight badges, status indicators, and subtle decorative elements to draw attention.
--   **Interactive**
-    -   `link: #1b0624` — The primary color is also used for standard text links within content and navigation, maintaining brand consistency.
-    -   `link-footer: #46838c` — A muted teal-blue used specifically for links in the footer section, providing a distinct visual identity in that context.
-    -   `link-footer-hover: #2e6369` — A darker shade of the footer link color for its hover state (inferred from screenshot).
--   **Neutral Scale**
-    -   `text-primary: #000000` — Pure black, used for the most common body text and general content.
-    -   `text-secondary: #1a1816` — A very dark grey, used for secondary headings and larger body text where a slightly softer tone than pure black is desired.
-    -   `text-muted: #4d4846` — A darker grey, used for less prominent text such as descriptions, sub-labels, and supporting information.
-    -   `text-light-muted: #898683` — A light grey, reserved for very subtle text elements, captions, or legal disclaimers.
-    -   `text-inverse: #ffffff` — Pure white, used for text that appears on dark backgrounds, such as primary buttons or dark hero sections.
--   **Surface & Borders**
-    -   `background: #ffffff` — The default pure white background for the main page canvas.
-    -   `surface-light: #f7f7f5` — A very light off-white, used for subtle differentiation of section backgrounds.
-    -   `surface-medium: #edece7` — A light, neutral beige-grey, commonly used for card backgrounds and other contained content blocks.
-    -   `border-light: #dbd9cd` — A subtle, light grey-beige, used for delicate borders and dividers on light backgrounds.
-    -   `border-dark: rgba(255, 255, 255, 0.08)` — A transparent white with low opacity, used for borders on dark backgrounds to provide subtle separation without harsh lines.
+## 2. Color Palette & Tokens
+All components MUST strictly consume these color tokens to maintain visual cohesion across future specialized agent rooms and dashboard pages.
 
-## 3. Typography Rules
--   **Font Family**: `GT America Regular`, `Inter`, `sans-serif` (system fallback), `Times New Roman` (monospace fallback).
--   **Hierarchy**:
-    -   **Display**: `GT America Regular` `80px` `400` · line-height `1.2` · tracking `-0.02em` · Used for the most impactful hero statements.
-    -   **H1**: `GT America Regular` `44px` `400` · line-height `1.2` · tracking `-0.02em` · Main section titles and key messages.
-    -   **H2**: `GT America Regular` `32px` `400` · line-height `1.2` · tracking `-0.02em` · Sub-section headings and feature titles.
-    -   **Body**: `Inter` `16px` `500` · line-height `1.2` · tracking `normal` · Standard paragraph text and detailed descriptions.
-    -   **Small**: `Inter` `14px` `400` · line-height `1.5` · tracking `normal` · Supporting text, sub-descriptions, and meta-information.
-    -   **Caption**: `Inter` `12px` `400` · line-height `1.5` · tracking `normal` · Legal disclaimers, timestamps, and very fine print.
-    -   **Code/Mono**: `Times New Roman` `12px` `400` · line-height `1.5` · tracking `normal` · (inferred for code snippets or technical representations).
--   **Principles**
-    -   Headlines leverage the distinctive `GT America Regular` typeface with generous sizing and subtle negative letter spacing to create a modern, bold presence.
-    -   Body and supporting text rely on `Inter` for its high legibility and clean aesthetic, ensuring content is easily digestible.
-    -   A consistent line-height of `1.2` for headings and `1.5` for body text maintains visual rhythm and readability across different text scales.
-    -   Font weights are predominantly `400` (Regular) and `500` (Medium), providing clear hierarchy without excessive visual noise.
+### Backgrounds & Surfaces
+- `background: #080B11` — Deep space dark navy/black. The foundational canvas of the entire application.
+- `surface-medium: rgba(20, 23, 31, 0.85)` — Used for sticky navigation bars and floating toolbars.
+- `surface-card: rgba(18, 24, 38, 0.65)` — Used for main hero panels, interactive boardroom widgets, and feature cards.
+- `surface-light: rgba(255, 255, 255, 0.08)` — Used for button hover states, active list item backgrounds, and pill badges.
 
-## 4. Component Stylings
+### Brand & Accents
+- `primary: #6366F1` (Indigo Neon) — Primary accent for linear gradients, primary buttons, and radar highlights.
+- `primary-hover: #4F46E5` — Interactive hover target for indigo elements.
+- `accent: #00F2FE` (Cyan Neon) — High-energy accent used for active navigation underlines, financial metrics, and verification highlights.
+- `gradient-metallic: linear-gradient(135deg, #FFFFFF 0%, #E2E8F0 45%, #818CF8 80%, #38BDF8 100%)` — The signature metallic gradient applied via `-webkit-background-clip: text` to primary display headlines.
 
-### Buttons
-Duna features three primary button styles: Primary (dark, high contrast), Secondary (light, outlined), and Ghost (text-only). Each button includes a subtle `0.4s ease-out` transition for interactive states.
+### Typography Colors
+- `text-primary: #F8FAFC` — Crisp white/off-white for headings, active labels, and primary outcomes.
+- `text-secondary: #94A3B8` — Slate blue-grey for navigation links, subtitles, and standard descriptions (`clamp(14.5px, 1.6vw, 16.5px)`).
+- `text-muted: #64748B` — Muted slate for secondary metadata, feature card descriptions, and timestamps.
+- `text-light-muted: #475569` — Disabled text and placeholder text.
 
-#### Primary Button
-A high-contrast button with a dark background and inverse text, used for primary calls to action. It features `12px` rounded corners and a slight darkening on hover.
+### Borders & Dividers
+- `border-light: rgba(255, 255, 255, 0.08)` — Standard delicate border for cards and panels.
+- `border-dark: rgba(255, 255, 255, 0.22)` — Top illumination highlight for floating navigation and primary buttons.
+- `border-accent: rgba(0, 242, 254, 0.4)` — Active focus ring and illuminated hover border.
+
+---
+
+## 3. Typography Hierarchy & Rules
+The application uses two Google Fonts configured cleanly via `next/font/google`:
 
 ```css
-.button-primary {
-  background-color: var(--color-primary, #1b0624);
-  color: var(--color-text-inverse, #ffffff);
-  font-family: var(--typography-body-family, 'Inter'), sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 16px 24px;
-  border: none;
-  border-radius: var(--radius-sm, 12px);
-  cursor: pointer;
-  transition: background-color var(--motion-duration-base, 0.4s) var(--motion-easing-standard, ease-out);
+/* Configured in root layout via CSS variables */
+--font-jakarta: 'Plus Jakarta Sans', system-ui, sans-serif;
+--font-inter: 'Inter', system-ui, -apple-system, sans-serif;
+```
+
+### Hierarchy Rules
+1. **Display / Hero Headline (`.landing-title`)**
+   - Font Family: `var(--font-jakarta)`
+   - Size: `clamp(28px, 4.2vw, 52px)` (Desktop) / `26px` (Mobile)
+   - Weight: `800`
+   - Line-Height: `1.2`
+   - Letter-Spacing: `-0.03em`
+   - Note: Fixed `min-height: 80px` (`68px` on mobile) ensures stability during dynamic Typewriter animations without vertical layout shifts.
+2. **Section Headings / Panel Titles (`.landing-panel-title`)**
+   - Font Family: `var(--font-jakarta)`
+   - Size: `26px`
+   - Weight: `700`
+   - Color: `#F8FAFC`
+   - Letter-Spacing: `-0.02em`
+3. **Subtitles & Descriptions (`.landing-copy`)**
+   - Font Family: `var(--font-inter)`
+   - Size: `clamp(14.5px, 1.6vw, 16.5px)`
+   - Weight: `400`
+   - Color: `#94A3B8`
+   - Line-Height: `1.6`
+   - Max-Width: `620px`
+4. **Navigation Items (`.nav-link`)**
+   - Font Family: `var(--font-inter)`
+   - Size: `13px`
+   - Weight: `600`
+   - Text-Transform: `uppercase`
+   - Letter-Spacing: `0.08em`
+5. **Feature Card Titles & Body**
+   - Title: `16px/600` (`#F1F5F9`)
+   - Description: `13.5px/400` (`#64748B`), Line-Height `1.5`
+
+---
+
+## 4. Component Standards & Code Recipes
+
+### Floating Glass Navbar (`pi.dev` Style)
+The navigation bar MUST be rendered as a floating pill inside a full-height dark layout wrapper (`#080B11` root background when `pathname === '/'`).
+
+```css
+.navbar.navbar-dark-landing {
+  position: sticky !important;
+  top: 14px !important;
+  z-index: 50 !important;
+  width: min(100% - 48px, 960px) !important;
+  margin: 14px auto -66px auto !important; /* -66px cancels vertical flow height */
+  min-height: 52px !important;
+  padding: 8px 20px !important;
+  background: rgba(20, 23, 31, 0.85) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-top-color: rgba(255, 255, 255, 0.22) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
 }
 
-.button-primary:hover {
-  background-color: var(--color-primary-hover, #2e0a42); /* inferred from screenshot */
+/* Centered Uppercase Links */
+.navbar.navbar-dark-landing .nav-center-links {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: clamp(14px, 2.5vw, 28px) !important;
 }
 
-.button-primary:active {
-  background-color: var(--color-primary, #1b0624);
-  transform: translateY(1px); /* inferred from screenshot */
-  transition: transform 0.1s ease-out; /* inferred from screenshot */
+.navbar.navbar-dark-landing .nav-link {
+  color: #94A3B8 !important;
+  font-family: var(--font-inter, 'Inter', system-ui, sans-serif) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  padding: 6px 4px !important;
+  position: relative !important;
 }
 
-.button-primary:disabled {
-  background-color: var(--color-text-light-muted, #898683); /* inferred from screenshot */
-  color: var(--color-text-inverse, #ffffff);
-  cursor: not-allowed;
+.navbar.navbar-dark-landing .nav-link.active::after {
+  content: "" !important;
+  position: absolute !important;
+  right: 0 !important;
+  bottom: -4px !important;
+  left: 0 !important;
+  height: 2px !important;
+  background: #00F2FE !important;
+  box-shadow: 0 0 8px rgba(0, 242, 254, 0.8) !important;
 }
 ```
 
-
-<details>
-<summary>Secondary Button</summary>
-
-A light-themed button with a subtle border and dark text, used for secondary actions or less prominent calls to action. It lightens on hover.
-
+### Primary & Secondary Auth Buttons
 ```css
-.button-secondary {
-  background-color: var(--color-background, #ffffff);
-  color: var(--color-primary, #1b0624);
-  font-family: var(--typography-body-family, 'Inter'), sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 16px 24px;
-  border: 1px solid var(--color-border-light, #dbd9cd); /* inferred from screenshot */
-  border-radius: var(--radius-sm, 12px);
-  cursor: pointer;
-  transition: background-color var(--motion-duration-base, 0.4s) var(--motion-easing-standard, ease-out), border-color var(--motion-duration-base, 0.4s) var(--motion-easing-standard, ease-out);
+.navbar.navbar-dark-landing .nav-auth-button.button-primary {
+  background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%) !important;
+  color: #FFFFFF !important;
+  font-family: var(--font-inter, 'Inter', system-ui, sans-serif) !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  padding: 7px 16px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35) !important;
 }
 
-.button-secondary:hover {
-  background-color: var(--color-surface-light, #f7f7f5); /* inferred from screenshot */
-  border-color: var(--color-text-light-muted, #898683); /* inferred from screenshot */
-}
-
-.button-secondary:active {
-  background-color: var(--color-surface-medium, #edece7); /* inferred from screenshot */
-  transform: translateY(1px); /* inferred from screenshot */
-  transition: transform 0.1s ease-out; /* inferred from screenshot */
-}
-
-.button-secondary:disabled {
-  background-color: var(--color-surface-light, #f7f7f5); /* inferred from screenshot */
-  color: var(--color-text-light-muted, #898683);
-  border-color: var(--color-text-light-muted, #898683);
-  cursor: not-allowed;
+.navbar.navbar-dark-landing .nav-auth-button.button-secondary {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #E2E8F0 !important;
+  font-family: var(--font-inter, 'Inter', system-ui, sans-serif) !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  padding: 7px 14px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
 ```
 
-</details>
-
-<details>
-<summary>Ghost Button</summary>
-
-A text-only button with a transparent background, used for tertiary actions or navigation within content. It darkens on hover.
-
+### Hero Section Layout Container (`.landing-dark-theme-wrapper`)
 ```css
-.button-ghost {
-  background-color: transparent;
-  color: var(--color-primary, #1b0624);
-  font-family: var(--typography-body-family, 'Inter'), sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 16px 24px;
-  border: none;
-  border-radius: var(--radius-sm, 12px);
-  cursor: pointer;
-  transition: color var(--motion-duration-base, 0.4s) var(--motion-easing-standard, ease-out);
-}
-
-.button-ghost:hover {
-  color: var(--color-text-secondary, #1a1816); /* inferred from screenshot */
-}
-
-.button-ghost:active {
-  color: var(--color-text-primary, #000000); /* inferred from screenshot */
-  transform: translateY(1px); /* inferred from screenshot */
-  transition: transform 0.1s ease-out; /* inferred from screenshot */
-}
-
-.button-ghost:disabled {
-  color: var(--color-text-light-muted, #898683);
-  cursor: not-allowed;
-}
-```
-
-</details>
-### Cards & Containers
-Cards are used to group related content, featuring a light background, `16px` border radius, and a subtle shadow. On hover, the shadow slightly strengthens to indicate interactivity.
-
-```css
-.card {
-  background-color: var(--color-surface-medium, #edece7);
-  color: var(--color-text-primary, #000000);
-  padding: 32px;
-  border-radius: var(--radius-md, 16px);
-  box-shadow: var(--elevation-card, rgba(45, 32, 50, 0.08) 0px 0.602187px 1.80656px -0.666667px, rgba(45, 32, 50, 0.09) 0px 2.28853px 6.8656px -1.33333px, rgba(45, 32, 50, 0.12) 0px 10px 30px -2px);
-  transition: box-shadow var(--motion-duration-base, 0.4s) var(--motion-easing-standard, ease-out);
-}
-
-.card:hover {
-  box-shadow: var(--elevation-hover, rgba(45, 32, 50, 0.12) 0px 2px 6px -1px, rgba(45, 32, 50, 0.15) 0px 8px 24px -2px); /* inferred from screenshot */
-}
-```
-
-### Inputs & Forms
-
-#### Text Input
-Standard text input fields have a white background, dark text, and a light border. The focus state highlights the border and adds a subtle focus ring.
-
-```css
-.input-text {
-  background-color: var(--color-background, #ffffff);
-  color: var(--color-text-primary, #000000);
-  font-family: var(--typography-body-family, 'Inter'), sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  padding: 12px 16px;
-  border: 1px solid var(--color-border-light, #dbd9cd);
-  border-radius: var(--radius-sm, 12px);
-  transition: border-color var(--motion-duration-base, 0.4s) var(--motion-easing-standard, ease-out), box-shadow var(--motion-duration-base, 0.4s) var(--motion-easing-standard, ease-out);
-}
-
-.input-text:focus {
-  border-color: var(--color-primary, #1b0624);
-  outline: 2px solid var(--color-primary, #1b0624); /* inferred from screenshot */
-  outline-offset: 2px; /* inferred from screenshot */
-  box-shadow: 0 0 0 2px var(--color-primary, #1b0624); /* inferred from screenshot */
-}
-
-.input-text:disabled {
-  background-color: var(--color-surface-light, #f7f7f5);
-  color: var(--color-text-light-muted, #898683);
-  border-color: var(--color-border-light, #dbd9cd);
-  cursor: not-allowed;
-}
-```
-
-
-<details>
-<summary>Form Label</summary>
-
-Labels for form fields use a dark secondary text color.
-
-```css
-.form-label {
-  color: var(--color-text-secondary, #1a1816);
-  font-family: var(--typography-body-family, 'Inter'), sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  display: block;
-}
-```
-
-</details>
-
-<details>
-<summary>Checkbox/Radio</summary>
-
-Standard checkbox and radio button styling, with the primary brand color for the checked state.
-
-```css
-.checkbox, .radio {
-  appearance: none;
-  width: 20px; /* inferred from screenshot */
-  height: 20px; /* inferred from screenshot */
-  border: 1px solid var(--color-border-light, #dbd9cd);
-  border-radius: 4px; /* inferred from screenshot */
-  display: inline-block;
-  vertical-align: middle;
-  cursor: pointer;
-  transition: background-color 0.2s ease-out, border-color 0.2s ease-out; /* inferred from screenshot */
-}
-
-.radio {
-  border-radius: var(--radius-full, 999px);
-}
-
-.checkbox:checked, .radio:checked {
-  background-color: var(--color-primary, #1b0624);
-  border-color: var(--color-primary, #1b0624);
-}
-
-.checkbox:focus, .radio:focus {
-  outline: 2px solid var(--color-primary, #1b0624); /* inferred from screenshot */
-  outline-offset: 2px; /* inferred from screenshot */
-}
-
-.checkbox:disabled, .radio:disabled {
-  background-color: var(--color-surface-light, #f7f7f5);
-  border-color: var(--color-border-light, #dbd9cd);
-  cursor: not-allowed;
-}
-```
-
-</details>
-### Navigation
-
-#### Top Navigation Bar
-The top navigation bar is transparent over the hero image and becomes a solid white background on scroll (inferred). It features navigation links and a primary call-to-action button.
-
-```css
-.nav-bar {
-  background-color: transparent; /* inferred from screenshot */
-  padding: 24px 48px;
+.landing-dark-theme-wrapper {
+  min-height: 100vh;
+  background-color: #080B11;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.18) 0%, rgba(8, 11, 17, 0) 70%),
+    radial-gradient(circle at 85% 30%, rgba(0, 242, 254, 0.08) 0%, rgba(8, 11, 17, 0) 50%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 22px 22px, 22px 22px;
+  color: #F8FAFC;
+  font-family: var(--font-inter, 'Inter', system-ui, -apple-system, sans-serif);
+  padding: 110px 24px 80px; /* Pulls hero container up right under navbar */
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: center;
-  position: sticky;
-  top: 0;
-  width: 100%;
-  z-index: 10; /* inferred from elevation.zIndexValues */
-  transition: background-color var(--motion-duration-base, 0.4s) var(--motion-easing-standard, ease-out); /* inferred from screenshot */
-}
-
-/* Example scrolled state */
-.nav-bar.scrolled {
-  background-color: var(--color-background, #ffffff); /* inferred from screenshot */
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* inferred from screenshot */
+  justify-content: flex-start;
+  position: relative;
+  overflow: hidden;
 }
 ```
 
-
-<details>
-<summary>Navigation Link</summary>
-
-Links within the navigation bar use the primary brand color and darken slightly on hover.
-
+### WarRoom Primary CTA (`.warroom-primary-cta`)
 ```css
-.nav-link {
-  color: var(--color-primary, #1b0624);
-  font-family: var(--typography-body-family, 'Inter'), sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  text-decoration: none;
-  padding: 8px 12px;
-  border-radius: var(--radius-sm, 12px); /* inferred from screenshot */
-  transition: color var(--motion-duration-base, 0.4s) var(--motion-easing-standard, ease-out), background-color var(--motion-duration-base, 0.4s) var(--motion-easing-standard, ease-out);
-}
-
-.nav-link:hover {
-  color: var(--color-text-secondary, #1a1816); /* inferred from screenshot */
-  background-color: var(--color-surface-light, #f7f7f5); /* inferred from screenshot */
-}
-
-.nav-link.active,
-.nav-link[aria-current="page"] {
-  color: var(--color-text-primary, #000000); /* inferred from screenshot */
-  font-weight: 700; /* inferred from screenshot */
-}
-```
-
-</details>
-
-<details>
-<summary>Dropdown Menu</summary>
-
-(No explicit dropdown menu observed in source screenshots.)
-
-</details>
-### Links
-
-#### Standard Link
-Standard inline text links use the primary brand color and show an underline on hover.
-
-```css
-.link-standard {
-  color: var(--color-link, #1b0624);
-  text-decoration: none;
-  transition: text-decoration-color 0.2s ease-out, color 0.2s ease-out; /* inferred from screenshot */
-}
-
-.link-standard:hover {
-  text-decoration: underline;
-  text-decoration-color: var(--color-link, #1b0624);
-  color: var(--color-text-secondary, #1a1816); /* inferred from screenshot */
-}
-
-.link-standard:visited {
-  color: var(--color-link, #1b0624); /* inferred from screenshot */
-}
-```
-
-
-<details>
-<summary>Secondary Link</summary>
-
-Links used in less prominent areas, such as the footer, use a distinct teal color.
-
-```css
-.link-secondary {
-  color: var(--color-link-footer, #46838c);
-  text-decoration: none;
-  transition: color var(--motion-duration-base, 0.4s) var(--motion-easing-standard, ease-out);
-}
-
-.link-secondary:hover {
-  color: var(--color-link-footer-hover, #2e6369); /* inferred from screenshot */
-  text-decoration: underline; /* inferred from screenshot */
-}
-
-.link-secondary:visited {
-  color: var(--color-link-footer, #46838c); /* inferred from screenshot */
-}
-```
-
-</details>
-### Badges
-Duna uses small, pill-shaped badges for informational highlights.
-
-#### Primary Badge
-A dark badge with inverse text, used for important announcements.
-
-```css
-.badge-primary {
-  background-color: var(--color-primary, #1b0624);
-  color: var(--color-text-inverse, #ffffff);
-  font-family: var(--typography-caption-family, 'Inter'), sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 8px 16px;
-  border-radius: var(--radius-full, 999px);
+.warroom-primary-cta {
   display: inline-flex;
   align-items: center;
-  gap: 4px; /* inferred from screenshot */
+  justify-content: center;
+  gap: 12px;
+  background: #0D121C;
+  color: #FFFFFF;
+  font-family: var(--font-inter, 'Inter', system-ui, sans-serif);
+  font-size: 16.5px;
+  font-weight: 700;
+  padding: 16px 38px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(0, 242, 254, 0.5);
+  box-shadow: 
+    0 12px 30px rgba(0, 0, 0, 0.8),
+    0 0 25px rgba(0, 242, 254, 0.25),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.warroom-primary-cta:hover {
+  background: #131B2A;
+  border-color: #00F2FE;
+  box-shadow: 
+    0 20px 45px rgba(0, 0, 0, 0.9),
+    0 0 40px rgba(0, 242, 254, 0.45),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px) scale(1.02);
 }
 ```
 
+### Bottom Half: Framer Motion Node Graph (`WarRoomNodeGraph.jsx`)
+The landing page replaces static feature cards and vertical chat boxes with a dynamic, highly modular **AI Node Graph** powered by `framer-motion`:
+1. **Circular Agent Nodes (`5 Outer Nodes + 1 Center Core`):**
+   - Market Intelligence (`#00F2FE`), Technical Architect (`#818CF8`), Brand Identity (`#A78BFA`), Financial Modeling (`#38BDF8`), Growth Strategy (`#34D399`).
+   - Central Core: **WarRoom Synthesis Engine** (`#F8FAFC`).
+2. **Connecting SVG Lines:**
+   - Thin, light gray SVG paths (`stroke="rgba(255, 255, 255, 0.12)" strokeWidth="1.2" strokeDasharray="4 4"`) connecting outer nodes to the central WarRoom core.
+3. **Continuous Data Flow Animation (`Framer Motion`):**
+   - Small glowing dots (`<motion.circle filter="url(#packet-glow)" />`) continuously travel along connecting lines (`cx/cy animation with repeat: Infinity`) to simulate real-time inter-agent communication and synthesis.
+4. **Active Pulsing Rings & Floating Tooltips:**
+   - Concentric outer rings (`<motion.circle r={[34, 48, 34]} />`) pulse gently around each node. Hovering over any node triggers a sleek floating glass card (`.node-insight-card`) displaying real-time agent metrics (`e.g., CAC/LTV targets, TAM size, stack specs`).
 
-<details>
-<summary>Accent Badge</summary>
+---
 
-A lime green badge with primary text, used for highlighting specific features or categories.
-
-```css
-.badge-accent {
-  background-color: var(--color-accent, #aeec1d);
-  color: var(--color-primary, #1b0624);
-  font-family: var(--typography-caption-family, 'Inter'), sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 8px 16px;
-  border-radius: var(--radius-full, 999px);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px; /* inferred from screenshot */
-}
-```
-
-</details>
-## 5. Layout Principles
--   **Spacing System**: Base unit `4px` → scale `[0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64]`.
-    -   **Usage Context**:
-        -   `4px`: Smallest inline gaps, icon-to-text spacing.
-        -   `8px`: Padding within small components, spacing between form elements.
-        -   `12px`: Button internal padding, spacing between list items.
-        -   `16px`: Component internal padding, spacing between related content blocks.
-        -   `20px`: Vertical spacing between paragraphs or minor sections.
-        -   `24px`: Standard vertical spacing between major elements, card internal padding.
-        -   `32px`: Sectional padding within larger containers, spacing between distinct components.
-        -   `40px`: Larger vertical separation, spacing for feature blocks.
-        -   `48px`: Horizontal padding for main content areas, large component spacing.
-        -   `64px`: Generous vertical padding between main page sections.
--   **Grid & Container** _Note: container widths and column counts are not extracted from the source. The values below are reasonable defaults inferred from the visible layout density._
-    -   **Max Width**: `1280px` (inferred from screenshot)
-    -   **Columns**: `12` (inferred from screenshot)
-    -   **Gutter**: `24px` (inferred from screenshot)
-    -   **Section Padding**: `64px` vertical, `48px` horizontal (inferred from screenshot)
--   **Whitespace Philosophy**: Duna employs ample and deliberate whitespace to create a sense of calm and focus. Large vertical and horizontal padding around sections, and within components, contributes to a spacious and uncluttered visual environment, allowing content to breathe and stand out. This approach enhances readability and guides the user's eye through the content hierarchy.
--   **Border Radius Scale**:
-    -   `sm: 12px` — Used for buttons, input fields, and small interactive elements.
-    -   `md: 16px` — Applied to cards, larger content containers, and image frames.
-    -   `lg: 24px` — For prominent UI elements or distinct content blocks requiring a softer, more inviting appearance.
-    -   `full: 999px` — Reserved for pill-shaped badges, avatars, or other circular elements.
-
-## 6. Depth & Elevation
-Duna uses a subtle, multi-layered shadow to provide depth, primarily for interactive components and cards. Z-index values are explicitly defined for stacking order.
-
--   **Flat (z-0)**: `none` — Default state for most background elements and static content.
--   **Base (z-1)**: `none` — Standard interactive elements like links and text inputs that do not cast a shadow.
--   **Card (z-2)**: `rgba(45, 32, 50, 0.08) 0px 0.602187px 1.80656px -0.666667px, rgba(45, 32, 50, 0.09) 0px 2.28853px 6.8656px -1.33333px, rgba(45, 32, 50, 0.12) 0px 10px 30px -2px` — Applied to standard cards and content blocks, providing a soft lift.
--   **Hover (z-3)**: `rgba(45, 32, 50, 0.12) 0px 2px 6px -1px, rgba(45, 32, 50, 0.15) 0px 8px 24px -2px` — Slightly stronger shadow for interactive cards on hover (inferred from screenshot).
--   **Dropdown (z-4)**: `rgba(45, 32, 50, 0.2) 0px 10px 30px -5px` — Used for dropdown menus or tooltips (inferred from screenshot).
--   **Modal (z-5)**: `rgba(45, 32, 50, 0.2) 0px 10px 30px -5px` — For fixed overlays and modal dialogs, ensuring they appear above all other content (inferred from screenshot).
-
-**Shadow Philosophy**: Duna's shadow philosophy is characterized by a single, nuanced shadow style that creates a refined sense of depth. The shadow is dark-tinted (`rgba(45, 32, 50, ...)`) and multi-layered, providing a gentle, natural lift for interactive elements and cards without appearing heavy or distracting. This subtle approach reinforces the brand's professional and polished aesthetic.
-
-## 7. Do's and Don'ts
-
-### Do's
--   **Do** use `GT America Regular` for all display and heading elements, ensuring a consistent brand voice.
--   **Do** apply `text-primary: #000000` for body text on `background: #ffffff`, which has a WCAG ratio of 21:1 (AAA).
--   **Do** maintain a minimum `24px` vertical spacing between distinct `Card` components for clarity.
--   **Do** use `primary: #1b0624` for all `Primary Button` backgrounds to highlight key calls to action.
--   **Do** apply `radius.sm: 12px` to all buttons and input fields for a consistent soft-rounded aesthetic.
--   **Do** use `link-footer: #46838c` for all footer links, ensuring it passes AA-large contrast (4.3:1) on `background: #ffffff`.
--   **Do** ensure `Accent Badge` elements use `accent: #aeec1d` as background and `primary: #1b0624` for text.
--   **Do** incorporate `48px` horizontal padding and `64px` vertical padding for main page sections.
--   **Do** use `text-muted: #4d4846` for secondary descriptions, which achieves a 9.01:1 (AAA) contrast on `background: #ffffff`.
--   **Do** apply a `2px` `primary: #1b0624` outline-offset on `:focus` states for `Text Input` fields.
-
-### Don'ts
--   **Don't** use `text-light-muted: #898683` for body text on `background: #ffffff`, as its 3.62:1 ratio only passes AA-large, not AAA.
--   **Don't** introduce custom spacing values; adhere strictly to the `[0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64]px` scale.
--   **Don't** use `Inter` for display or heading typography; reserve `GT America Regular` for these roles.
--   **Don't** apply `elevation.card` shadow to simple `link-standard` elements; reserve it for `Card` components.
--   **Don't** use `primary: #1b0624` as a background color for `Secondary Button` variants.
--   **Don't** use `text-inverse: #ffffff` on `surface-light: #f7f7f5` backgrounds, as it would result in low contrast.
--   **Don't** deviate from `radius.md: 16px` for `Card` components.
--   **Don't** use `text-light-muted: #898683` for any interactive element text.
--   **Don't** apply `text-decoration: underline` by default to `link-standard` elements; it should appear only on `:hover`.
--   **Don't** use `font-weight: 400` for `Body` text; always use `font-weight: 500`.
-
-## 8. Responsive Behavior *(Note: breakpoints below are industry-standard recommendations, not measurements from the source. Adjust to the brand's actual media queries when implementing.)*
--   **Breakpoints**:
-    -   **Mobile Small** (~375px): `(max-width: 719.98px)`: Stack content vertically, hide secondary navigation.
-    -   **Mobile Large** (~719px): `(max-width: 719px)`: Adjust typography sizes, optimize image scaling.
-    -   **Tablet** (~1199px): `(max-width: 1199px) and (min-width: 720px)`: Two-column layouts, larger touch targets.
-    -   **Desktop** (~1599px): `(min-width: 1200px) and (max-width: 1599px)`: Standard multi-column layouts.
-    -   **Desktop Large** (~1600px): `(min-width: 1600px)`: Maximize content width, larger hero images.
--   **Touch Targets**:
-    -   Ensure all interactive elements, like `Primary Button` and `nav-link`, have a minimum tap area of `44px` by `44px`.
-    -   Maintain at least `12px` of clear space between adjacent touch targets to prevent accidental taps.
--   **Collapsing Strategy**:
-    -   **Navigation**: Collapse main navigation links into a hamburger menu below `719px`; the "Schedule a demo" `Primary Button` remains visible.
-    -   **Cards**: `Card` components transition from multi-column grids to single-column stacking on mobile breakpoints.
-    -   **Typography**: `Display` and `Heading` font sizes scale down significantly on smaller viewports for readability.
-    -   **Padding**: Sectional padding (e.g., `64px`) reduces to `32px` or `24px` on mobile to optimize screen real estate.
-    -   **Forms**: `Text Input` fields expand to full width on mobile, and labels stack above inputs.
-    -   **Spacing**: Larger spacing values like `48px` and `64px` are often halved on mobile for a denser layout.
-
-## 9. Agent Prompt Guide
--   **Quick Color Reference**
-    -   `primary: #1b0624`
-    -   `primary-hover: #2e0a42`
-    -   `accent: #aeec1d`
-    -   `background: #ffffff`
-    -   `surface-light: #f7f7f5`
-    -   `surface-medium: #edece7`
-    -   `text-primary: #000000`
-    -   `text-secondary: #1a1816`
-    -   `text-muted: #4d4846`
-    -   `text-light-muted: #898683`
-    -   `text-inverse: #ffffff`
-    -   `link: #1b0624`
-    -   `link-footer: #46838c`
-    -   `link-footer-hover: #2e6369`
-    -   `border-light: #dbd9cd`
-    -   `border-dark: rgba(255, 255, 255, 0.08)`
--   **Iteration Guide**
-    1.  Always use `primary: #1b0624` for `Primary Button` backgrounds.
-    2.  Always use `GT America Regular` for `Display` and `Heading` text roles.
-    3.  Always use `Inter` `16px/500` for `Body` text.
-    4.  Always use spacing values from the `[0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64]px` scale.
-    5.  Always apply `radius.sm: 12px` to buttons and inputs, and `radius.md: 16px` to `Card` components.
-    6.  Always ensure `Primary Button` height is approximately `52px` (32px padding + 16px font size + 2px line height, inferred).
-    7.  Always include `:focus` state with a `2px` `primary: #1b0624` outline for `Text Input` fields.
-    8.  Always ensure `nav-link` has a `:hover` state that changes color to `text-secondary: #1a1816` and background to `surface-light: #f7f7f5`.
-    9.  Always use `elevation.card` for `Card` components, and `elevation.hover` for their `:hover` state.
-    10. Always reduce main section padding from `64px` to `32px` on mobile breakpoints below `720px`.
-    11. Always ensure `text-primary: #000000` on `background: #ffffff` passes AAA contrast (21:1).
-    12. Always apply `transition: background-color var(--motion-duration-base, 0.4s) var(--motion-easing-standard, ease-out);` to interactive elements.
+## 5. Guidelines for Future Specialized Agents & Pages
+When developing subsequent phases (e.g., **Phase 3 Dashboard**, **Live Boardroom Meeting Room**, **Idea Prompt Questionnaire**, or **Financial Modeling View**):
+1. **Never Revert to Legacy White/Beige (`#1b0624` / `#aeec1d`) or Clunky Stacked Boxes:** Always inherit the `#080B11` background, clean typography (`Plus Jakarta Sans` / `Inter`), and high-tech circular `Node Graph` visualizations (`framer-motion`).
+2. **Encapsulate or Extend Globally:** For application-wide screens, utilize modular components like `WarRoomNodeGraph.jsx` and `ClientShell.jsx`.
+3. **Interactive Micro-animations:** Ensure interactive elements include subtle transitions (`duration: 0.3s cubic-bezier(0.16, 1, 0.3, 1)`), neon border highlights on hover (`#00F2FE` or `#38BDF8`), and continuous SVG/canvas data flow effects.
