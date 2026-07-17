@@ -1,4 +1,3 @@
-import { createDeepAgent } from 'deepagents/browser';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 
 const GrowthPlanSchema = {
@@ -43,11 +42,7 @@ export async function runMarketingAgent(refinedConcept, businessInfo, marketRese
     maxOutputTokens: 2048,
   });
 
-  const agent = createDeepAgent({
-    model: model,
-    systemPrompt: SYSTEM_PROMPT,
-    responseFormat: GrowthPlanSchema,
-  });
+  const structuredModel = model.withStructuredOutput(GrowthPlanSchema);
 
   const promptContent = `
 Refined Startup Concept:
@@ -66,15 +61,14 @@ Market Research:
 - Market Saturation: ${marketResearch.saturation_level}%
   `.trim();
 
-  const response = await agent.invoke({
-    messages: [
-      { role: 'user', content: `Create marketing strategy and roadmap:\n\n${promptContent}` }
-    ]
-  });
+  const response = await structuredModel.invoke([
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: `Create marketing strategy and roadmap:\n\n${promptContent}` }
+  ]);
 
-  if (!response.structuredResponse) {
+  if (!response) {
     throw new Error('Marketing Agent did not return a structured response');
   }
 
-  return response.structuredResponse;
+  return response;
 }

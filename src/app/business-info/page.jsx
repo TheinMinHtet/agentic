@@ -3,10 +3,14 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWorkflow } from '../context/WorkflowContext';
+import { useAuth } from '../context/AuthContext';
+import { createClient } from '@/lib/supabase/client';
 
 export default function BusinessInfoPage() {
     const router = useRouter();
     const { businessInfo, updateBusinessInfo, setActiveStep } = useWorkflow();
+    const supabase = useMemo(() => createClient(), []);
+    const { user, loading } = useAuth();
 
     const [formData, setFormData] = useState({
         title: '',
@@ -88,7 +92,8 @@ export default function BusinessInfoPage() {
             return;
         }
 
-        localStorage.setItem(BUSINESS_INFO_KEY, JSON.stringify(formData));
+        updateBusinessInfo(formData);
+        setActiveStep('planning');
         setIsSaved(true);
 
         setTimeout(() => {

@@ -1,4 +1,3 @@
-import { createDeepAgent } from 'deepagents/browser';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 
 const MarketIntelligenceSchema = {
@@ -71,11 +70,7 @@ export async function runMarketResearchAgent(refinedConcept, businessInfo, apiKe
     maxOutputTokens: 2048,
   });
 
-  const agent = createDeepAgent({
-    model: model,
-    systemPrompt: SYSTEM_PROMPT,
-    responseFormat: MarketIntelligenceSchema,
-  });
+  const structuredModel = model.withStructuredOutput(MarketIntelligenceSchema);
 
   const promptContent = `
 Refined Startup Concept:
@@ -91,15 +86,14 @@ Business Info questionnaire:
 - Core Painpoint: ${businessInfo.core_painpoint}
   `.trim();
 
-  const response = await agent.invoke({
-    messages: [
-      { role: 'user', content: `Perform market research for this startup concept:\n\n${promptContent}` }
-    ]
-  });
+  const response = await structuredModel.invoke([
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: `Perform market research for this startup concept:\n\n${promptContent}` }
+  ]);
 
-  if (!response.structuredResponse) {
+  if (!response) {
     throw new Error('Market Research Agent did not return a structured response');
   }
 
-  return response.structuredResponse;
+  return response;
 }

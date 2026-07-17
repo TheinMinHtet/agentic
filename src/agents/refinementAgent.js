@@ -1,4 +1,3 @@
-import { createDeepAgent } from 'deepagents/browser';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 
 const RefinedConceptSchema = {
@@ -40,11 +39,7 @@ export async function runRefinementAgent(rawIdea, businessInfo, apiKey) {
     maxOutputTokens: 2048,
   });
 
-  const agent = createDeepAgent({
-    model: model,
-    systemPrompt: SYSTEM_PROMPT,
-    responseFormat: RefinedConceptSchema,
-  });
+  const structuredModel = model.withStructuredOutput(RefinedConceptSchema);
 
   const promptContent = `
 Raw Startup Idea:
@@ -62,15 +57,15 @@ Business Context:
 - Core Painpoint: ${businessInfo.core_painpoint}
   `.trim();
 
-  const response = await agent.invoke({
-    messages: [
-      { role: 'user', content: `Refine this startup concept:\n\n${promptContent}` }
-    ]
-  });
+  const response = await structuredModel.invoke([
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: `Refine this startup concept:\n\n${promptContent}` }
+  ]);
 
-  if (!response.structuredResponse) {
+  if (!response) {
     throw new Error('Refinement Agent did not return a structured response');
   }
 
-  return response.structuredResponse;
+  return response;
 }
+

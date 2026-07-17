@@ -1,4 +1,3 @@
-import { createDeepAgent } from 'deepagents/browser';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 
 const STOPWORDS = new Set([
@@ -399,22 +398,16 @@ async function evaluateIdeaWithGemini(rawInput, apiKey) {
     maxOutputTokens: 2048,
   });
 
-  const agent = createDeepAgent({
-    model: model,
-    systemPrompt: SYSTEM_PROMPT,
-    responseFormat: ValidationResultSchema,
-  });
+  const structuredModel = model.withStructuredOutput(ValidationResultSchema);
 
-  console.log('Invoking Deep Agent...');
-  const result = await agent.invoke({
-    messages: [
-      { role: 'user', content: `Evaluate this startup idea:\n\n"${rawInput}"` }
-    ]
-  });
+  console.log('Invoking structured Gemini model...');
+  const parsed = await structuredModel.invoke([
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: `Evaluate this startup idea:\n\n"${rawInput}"` }
+  ]);
 
-  const parsed = result.structuredResponse;
   if (!parsed) {
-    throw new Error('No structured response returned from Deep Agent');
+    throw new Error('No structured response returned from Gemini');
   }
 
   const clarityVal = typeof parsed.clarity_score === 'number' ? parsed.clarity_score : 0;

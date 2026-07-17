@@ -1,4 +1,3 @@
-import { createDeepAgent } from 'deepagents/browser';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 
 const BrandPackageSchema = {
@@ -57,11 +56,7 @@ export async function runBrandAgent(refinedConcept, businessInfo, apiKey) {
     maxOutputTokens: 2048,
   });
 
-  const agent = createDeepAgent({
-    model: model,
-    systemPrompt: SYSTEM_PROMPT,
-    responseFormat: BrandPackageSchema,
-  });
+  const structuredModel = model.withStructuredOutput(BrandPackageSchema);
 
   const promptContent = `
 Refined Startup Concept:
@@ -72,15 +67,14 @@ Refined Startup Concept:
 - Business Type: ${businessInfo.business_type}
   `.trim();
 
-  const response = await agent.invoke({
-    messages: [
-      { role: 'user', content: `Generate branding assets for this concept:\n\n${promptContent}` }
-    ]
-  });
+  const response = await structuredModel.invoke([
+    { role: 'system', content: SYSTEM_PROMPT },
+    { role: 'user', content: `Generate branding assets for this concept:\n\n${promptContent}` }
+  ]);
 
-  if (!response.structuredResponse) {
+  if (!response) {
     throw new Error('Brand Agent did not return a structured response');
   }
 
-  return response.structuredResponse;
+  return response;
 }
