@@ -1,16 +1,50 @@
-# React + Vite
+# Agentic Workflow
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+## Supabase Auth Setup
 
-Currently, two official plugins are available:
+Install the new dependencies:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+```
 
-## React Compiler
+Create `.env` from `.env.example`:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+```
 
-## Expanding the Oxlint configuration
+In Supabase Auth settings, disable email confirmation so email/password signup returns an active session immediately.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+Create the `users` table with these columns:
+
+```sql
+create table public.users (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  username text not null,
+  email text not null unique,
+  created_at timestamptz not null default now()
+);
+```
+
+Recommended RLS policy if Row Level Security is enabled:
+
+```sql
+alter table public.users enable row level security;
+
+create policy "Users can insert their own profile"
+on public.users for insert
+with check (auth.uid() = user_id);
+
+create policy "Users can read their own profile"
+on public.users for select
+using (auth.uid() = user_id);
+```
+
+Auth routes:
+
+- `/register` creates a Supabase Auth user, validates matching passwords, then inserts `user_id`, `username`, and `email` into `public.users`.
+- `/login` signs in with Supabase Auth.
+- `/dashboard` is protected by `src/app/dashboard/layout.tsx`; unauthenticated users are redirected to `/login`.
+- Logout is handled from the navbar with `supabase.auth.signOut()`.
