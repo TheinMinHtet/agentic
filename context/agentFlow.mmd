@@ -1,0 +1,20 @@
+flowchart TD
+    A[Idea Understanding Agent]:::indigo --> B[Structured JSON]:::indigo
+    B --> C[Refinement Agent]:::teal
+    C --> D[Improved JSON]:::teal
+    D --> E[Market Research Agent]:::violet
+    E --> F[Market Data]:::violet
+    F --> G[Orchestrator]:::orange
+    G --> H{Launch Multiple Agents}:::orange
+    H --> I[Finance Agent]:::green
+    H --> J[Brand Agent]:::fuchsia
+    H --> K[Website Agent]:::sky
+    H --> L[Marketing Agent]:::lime
+    I --> M[Business Plan Agent]:::yellow
+    J --> M[Business Plan Agent]:::yellow
+    K --> M[Business Plan Agent]:::yellow
+    L --> M[Business Plan Agent]:::yellow
+
+
+    classDef indigo stroke:#818cf8,fill:#eef2ff
+    classDef teal stroke:#2dd4bf,fill:#f0fdfa
