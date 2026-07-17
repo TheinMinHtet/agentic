@@ -440,6 +440,103 @@
   margin-top: var(--spacing-20);
 }
 
+/* Business Info Questionnaire */
+.business-info-card {
+  max-width: 840px;
+  margin: 0 auto;
+  text-align: left;
+  padding: var(--spacing-48);
+  border-radius: 32px; /* Perplexity container */
+  box-shadow: var(--elevation-card);
+  transition: box-shadow var(--motion-duration-base) var(--motion-easing-standard);
+  background-color: var(--color-surface-medium);
+}
+
+.business-info-card:hover {
+  box-shadow: var(--elevation-hover);
+}
+
+.business-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  column-gap: var(--spacing-32);
+  row-gap: var(--spacing-24);
+  margin-bottom: var(--spacing-32);
+}
+
+.business-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.business-field label {
+  color: var(--color-text-secondary);
+  font-family: var(--typography-body-family);
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: var(--spacing-8);
+}
+
+.business-select {
+  appearance: none;
+  background-color: var(--color-background);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%231b0624' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right var(--spacing-16) center;
+  background-size: 16px;
+  padding-right: var(--spacing-40) !important;
+}
+
+.business-goal-group {
+  margin-bottom: var(--spacing-32);
+}
+
+.business-goal-label {
+  display: block;
+  margin-bottom: var(--spacing-12);
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--color-text-secondary);
+}
+
+.business-goal-options {
+  display: flex;
+  gap: var(--spacing-16);
+  flex-wrap: wrap;
+}
+
+.business-goal-option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding: var(--spacing-12) var(--spacing-20);
+  background: var(--color-background);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md); /* 16px */
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all var(--motion-duration-base) var(--motion-easing-standard);
+  user-select: none;
+}
+
+.business-goal-option:hover {
+  background: var(--color-surface-light);
+  border-color: var(--color-text-light-muted);
+}
+
+.business-goal-option.active {
+  background: var(--color-surface-light);
+  border: 2px solid var(--color-primary);
+}
+
+.business-goal-option input {
+  accent-color: var(--color-primary);
+  margin: 0;
+  width: 18px;
+  height: 18px;
+}
+
 @media (max-width: 900px) {
   #workflow .container>div:last-child {
     grid-template-columns: 1fr !important;
@@ -547,5 +644,15 @@
     left: var(--spacing-16);
     bottom: var(--spacing-16);
     max-width: none;
+  }
+
+  .business-info-card {
+    padding: var(--spacing-24);
+    border-radius: var(--radius-lg); /* 24px on mobile */
+  }
+  
+  .business-form-grid {
+    grid-template-columns: 1fr;
+    row-gap: var(--spacing-16);
   }
 }
