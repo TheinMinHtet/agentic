@@ -1,5 +1,7 @@
+'use client';
+
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { ArrowRight, ChartNoAxesColumnIncreasing, DollarSign, Layers3, Target } from 'lucide-react';
 
 const summaryCards = [
@@ -27,7 +29,7 @@ const summaryCards = [
 ];
 
 export default function DashboardPage() {
-    const navigate = useNavigate();
+    const router = useRouter();
 
     return (
         <section className="dashboard-section container">
@@ -37,7 +39,7 @@ export default function DashboardPage() {
                     <h2>Startup Blueprint</h2>
                     <p className="text-muted">A focused snapshot of your market, finance, and technical direction.</p>
                 </div>
-                <button className="button-primary" onClick={() => navigate('/dashboard/refinement')}>
+                <button className="button-primary" onClick={() => router.push('/dashboard/refinement')}>
                     Refine plan
                     <ArrowRight size={18} />
                 </button>
@@ -83,7 +85,7 @@ export default function DashboardPage() {
                     <p className="metric-label">Next best step</p>
                     <h3>Review the blueprint with the refinement agent.</h3>
                     <p className="text-muted">Tune the audience, stack, cost model, or launch assumptions before moving forward.</p>
-                    <button className="button-secondary" onClick={() => navigate('/dashboard/refinement')}>
+                    <button className="button-secondary" onClick={() => router.push('/dashboard/refinement')}>
                         Open refinement
                         <ArrowRight size={18} />
                     </button>

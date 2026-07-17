@@ -1,8 +1,10 @@
+'use client';
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 export default function RefinementPage() {
-    const navigate = useNavigate();
+    const router = useRouter();
     const [message, setMessage] = useState('');
     const [chat, setChat] = useState([
         { role: 'agent', text: 'Here is your initial blueprint! Would you like to adjust the tech stack or target audience?' }
@@ -31,7 +33,7 @@ export default function RefinementPage() {
                         <h5>Current Tech Stack</h5>
                         <p className="text-secondary" style={{ fontSize: '14px' }}>Web App with React, Node.js backend</p>
                     </div>
-                    <button className="button-secondary" style={{ marginTop: 'auto', alignSelf: 'flex-start' }} onClick={() => navigate('/dashboard')}>
+                    <button className="button-secondary" style={{ marginTop: 'auto', alignSelf: 'flex-start' }} onClick={() => router.push('/dashboard')}>
                         Back to Dashboard
                     </button>
                 </div>

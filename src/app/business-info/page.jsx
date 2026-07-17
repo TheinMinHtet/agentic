@@ -1,10 +1,12 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 const BUSINESS_INFO_KEY = 'agentic:businessInfo';
 
 export default function BusinessInfoPage() {
-    const navigate = useNavigate();
+    const router = useRouter();
 
     // Default form state containing all 8 target fields + 1 original field
     const [formData, setFormData] = useState({
@@ -44,7 +46,7 @@ export default function BusinessInfoPage() {
         e.preventDefault();
         // Save the complete state object to localStorage
         localStorage.setItem(BUSINESS_INFO_KEY, JSON.stringify(formData));
-        navigate('/planning');
+        router.push('/planning');
     };
 
     return (
