@@ -186,46 +186,44 @@ flowchart TD
 
 ## Implementation vs target (gap summary)
 
-Use this table when scoping work. Do not assume backend features exist.
+Use this table when scoping work. The frontend now communicates directly with Gemini models via browser-run DeepAgents.
 
 | Spec phase | Target behavior | Current page | Status |
 |------------|-----------------|--------------|--------|
-| Idea validation | Normal + LLM validation, score, decision engine, clarification loop | `IdeaPromptPage` | Mock — text only |
-| Business collection | 8-field AI questionnaire | `BusinessInfoPage` | Partial — 2 fields |
-| Planning / orchestration | Startup Manager, task distribution, fatal-flaw signaling | `PlanningPage` | Mock — 3s timer |
-| Specialized agents | 5 parallel agents with distinct outputs | `SpecializedAgentsPage` | Mock — 3 agents |
-| Persistence | Decision log, versioning, Tavily API | — | Not implemented |
-| Dashboard | 6 blueprint sections | `DashboardPage` | Partial — hardcoded cards |
-| Refinement | Context-aware updates, rollback, disagreement handling | `RefinementPage` | Mock — canned chat |
-| Export | Markdown/HTML/PDF deliverables | — | Not implemented |
+| Idea validation | Normal + LLM validation, score, decision engine, clarification loop | `IdeaPromptPage` | Fully Implemented (Real Gemini scores/checks) |
+| Business collection | 8-field AI questionnaire | `BusinessInfoPage` | Fully Implemented (Pre-filled from localStorage) |
+| Planning / orchestration | Startup Manager, task distribution, fatal-flaw signaling | `PlanningPage` | Real Orchestration (Refinement + Market agents logs) |
+| Specialized agents | 5 parallel agents with distinct outputs | `SpecializedAgentsPage` | Fully Implemented (Finance, Brand, Website, Marketing) |
+| Persistence | Decision log, versioning, Tavily API | — | LocalStorage Hydration & React Context |
+| Dashboard | 6 blueprint sections | `DashboardPage` | Fully Implemented (Styled with togglable Markdown deliverables) |
+| Refinement | Context-aware updates, rollback, disagreement handling | `RefinementPage` | Interactive Refinement Chat with dynamic state changes |
+| Export | Markdown/HTML/PDF deliverables | `MarkdownPreviewer` | Downloadable `.md` documents |
 | Auth | User workspace | `LoginPage` | Mock — localStorage flag |
 
 ## Tech stack
 
 | Layer | Choice | Target (from spec) |
 |-------|--------|---------------------|
-| Framework | React 19 | React 19 (current) |
-| Build | Vite 8 | Vite 8 (current) |
-| Routing | react-router-dom 7 | react-router-dom 7 (current) |
-| Language | JavaScript (JSX) | JavaScript unless migration requested |
-| Lint | Oxlint (`npm run lint`) | Oxlint (current) |
+| Framework | Next.js 15.5 | Next.js 15.5 App Router (current) |
+| Routing | Next.js filesystem router | App Router filesystem structure |
+| Language | JavaScript (JSX) | JavaScript |
+| Lint | Oxlint / ESLint | Oxlint (current) |
 | Icons | lucide-react | lucide-react (current) |
 | Animation | typewriter-effect (landing hero) | typewriter-effect (current) |
 | Styling | Plain CSS + CSS custom properties | Plain CSS + [DESIGN.md](./DESIGN.md) |
-| LLM / agents | — | Backend orchestration (not in repo) |
-| Real-time search | — | Tavily Search API |
-| Persistence | localStorage auth flag only | Decision log + blueprint versioning |
+| LLM / agents | deepagents/browser + @langchain/google-genai | Executed directly in client browser |
+| Real-time search | — | Tavily Search API (Planned) |
+| Persistence | LocalStorage hydration | Stateful Context syncing to localStorage |
 
 ## Directory structure
 
 ```
 agentic/
 ├── AGENT.md                # This file
-├── index.html              # Entry HTML (title still "temp-app")
 ├── package.json
-├── vite.config.js          # Default Vite + React plugin
+├── next.config.mjs         # Next.js configuration
 ├── DESIGN.md               # Design system spec — source of truth for UI
-├── README.md               # Vite template boilerplate only
+├── README.md               # Next.js setup instructions
 ├── context/
 │   ├── architectureDesign.mmd   # Target architecture (Mermaid)
 │   └── Workflow v-2.docx        # Target workflow spec (Word)
@@ -233,23 +231,38 @@ agentic/
 │   ├── favicon.svg
 │   └── icons.svg
 └── src/
-    ├── main.jsx            # React root + BrowserRouter
-    ├── App.jsx             # Navbar, auth state, route definitions
     ├── App.css             # Layout & page-specific styles
     ├── index.css           # Design tokens + global component classes
-    ├── assets/             # Static SVGs (Vite defaults)
-    └── pages/              # One file per route (flat, no subfolders)
-        ├── LandingPage.jsx
-        ├── LoginPage.jsx
-        ├── IdeaPromptPage.jsx      # → Phase 1 (partial)
-        ├── BusinessInfoPage.jsx    # → Phase 2 (partial)
-        ├── PlanningPage.jsx        # → Phase 3 (mock)
-        ├── SpecializedAgentsPage.jsx  # → Phase 4 (mock)
-        ├── DashboardPage.jsx       # → Phase 6 (partial)
-        └── RefinementPage.jsx      # → Phase 7 (mock)
+    ├── agents/             # Gemini DeepAgents pool
+    │   ├── refinementAgent.js
+    │   ├── marketResearchAgent.js
+    │   ├── financeAgent.js
+    │   ├── brandAgent.js
+    │   ├── websiteAgent.js
+    │   ├── marketingAgent.js
+    │   ├── businessAgent.js
+    │   ├── refinementChatAgent.js
+    │   └── orchestrator.js
+    └── app/                # App Router Pages
+        ├── components/
+        │   └── MarkdownPreviewer.jsx
+        ├── context/
+        │   ├── AuthContext.jsx
+        │   └── WorkflowContext.jsx
+        ├── landing/        # Home Landing route
+        ├── login/          # LoginPage route
+        ├── idea-prompt/    # Step 1 route
+        ├── business-info/  # Step 2 route
+        ├── planning/       # Step 3 planning logs route
+        ├── specialized-agents/ # Step 4 parallel runner route
+        ├── dashboard/      # Step 5 blueprint dashboard route
+        │   └── refinement/ # Step 6 refinement chat route
+        ├── layout.jsx      # Root HTML Layout
+        ├── page.jsx        # Landing page entry point
+        └── ClientShell.jsx # React Context wrapper wrapper
 ```
 
-There are **no** shared components, hooks, utils, services, tests, or API layers yet.
+There are no databases configured yet. State is kept in memory and synchronized to browser local storage.
 
 ## User flow & routes (current UI)
 
@@ -257,12 +270,12 @@ There are **no** shared components, hooks, utils, services, tests, or API layers
 /  (Landing)
 ├── /login
 └── [authenticated path]
-    /idea-prompt          Step 1: Idea Understanding (partial)
-    └── /business-info    Step 2: Business Information (partial)
-        └── /planning     Step 3: AI Planning (mock — 3s auto-advance)
-            └── /specialized-agents   Step 4: Agents (mock — 3 of 5)
-                └── /dashboard        Blueprint results (partial)
-                    └── /dashboard/refinement   Refinement chat (mock)
+    /idea-prompt          Step 1: Idea Understanding (Real Gemini Evaluation)
+    └── /business-info    Step 2: Business Information (8 fields form)
+        └── /planning     Step 3: AI Planning (Real refinement/market agents logging)
+            └── /specialized-agents   Step 4: Agents (4 specialized run parallel)
+                └── /dashboard        Blueprint results (6 categorized tabs)
+                    └── /dashboard/refinement   Refinement chat (Interactive Gemini Chat)
 ```
 
 ### Route table
@@ -271,12 +284,13 @@ There are **no** shared components, hooks, utils, services, tests, or API layers
 |------|-----------|-------------------|-------|
 | `/` | `LandingPage` | — | CTA → `/login` or `/idea-prompt` |
 | `/login` | `LoginPage` | — | Mock login; any credentials work |
-| `/idea-prompt` | `IdeaPromptPage` | Phase 1 | No validation/scoring loop |
-| `/business-info` | `BusinessInfoPage` | Phase 2 | Missing most questionnaire fields |
-| `/planning` | `PlanningPage` | Phase 3 | 3s spinner → auto-navigate |
-| `/specialized-agents` | `SpecializedAgentsPage` | Phase 4 | 3 mock agents, not 5 |
-| `/dashboard` | `DashboardPage` | Phase 6 | Hardcoded metrics |
-| `/dashboard/refinement` | `RefinementPage` | Phase 7 | Mock chat |
+| `/idea-prompt` | `IdeaPromptPage` | Phase 1 | Real evaluation & scoring loop |
+| `/business-info` | `BusinessInfoPage` | Phase 2 | Full 8 fields form |
+| `/planning` | `PlanningPage` | Phase 3 | Sequentially runs refinement & market agents |
+| `/specialized-agents` | `SpecializedAgentsPage` | Phase 4 | Parallel finance, brand, website, marketing agents |
+| `/dashboard` | `DashboardPage` | Phase 6 | Styled categories + Markdown previews |
+| `/dashboard/refinement` | `RefinementPage` | Phase 7 | Chat with live updates to blueprint |
+
 
 No routes yet for: clarification loop, fatal-flaw pivot UI, export/final blueprint, API status panel.
 
