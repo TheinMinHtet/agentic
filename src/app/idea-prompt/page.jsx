@@ -1,13 +1,15 @@
+'use client';
+
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import {
     evaluateIdeaAsync,
     getCompositeValidationScore,
     getIdeaRouteDecision,
-} from '../agents/ideaUnderstandingAgent';
+} from '../../agents/ideaUnderstandingAgent';
 
 export default function IdeaPromptPage() {
-    const navigate = useNavigate();
+    const router = useRouter();
     const [idea, setIdea] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [validationResult, setValidationResult] = useState(null);
@@ -28,14 +30,14 @@ export default function IdeaPromptPage() {
             if (getIdeaRouteDecision(result) === 'clarify') {
                 setToastMessage(result.constructive_feedback);
                 setTimeout(() => setToastMessage(''), 6000);
-                navigate('/idea-prompt', { replace: true });
+                router.replace('/idea-prompt');
                 return;
             }
 
             // Save idea to localStorage for subsequent mock pages to use
             localStorage.setItem('agentic:startupIdea', idea.trim());
 
-            navigate('/business-info');
+            router.push('/business-info');
         } finally {
             setIsSubmitting(false);
         }
@@ -121,11 +123,11 @@ export default function IdeaPromptPage() {
                                     fontSize: '11px',
                                     fontWeight: 800,
                                     letterSpacing: '0.05em',
-                                backgroundColor: validationResult.score >= 50 ? 'var(--color-accent)' : 'var(--color-primary)',
-                                color: validationResult.score >= 50 ? 'var(--color-primary)' : 'var(--color-text-inverse)'
-                            }}>
-                                {validationResult.score >= 50 ? 'PASSED' : 'REFINEMENT NEEDED'}
-                            </span>
+                                    backgroundColor: validationResult.score >= 50 ? 'var(--color-accent)' : 'var(--color-primary)',
+                                    color: validationResult.score >= 50 ? 'var(--color-primary)' : 'var(--color-text-inverse)'
+                                }}>
+                                    {validationResult.score >= 50 ? 'PASSED' : 'REFINEMENT NEEDED'}
+                                </span>
                             </div>
                         </div>
                         

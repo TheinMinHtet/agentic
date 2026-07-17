@@ -1,16 +1,18 @@
+'use client';
+
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 export default function PlanningPage() {
-    const navigate = useNavigate();
+    const router = useRouter();
 
     useEffect(() => {
         // mock a processing delay
         const timer = setTimeout(() => {
-            navigate('/specialized-agents');
+            router.push('/specialized-agents');
         }, 3000);
         return () => clearTimeout(timer);
-    }, [navigate]);
+    }, [router]);
 
     return (
         <section className="workflow-section section-padding container" style={{ textAlign: 'center' }}>

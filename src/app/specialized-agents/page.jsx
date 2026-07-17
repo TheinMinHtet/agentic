@@ -1,8 +1,10 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 
 export default function SpecializedAgentsPage() {
-    const navigate = useNavigate();
+    const router = useRouter();
     const [activeAgents, setActiveAgents] = useState(0);
 
     useEffect(() => {
@@ -11,14 +13,14 @@ export default function SpecializedAgentsPage() {
             setActiveAgents((prev) => {
                 if (prev >= 3) {
                     clearInterval(interval);
-                    setTimeout(() => navigate('/dashboard'), 1500);
+                    setTimeout(() => router.push('/dashboard'), 1500);
                     return prev;
                 }
                 return prev + 1;
             });
         }, 1200);
         return () => clearInterval(interval);
-    }, [navigate]);
+    }, [router]);
 
     return (
         <section className="workflow-section section-padding container" style={{ textAlign: 'center' }}>

@@ -1,10 +1,15 @@
+'use client';
+
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import Typewriter from 'typewriter-effect';
 import { ArrowRight } from 'lucide-react';
+import { useAuth } from './context/AuthContext';
 
-export default function LandingPage({ isAuthenticated }) {
-    const navigate = useNavigate();
+export default function LandingPage({ isAuthenticated: propIsAuth }) {
+    const router = useRouter();
+    const { isAuthenticated: contextIsAuth } = useAuth();
+    const isAuthenticated = propIsAuth !== undefined ? propIsAuth : contextIsAuth;
 
     return (
         <section className="hero-section section-padding container">
@@ -32,7 +37,7 @@ export default function LandingPage({ isAuthenticated }) {
                 <h3>Ready to build your startup?</h3>
                 <p className="text-muted">Start with one focused idea and let the workflow collect the signals it needs.</p>
                 <div className="hero-actions">
-                    <button className="button-primary" onClick={() => navigate(isAuthenticated ? '/idea-prompt' : '/login')}>
+                    <button className="button-primary" onClick={() => router.push(isAuthenticated ? '/idea-prompt' : '/login')}>
                         {isAuthenticated ? 'Continue workflow' : 'Login to get started'}
                         <ArrowRight size={18} />
                     </button>

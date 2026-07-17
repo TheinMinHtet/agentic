@@ -454,7 +454,7 @@ async function evaluateIdeaWithGemini(rawInput, apiKey) {
 
 export async function evaluateIdeaAsync(rawIdeaInput) {
   const rawInput = (rawIdeaInput ?? '').trim();
-  const apiKey = process.env.GOOGLE_API_KEY;
+  const apiKey = process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || process.env.VITE_GOOGLE_API_KEY;
 
   if (apiKey && apiKey.trim()) {
     try {

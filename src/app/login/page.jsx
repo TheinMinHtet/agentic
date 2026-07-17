@@ -1,21 +1,30 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Mail, ShieldCheck } from 'lucide-react';
+'use client';
 
-export default function LoginPage({ onLogin }) {
-    const navigate = useNavigate();
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowRight, Mail, ShieldCheck } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+
+export default function LoginPage({ onLogin: propOnLogin }) {
+    const router = useRouter();
+    const { login: contextLogin } = useAuth();
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
 
+    const triggerLogin = () => {
+        if (propOnLogin) propOnLogin();
+        else contextLogin();
+    };
+
     const handleLogin = (e) => {
         e.preventDefault();
-        onLogin();
-        navigate('/idea-prompt');
+        triggerLogin();
+        router.push('/idea-prompt');
     };
 
     const handleMockGoogle = () => {
-        onLogin();
-        navigate('/idea-prompt');
+        triggerLogin();
+        router.push('/idea-prompt');
     };
 
     return (
