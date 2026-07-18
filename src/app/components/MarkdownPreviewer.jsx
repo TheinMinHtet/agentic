@@ -3,7 +3,7 @@
 import React from 'react';
 import { Download, FileText } from 'lucide-react';
 
-export default function MarkdownPreviewer({ markdown, filename = 'report.md' }) {
+export default function MarkdownPreviewer({ markdown, filename = 'report.md', onDownloadPDF }) {
     if (!markdown) return null;
 
     // A lightweight markdown to html parser
@@ -97,11 +97,11 @@ export default function MarkdownPreviewer({ markdown, filename = 'report.md' }) 
 
             // Headers
             if (trimmed.startsWith('### ')) {
-                htmlElements.push(<h4 key={idx} style={{ fontSize: '18px', fontWeight: 900, marginTop: '24px', marginBottom: '12px', color: 'var(--color-primary)' }}>{parseInlineText(trimmed.substring(4))}</h4>);
+                htmlElements.push(<h4 key={idx} style={{ fontSize: '18px', fontWeight: 900, marginTop: '24px', marginBottom: '12px', color: 'var(--color-primary)' }} dangerouslySetInnerHTML={{ __html: parseInlineText(trimmed.substring(4)) }} />);
             } else if (trimmed.startsWith('## ')) {
-                htmlElements.push(<h3 key={idx} style={{ fontSize: '22px', fontWeight: 900, marginTop: '32px', marginBottom: '16px', color: 'var(--color-primary)', borderBottom: '1px solid var(--color-border-light)', paddingBottom: '8px' }}>{parseInlineText(trimmed.substring(3))}</h3>);
+                htmlElements.push(<h3 key={idx} style={{ fontSize: '22px', fontWeight: 900, marginTop: '32px', marginBottom: '16px', color: 'var(--color-primary)', borderBottom: '1px solid var(--color-border-light)', paddingBottom: '8px' }} dangerouslySetInnerHTML={{ __html: parseInlineText(trimmed.substring(3)) }} />);
             } else if (trimmed.startsWith('# ')) {
-                htmlElements.push(<h2 key={idx} style={{ fontSize: '28px', fontWeight: 900, marginTop: '16px', marginBottom: '24px', color: 'var(--color-primary)' }}>{parseInlineText(trimmed.substring(2))}</h2>);
+                htmlElements.push(<h2 key={idx} style={{ fontSize: '28px', fontWeight: 900, marginTop: '16px', marginBottom: '24px', color: 'var(--color-primary)' }} dangerouslySetInnerHTML={{ __html: parseInlineText(trimmed.substring(2)) }} />);
             } else if (trimmed.startsWith('> ')) {
                 htmlElements.push(
                     <blockquote key={idx} style={{ borderLeft: '4px solid var(--color-primary)', paddingLeft: '16px', margin: '0 0 20px 0', fontStyle: 'italic', color: 'var(--color-text-muted)', backgroundColor: 'var(--color-surface-light)', padding: '12px 16px', borderRadius: '0 8px 8px 0' }}>
@@ -122,36 +122,28 @@ export default function MarkdownPreviewer({ markdown, filename = 'report.md' }) 
         return htmlElements;
     };
 
-    const handleDownload = () => {
-        const element = document.createElement("a");
-        const file = new Blob([markdown], { type: 'text/plain;charset=utf-8' });
-        element.href = URL.createObjectURL(file);
-        element.download = filename;
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
-    };
-
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <button className="button-secondary" onClick={handleDownload} style={{ borderRadius: '12px', fontSize: '14px', padding: '8px 16px', minHeight: '38px' }}>
-                    <Download size={16} />
-                    Download Markdown File (.md)
-                </button>
-            </div>
+            {onDownloadPDF && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button className="button-primary" onClick={onDownloadPDF} style={{ borderRadius: '12px', fontSize: '14px', padding: '8px 16px', minHeight: '38px', display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'linear-gradient(135deg, #6366F1 0%, #3B82F6 100%)', border: 'none', color: '#FFF' }}>
+                        <FileText size={16} />
+                        Download PDF (.pdf)
+                    </button>
+                </div>
+            )}
 
             {/* Document Frame styling matching Perplexity theme */}
             <div className="markdown-doc-frame" style={{
                 backgroundColor: 'var(--color-background)',
                 border: '1px solid var(--color-border-light)',
                 borderRadius: '24px',
-                padding: '40px',
+                padding: '48px 56px',
                 textAlign: 'left',
                 boxShadow: 'var(--elevation-card)',
                 fontFamily: 'var(--typography-body-family)',
-                maxHeight: '600px',
-                overflowY: 'auto'
+                minHeight: '750px',
+                height: 'auto'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--color-text-light-muted)', fontSize: '13px', marginBottom: '24px', borderBottom: '1px solid var(--color-border-light)', paddingBottom: '12px' }}>
                     <FileText size={16} />
