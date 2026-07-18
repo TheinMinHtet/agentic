@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import MarkdownPreviewer from '../components/MarkdownPreviewer';
 import { useLanguage } from '../context/LanguageContext';
 import RoadmapCalendar from '../components/RoadmapCalendar';
+import { jsPDF } from 'jspdf';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft,
@@ -22,9 +23,106 @@ import {
     Calendar as CalendarIcon,
     RefreshCw,
     Plus,
-    Trash2
+    Trash2,
+    Download
 } from 'lucide-react';
 import AgentRediscoveryOverlay from '../components/AgentRediscoveryOverlay';
+
+// Lightweight Markdown to HTML string converter for dynamic print iframes
+function convertMarkdownToHTML(mdText) {
+    if (!mdText) return '';
+    const lines = mdText.split('\n');
+    let html = '';
+    let inList = false;
+    let inTable = false;
+    let tableRows = [];
+
+    const flushList = () => {
+        if (inList) {
+            html += '</ul>';
+            inList = false;
+        }
+    };
+
+    const flushTable = () => {
+        if (inTable && tableRows.length > 0) {
+            html += '<table>';
+            // Header
+            html += '<thead><tr>';
+            const headerCells = tableRows[0];
+            headerCells.forEach(cell => {
+                html += `<th>${cell}</th>`;
+            });
+            html += '</tr></thead>';
+
+            // Body
+            html += '<tbody>';
+            const dataRows = tableRows.slice(2);
+            dataRows.forEach(row => {
+                html += '<tr>';
+                row.forEach(cell => {
+                    html += `<td>${cell}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</tbody></table>';
+
+            tableRows = [];
+            inTable = false;
+        }
+    };
+
+    const parseInline = (text) => {
+        let formatted = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        formatted = formatted.replace(/`(.*?)`/g, '<code>$1</code>');
+        return formatted;
+    };
+
+    lines.forEach(line => {
+        const trimmed = line.trim();
+
+        if (trimmed.startsWith('|')) {
+            flushList();
+            inTable = true;
+            const cells = trimmed.split('|').map(c => c.trim()).filter((c, i, arr) => i > 0 && i < arr.length - 1);
+            tableRows.push(cells.map(c => parseInline(c)));
+            return;
+        } else if (inTable) {
+            flushTable();
+        }
+
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+            if (!inList) {
+                html += '<ul>';
+                inList = true;
+            }
+            html += `<li>${parseInline(trimmed.substring(2))}</li>`;
+            return;
+        } else if (inList) {
+            flushList();
+        }
+
+        if (trimmed.startsWith('### ')) {
+            html += `<h4>${parseInline(trimmed.substring(4))}</h4>`;
+        } else if (trimmed.startsWith('## ')) {
+            html += `<h3>${parseInline(trimmed.substring(3))}</h3>`;
+        } else if (trimmed.startsWith('# ')) {
+            html += `<h2>${parseInline(trimmed.substring(2))}</h2>`;
+        } else if (trimmed.startsWith('> ')) {
+            html += `<blockquote>${parseInline(trimmed.substring(2))}</blockquote>`;
+        } else if (trimmed === '---') {
+            html += '<hr />';
+        } else if (trimmed.length > 0) {
+            html += `<p>${parseInline(trimmed)}</p>`;
+        }
+    });
+
+    flushList();
+    flushTable();
+
+    return html;
+}
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -96,6 +194,287 @@ export default function DashboardPage() {
     const [activeTab, setActiveTab] = useState('overview');
     const [previewDoc, setPreviewDoc] = useState(false);
     const [historyLoadError, setHistoryLoadError] = useState('');
+    const [selectedInvestorDoc, setSelectedInvestorDoc] = useState('overview');
+
+    const handlePrintPDF = (title, markdownContent) => {
+        const htmlMarkup = convertMarkdownToHTML(markdownContent);
+        const printContent = `
+          <html>
+            <head>
+              <title>${title}</title>
+              <style>
+                body {
+                  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+                  color: #1E293B;
+                  background-color: #FFFFFF;
+                  padding: 40px;
+                  line-height: 1.6;
+                }
+                h2 { font-size: 28px; font-weight: 800; color: #0F172A; border-bottom: 2px solid #E2E8F0; padding-bottom: 12px; margin-top: 0; margin-bottom: 24px; }
+                h3 { font-size: 22px; font-weight: 700; color: #1E293B; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid #F1F5F9; padding-bottom: 8px; }
+                h4 { font-size: 18px; font-weight: 700; color: #334155; margin-top: 24px; margin-bottom: 12px; }
+                p { font-size: 15px; color: #334155; margin-bottom: 16px; }
+                ul { padding-left: 24px; margin: 0 0 16px 0; font-size: 15px; color: #334155; }
+                li { margin-bottom: 6px; }
+                blockquote { border-left: 4px solid #6366F1; padding-left: 16px; margin: 0 0 20px 0; font-style: italic; color: #475569; background-color: #F8FAFC; padding: 12px 16px; border-radius: 0 8px 8px 0; }
+                table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 14px; text-align: left; }
+                th { padding: 12px 16px; font-weight: 700; background-color: #F1F5F9; border-bottom: 2px solid #E2E8F0; }
+                td { padding: 12px 16px; border-bottom: 1px solid #E2E8F0; color: #475569; }
+                code { background-color: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }
+                @media print {
+                  body { padding: 20px; }
+                  thead { display: table-header-group; }
+                  tr { page-break-inside: avoid; }
+                }
+              </style>
+            </head>
+            <body>
+              ${htmlMarkup}
+            </body>
+          </html>
+        `;
+
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        document.body.appendChild(iframe);
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(printContent);
+        doc.close();
+        iframe.contentWindow.focus();
+        setTimeout(() => {
+            iframe.contentWindow.print();
+            document.body.removeChild(iframe);
+        }, 250);
+    };
+
+    const handleDownloadPDF = (title, markdownContent, filename) => {
+        try {
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 20;
+            const maxLineWidth = pageWidth - (margin * 2);
+            
+            let y = 25;
+
+            const addTextLine = (text, size = 11, style = 'normal', spacing = 6) => {
+                doc.setFont('helvetica', style);
+                doc.setFontSize(size);
+                const lines = doc.splitTextToSize(text, maxLineWidth);
+                lines.forEach(line => {
+                    if (y + spacing > pageHeight - margin) {
+                        doc.addPage();
+                        y = 25;
+                    }
+                    doc.text(line, margin, y);
+                    y += spacing;
+                });
+            };
+
+            // Add Document Title
+            addTextLine(title, 22, 'bold', 12);
+            doc.setDrawColor(226, 232, 240);
+            doc.line(margin, y - 4, pageWidth - margin, y - 4);
+            y += 4;
+
+            const markdownLines = markdownContent.split('\n');
+            markdownLines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed) {
+                    y += 3;
+                    return;
+                }
+
+                if (trimmed.startsWith('### ')) {
+                    y += 4;
+                    addTextLine(trimmed.substring(4), 14, 'bold', 8);
+                } else if (trimmed.startsWith('## ')) {
+                    y += 6;
+                    addTextLine(trimmed.substring(3), 16, 'bold', 9);
+                } else if (trimmed.startsWith('# ')) {
+                    y += 8;
+                    addTextLine(trimmed.substring(2), 20, 'bold', 11);
+                } else if (trimmed.startsWith('> ')) {
+                    addTextLine(trimmed.substring(2), 11, 'italic', 7);
+                } else if (trimmed === '---') {
+                    doc.setDrawColor(226, 232, 240);
+                    doc.line(margin, y + 2, pageWidth - margin, y + 2);
+                    y += 8;
+                } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+                    addTextLine(`•  ${trimmed.substring(2)}`, 11, 'normal', 6);
+                } else {
+                    if (trimmed.startsWith('|')) {
+                        const cleanRow = trimmed.split('|').map(s => s.trim()).filter(s => s).join('   |   ');
+                        doc.setFont('courier', 'normal');
+                        addTextLine(`| ${cleanRow} |`, 9, 'normal', 5.5);
+                    } else {
+                        addTextLine(trimmed, 11, 'normal', 6);
+                    }
+                }
+            });
+
+            doc.save(filename.replace('.md', '.pdf'));
+        } catch (error) {
+            console.error("PDF local generation failed, falling back to print:", error);
+            handlePrintPDF(title, markdownContent);
+        }
+    };
+
+    const handleDownloadAllMarkdown = () => {
+        const fullMarkdown = [
+            `# ${fallbackBrand.names[0] || 'Startup'} - Complete Investor Prospectus`,
+            `Generated on: ${new Date().toLocaleDateString()}`,
+            `Concept Summary: ${fallbackConcept.improved_summary}`,
+            `---`,
+            fallbackBusiness.lean_canvas_markdown,
+            fallbackMarket.markdown_deliverable,
+            fallbackFinance.markdown_deliverable,
+            fallbackBrand.markdown_deliverable,
+            fallbackDigital.markdown_deliverable,
+            fallbackMarketing.markdown_deliverable
+        ].join('\n\n');
+
+        const element = document.createElement("a");
+        const file = new Blob([fullMarkdown], { type: 'text/plain;charset=utf-8' });
+        element.href = URL.createObjectURL(file);
+        const name = (fallbackBrand.names[0] || 'startup').toLowerCase().replace(/\s+/g, '_');
+        element.download = `${name}_complete_prospectus.md`;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    };
+
+    const handleDownloadAllPDF = () => {
+        try {
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 20;
+            const maxLineWidth = pageWidth - (margin * 2);
+
+            let y = 25;
+
+            const addTextLine = (text, size = 11, style = 'normal', spacing = 6) => {
+                doc.setFont('helvetica', style);
+                doc.setFontSize(size);
+                const lines = doc.splitTextToSize(text, maxLineWidth);
+                lines.forEach(line => {
+                    if (y + spacing > pageHeight - margin) {
+                        doc.addPage();
+                        y = 25;
+                    }
+                    doc.text(line, margin, y);
+                    y += spacing;
+                });
+            };
+
+            // Add Cover Page
+            y = 60;
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(38);
+            doc.text(fallbackBrand.names[0] || 'Startup', margin, y);
+            y += 15;
+
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(16);
+            doc.setTextColor(100, 116, 139);
+            doc.text('COMPLETE STARTUP PROSPECTUS', margin, y);
+            y += 30;
+
+            // Box for concept
+            doc.setDrawColor(226, 232, 240);
+            doc.setFillColor(248, 250, 252);
+            doc.rect(margin, y, maxLineWidth, 60, 'FD');
+            
+            y += 10;
+            doc.setTextColor(30, 41, 59);
+            addTextLine(`Concept Summary:`, 13, 'bold', 7);
+            y += 2;
+            addTextLine(fallbackConcept.concept, 10.5, 'normal', 5.5);
+            
+            doc.setTextColor(148, 163, 184);
+            doc.setFontSize(11);
+            doc.text(`Generated by Advanced AI Multi-Agent Workflow on ${new Date().toLocaleDateString()}`, margin, pageHeight - 30);
+
+            // Add all segments
+            const docs = [
+                { title: 'Business Overview (Lean Canvas)', md: fallbackBusiness.lean_canvas_markdown },
+                { title: 'Market Intelligence Report', md: fallbackMarket.markdown_deliverable },
+                { title: 'Financial Model & Projections', md: fallbackFinance.markdown_deliverable },
+                { title: 'Brand Identity & Style Guide', md: fallbackBrand.markdown_deliverable },
+                { title: 'Digital Presence Specification', md: fallbackDigital.markdown_deliverable },
+                { title: 'Growth & Marketing Plan', md: fallbackMarketing.markdown_deliverable }
+            ];
+
+            docs.forEach((d) => {
+                doc.addPage();
+                y = 25;
+                doc.setTextColor(15, 23, 42);
+                addTextLine(d.title, 20, 'bold', 12);
+                doc.setDrawColor(226, 232, 240);
+                doc.line(margin, y - 4, pageWidth - margin, y - 4);
+                y += 6;
+
+                const lines = d.md.split('\n');
+                lines.forEach(line => {
+                    const trimmed = line.trim();
+                    if (!trimmed) {
+                        y += 3;
+                        return;
+                    }
+
+                    if (trimmed.startsWith('### ')) {
+                        y += 3;
+                        addTextLine(trimmed.substring(4), 13, 'bold', 7.5);
+                    } else if (trimmed.startsWith('## ')) {
+                        y += 5;
+                        addTextLine(trimmed.substring(3), 15, 'bold', 8.5);
+                    } else if (trimmed.startsWith('# ')) {
+                        y += 7;
+                        addTextLine(trimmed.substring(2), 18, 'bold', 10.5);
+                    } else if (trimmed.startsWith('> ')) {
+                        addTextLine(trimmed.substring(2), 10.5, 'italic', 6);
+                    } else if (trimmed === '---') {
+                        doc.setDrawColor(226, 232, 240);
+                        doc.line(margin, y + 2, pageWidth - margin, y + 2);
+                        y += 6;
+                    } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+                        addTextLine(`•  ${trimmed.substring(2)}`, 10.5, 'normal', 5.5);
+                    } else {
+                        if (trimmed.startsWith('|')) {
+                            const cleanRow = trimmed.split('|').map(s => s.trim()).filter(s => s).join('   |   ');
+                            doc.setFont('courier', 'normal');
+                            addTextLine(`| ${cleanRow} |`, 8.5, 'normal', 5);
+                        } else {
+                            addTextLine(trimmed, 10.5, 'normal', 5.5);
+                        }
+                    }
+                });
+            });
+
+            const name = (fallbackBrand.names[0] || 'startup').toLowerCase().replace(/\s+/g, '_');
+            doc.save(`${name}_complete_prospectus.pdf`);
+        } catch (error) {
+            console.error("Prospectus PDF download failed, falling back to print:", error);
+            handlePrintAllPDF();
+        }
+    };
 
     useEffect(() => {
         let mounted = true;
@@ -462,7 +841,8 @@ export default function DashboardPage() {
         { id: 'brand', label: t('dashboard.tabBrand'), icon: Sparkles, deliverable: fallbackBrand.markdown_deliverable, filename: 'brand_package.md' },
         { id: 'digital', label: t('dashboard.tabDigital'), icon: Globe, deliverable: fallbackDigital.markdown_deliverable, filename: 'digital_presence.md' },
         { id: 'growth', label: t('dashboard.tabGrowth'), icon: Megaphone, deliverable: fallbackMarketing.markdown_deliverable, filename: 'growth_plan.md' },
-        { id: 'calendar', label: language === 'en' ? 'Roadmap Calendar' : 'တိုးတက်မှု ပြက္ခဒိန်', icon: CalendarIcon, deliverable: '', filename: '' }
+        { id: 'calendar', label: language === 'en' ? 'Roadmap Calendar' : 'တိုးတက်မှု ပြက္ခဒိန်', icon: CalendarIcon, deliverable: '', filename: '' },
+        { id: 'investor', label: t('dashboard.tabInvestor'), icon: FileText, deliverable: '', filename: '' }
     ];
 
     const currentTabInfo = tabsList.find(t => t.id === activeTab);
@@ -562,7 +942,7 @@ export default function DashboardPage() {
                         </h3>
 
                         <div style={{ display: 'flex', gap: '12px' }}>
-                            {!previewDoc && activeTab !== 'calendar' && (
+                            {!previewDoc && activeTab !== 'calendar' && activeTab !== 'investor' && (
                                 isEditing ? (
                                     <>
                                         <button
@@ -631,32 +1011,6 @@ export default function DashboardPage() {
                                     </button>
                                 )
                             )}
-                            <button
-                                className="button-primary"
-                                onClick={() => {
-                                    setPreviewDoc(!previewDoc);
-                                    setIsEditing(false);
-                                }}
-                                style={{
-                                    borderRadius: '12px',
-                                    fontSize: '13.5px',
-                                    fontWeight: 600,
-                                    minHeight: '38px',
-                                    padding: '8px 16px',
-                                    cursor: 'pointer',
-                                    backgroundColor: previewDoc ? 'rgba(255,255,255,0.06)' : 'var(--color-primary)',
-                                    border: previewDoc ? '1px solid rgba(255,255,255,0.1)' : 'none',
-                                    color: '#FFFFFF',
-                                    boxShadow: previewDoc ? 'none' : '0 4px 15px rgba(99, 102, 241, 0.25)',
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '8px',
-                                    outline: 'none'
-                                }}
-                            >
-                                <FileText size={16} />
-                                <span>{previewDoc ? (language === 'en' ? 'Show Dashboard View' : 'ဒက်ရှ်ဘုတ် မြင်ကွင်း ပြရန်') : (language === 'en' ? 'Preview Document (.md)' : 'စာရွက်စာတမ်း ဖတ်ရန် (.md)')}</span>
-                            </button>
                         </div>
                     </div>
 
@@ -1393,6 +1747,82 @@ export default function DashboardPage() {
                                             refinedConcept={refinedConcept || fallbackConcept}
                                             ideaId={ideaId || currentIdeaId}
                                         />
+                                    )}
+                                    
+                                    {/* 8. GO TO INVESTOR TAB */}
+                                    {activeTab === 'investor' && (
+                                        <div className="perplexity-investor-suite">
+                                            {/* Suite Banner */}
+                                            <div className="perplexity-investor-banner">
+                                                <div className="perplexity-investor-banner-info">
+                                                    <h4 className="perplexity-investor-banner-title">
+                                                        {language === 'en' ? 'Investor Relations Pitch Deck & Reports' : 'ရင်းနှီးမြှုပ်နှံသူထံ တင်ပြရန် အစီရင်ခံစာများ'}
+                                                    </h4>
+                                                    <p className="perplexity-investor-banner-desc">
+                                                        {language === 'en' ? 'Export individual business segments or generate a single cohesive investor prospectus PDF.' : 'လုပ်ငန်းကဏ္ဍတစ်ခုချင်းစီအလိုက် သို့မဟုတ် စုစည်းထားသော ရင်းနှီးမြှုပ်နှံမှု အဆိုပြုလွှာ PDF စာအုပ်ကို တစ်ပြိုင်နက် ထုတ်ယူနိုင်ပါသည်'}
+                                                    </p>
+                                                </div>
+                                                <div className="perplexity-investor-banner-actions">
+                                                    <button className="button-primary" onClick={handleDownloadAllPDF} style={{ borderRadius: '12px', fontSize: '13.5px', padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '8px', minHeight: '38px', background: 'linear-gradient(135deg, #6366F1 0%, #3B82F6 100%)', border: 'none', color: '#FFF' }}>
+                                                        <FileText size={16} />
+                                                        <span>{language === 'en' ? 'Download Prospectus (PDF)' : 'Prospectus PDF ဒေါင်းလုဒ်လုပ်ရန်'}</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Main Dual Grid */}
+                                            <div className="perplexity-investor-grid">
+                                                {/* Left selectors list */}
+                                                <div className="perplexity-investor-doc-list">
+                                                    {[
+                                                        { id: 'overview', title: language === 'en' ? 'Business Overview (Lean Canvas)' : 'ခြုံငုံသုံးသပ်ချက် (Lean Canvas)', filename: 'business_overview.md' },
+                                                        { id: 'market', title: language === 'en' ? 'Market Intelligence Report' : 'ဈေးကွက်ဆန်းစစ်ချက် အစီရင်ခံစာ', filename: 'market_intelligence.md' },
+                                                        { id: 'finance', title: language === 'en' ? 'Financial Model & Projections' : 'ဘဏ္ဍာရေးပုံစံနှင့် ခန့်မှန်းချက်များ', filename: 'financial_model.md' },
+                                                        { id: 'brand', title: language === 'en' ? 'Brand Identity & Style Guide' : 'အမှတ်တံဆိပ်ပုံဖော်မှု လမ်းညွှန်', filename: 'brand_package.md' },
+                                                        { id: 'digital', title: language === 'en' ? 'Digital Presence & Website Specs' : 'ဒီဂျစ်တယ်တည်ရှိမှုနှင့် ဝဘ်ဆိုက်ပုံစံ', filename: 'digital_presence.md' },
+                                                        { id: 'growth', title: language === 'en' ? 'Growth & Marketing Strategy' : 'တိုးတက်မှုစီမံချက်နှင့် မားကက်တင်း', filename: 'growth_plan.md' }
+                                                    ].map((docItem) => (
+                                                        <button
+                                                            key={docItem.id}
+                                                            onClick={() => setSelectedInvestorDoc(docItem.id)}
+                                                            className={`perplexity-investor-doc-btn ${selectedInvestorDoc === docItem.id ? 'active' : ''}`}
+                                                        >
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                <div className="perplexity-investor-doc-status-dot" />
+                                                                <div style={{ textAlign: 'left' }}>
+                                                                    <div style={{ fontWeight: 700, fontSize: '12.5px', color: selectedInvestorDoc === docItem.id ? '#FFF' : '#E2E8F0', transition: 'color 0.2s' }}>{docItem.title}</div>
+                                                                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>{docItem.filename}</div>
+                                                                </div>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+
+                                                {/* Right Preview Card */}
+                                                <div className="perplexity-investor-preview-container">
+                                                    {(() => {
+                                                        const activeDocMap = {
+                                                            overview: { title: language === 'en' ? 'Business Overview (Lean Canvas)' : 'ခြုံငုံသုံးသပ်ချက် (Lean Canvas)', filename: 'business_overview.md', content: fallbackBusiness.lean_canvas_markdown },
+                                                            market: { title: language === 'en' ? 'Market Intelligence Report' : 'ဈေးကွက်ဆန်းစစ်ချက် အစီရင်ခံစာ', filename: 'market_intelligence.md', content: fallbackMarket.markdown_deliverable },
+                                                            finance: { title: language === 'en' ? 'Financial Model & Projections' : 'ဘဏ္ဍာရေးပုံစံနှင့် ခန့်မှန်းချက်များ', filename: 'financial_model.md', content: fallbackFinance.markdown_deliverable },
+                                                            brand: { title: language === 'en' ? 'Brand Identity & Style Guide' : 'အမှတ်တံဆိပ်ပုံဖော်မှု လမ်းညွှန်', filename: 'brand_package.md', content: fallbackBrand.markdown_deliverable },
+                                                            digital: { title: language === 'en' ? 'Digital Presence & Website Specs' : 'ဒီဂျစ်တယ်တည်ရှိမှုနှင့် ဝဘ်ဆိုက်ပုံစံ', filename: 'digital_presence.md', content: fallbackDigital.markdown_deliverable },
+                                                            growth: { title: language === 'en' ? 'Growth & Marketing Strategy' : 'တိုးတက်မှုစီမံချက်နှင့် မားကက်တင်း', filename: 'growth_plan.md', content: fallbackMarketing.markdown_deliverable }
+                                                        };
+                                                        const cur = activeDocMap[selectedInvestorDoc];
+                                                        if (!cur) return null;
+
+                                                        return (
+                                                            <MarkdownPreviewer
+                                                                markdown={cur.content}
+                                                                filename={cur.filename}
+                                                                onDownloadPDF={() => handleDownloadPDF(cur.title, cur.content, cur.filename)}
+                                                            />
+                                                        );
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        </div>
                                     )}
 
                                 </div>
