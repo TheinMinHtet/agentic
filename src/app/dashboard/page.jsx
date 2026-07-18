@@ -300,7 +300,7 @@ export default function DashboardPage() {
         markdown_deliverable: `# Digital Presence Specification: GrantFlow AI\n\n## Website Landing Page Layout\n\n### 1. Hero Section\n- **Heading**: Write winning grants in minutes, not weeks.\n- **Subheading**: Leverage automated narrative compilers trained on compliance criteria to draft compelling grant proposals instantly.\n- **CTA**: Get Started Free\n\n### 2. Features Grid\n- **Heading**: Compliance-First Drafting Engine\n- **Copy**: Upload past reports and grant requirements. Our system checks against 100+ compliance rules.\n\n## Key App Capabilities\n- Compliance Narrative Compiler\n- Past Impact Narrative Mapper\n- Automatic Budget Table Formatter\n\n## Recommended Technical Stack\n- Frontend: React Next.js\n- API & Orchestration: Node.js (deepagents)\n- Hosting: Vercel`
     };
 
-    const fallbackMarketing = growthPlan || {
+    const fallbackGrowth = growthPlan || {
         channels: ["Organic Search / SEO", "B2B Non-Profit Partnerships", "Strategic Cold Outreach"],
         acquisitionPlan: "Optimize SEO around keywords like 'nonprofit grant writer' and 'write microgrant proposal'. Partner directly with non-profit incubators and research labs to offer early pilot credits.",
         roadmap90Day: [
@@ -450,7 +450,7 @@ export default function DashboardPage() {
         { id: 'finance', label: t('dashboard.tabFinance'), icon: DollarSign, deliverable: fallbackFinance.markdown_deliverable, filename: 'financial_model.md' },
         { id: 'brand', label: t('dashboard.tabBrand'), icon: Sparkles, deliverable: fallbackBrand.markdown_deliverable, filename: 'brand_package.md' },
         { id: 'digital', label: t('dashboard.tabDigital'), icon: Globe, deliverable: fallbackDigital.markdown_deliverable, filename: 'digital_presence.md' },
-        { id: 'growth', label: t('dashboard.tabGrowth'), icon: Megaphone, deliverable: fallbackMarketing.markdown_deliverable, filename: 'growth_plan.md' },
+        { id: 'growth', label: t('dashboard.tabGrowth'), icon: Megaphone, deliverable: fallbackGrowth.markdown_deliverable, filename: 'growth_plan.md' },
         { id: 'calendar', label: language === 'en' ? 'Roadmap Calendar' : 'တိုးတက်မှု ပြက္ခဒိန်', icon: CalendarIcon, deliverable: '', filename: '' }
     ];
 
@@ -1285,7 +1285,7 @@ export default function DashboardPage() {
                                             <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
                                                 <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>Acquisition Channels</h4>
                                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                                                    {fallbackMarketing.channels.map((chan, idx) => (
+                                                    {fallbackGrowth.channels.map((chan, idx) => (
                                                         <span key={idx} style={{
                                                             fontSize: '14px',
                                                             fontWeight: 900,
@@ -1300,7 +1300,7 @@ export default function DashboardPage() {
                                                     ))}
                                                 </div>
                                                 <p style={{ margin: '16px 0 0 0', fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
-                                                    {fallbackMarketing.acquisitionPlan}
+                                                    {fallbackGrowth.acquisitionPlan}
                                                 </p>
                                             </div>
 
@@ -1308,7 +1308,7 @@ export default function DashboardPage() {
                                             <div>
                                                 <h4 style={{ fontWeight: 900, marginBottom: '16px' }}>First 90-Day Execution Roadmap</h4>
                                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                                    {fallbackMarketing.roadmap90Day.map((step, idx) => {
+                                                    {fallbackGrowth.roadmap90Day.map((step, idx) => {
                                                         const phaseTitle = idx === 0 ? 'Month 1' : (idx === 1 ? 'Month 2' : 'Month 3');
                                                         return (
                                                             <div key={idx} style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
@@ -1343,7 +1343,7 @@ export default function DashboardPage() {
                             {/* 7. ROADMAP CALENDAR TAB */}
                             {activeTab === 'calendar' && (
                                 <RoadmapCalendar
-                                    growthPlan={growthPlan || fallbackMarketing}
+                                    growthPlan={growthPlan || fallbackGrowth}
                                     businessInfo={businessInfo}
                                     refinedConcept={refinedConcept || fallbackConcept}
                                     ideaId={ideaId || currentIdeaId}
