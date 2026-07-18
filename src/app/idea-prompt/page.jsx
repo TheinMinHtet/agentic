@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { ArrowRight } from 'lucide-react';
 import { useWorkflow } from '../context/WorkflowContext';
 import { useAuth } from '../context/AuthContext';
 import { createClient } from '@/lib/supabase/client';
@@ -39,6 +40,8 @@ export default function IdeaPromptPage() {
             const result = await evaluateIdeaAsync(refinedText, language);
             const compositeScore = getCompositeValidationScore(result);
             setValidationResult({ ...result, compositeScore });
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             
         } catch (error) {
             console.error("Failed to auto-refine:", error);
