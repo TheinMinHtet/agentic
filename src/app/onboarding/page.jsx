@@ -35,9 +35,15 @@ export default function OnboardingPage() {
     const [isComplete, setIsComplete] = useState(false);
     
     const messagesEndRef = useRef(null);
+    const chatContainerRef = useRef(null);
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (chatContainerRef.current) {
+            chatContainerRef.current.scrollTo({
+                top: chatContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
     };
 
     useEffect(() => {
@@ -102,11 +108,43 @@ export default function OnboardingPage() {
         return BOTH_CATEGORIES;
     };
 
+    const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+    const containerRef = useRef(null);
+
+    const handleMouseMove = (e) => {
+        if (!containerRef.current) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        setMousePos({
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+        });
+    };
+
     if (loading) return null;
 
     return (
-        <section className="workflow-section section-padding container" style={{ minHeight: 'calc(100vh - 56px)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div className="onboarding-container" style={{ width: '100%', maxWidth: '800px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div 
+            ref={containerRef}
+            onMouseMove={handleMouseMove}
+            style={{ position: 'relative', minHeight: 'calc(100vh - 56px)', overflow: 'hidden', width: '100%' }}
+        >
+            {/* Mouse Tracking Neon Spotlight */}
+            <div
+                style={{
+                    position: 'absolute',
+                    inset: 0,
+                    pointerEvents: 'none',
+                    zIndex: 1,
+                    transition: 'background 0.12s ease-out',
+                    background: `radial-gradient(680px circle at ${mousePos.x}px ${mousePos.y}px, rgba(0, 242, 254, 0.15), rgba(99, 102, 241, 0.08) 35%, transparent 75%)`
+                }}
+            />
+
+            <section 
+                className="workflow-section section-padding container" 
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: 'calc(100vh - 56px)' }}
+            >
+                <div className="onboarding-container" style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '800px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                 
                 {/* Phase 1: Location */}
                 {phase === 1 && (
@@ -121,13 +159,13 @@ export default function OnboardingPage() {
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
                             <div className="location-card" onClick={() => handleLocationSelect('Online')} style={{ cursor: 'pointer', padding: '32px 24px', background: 'var(--color-surface-card)', borderRadius: '16px', border: '1px solid var(--color-border-light)', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                 <Globe size={48} color="var(--color-accent)" style={{ marginBottom: '16px' }} />
-                                <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Online</h3>
+                                <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Online Business</h3>
                                 <p className="text-muted" style={{ fontSize: '14px', textAlign: 'center' }}>100% Digital operations, remote services, e-commerce.</p>
                             </div>
                             
                             <div className="location-card" onClick={() => handleLocationSelect('Offline')} style={{ cursor: 'pointer', padding: '32px 24px', background: 'var(--color-surface-card)', borderRadius: '16px', border: '1px solid var(--color-border-light)', transition: 'all 0.2s', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                 <MapPin size={48} color="#A78BFA" style={{ marginBottom: '16px' }} />
-                                <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Offline</h3>
+                                <h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '8px' }}>Physical Business</h3>
                                 <p className="text-muted" style={{ fontSize: '14px', textAlign: 'center' }}>Brick and mortar, physical stores, local services.</p>
                             </div>
 
@@ -142,10 +180,20 @@ export default function OnboardingPage() {
 
                 {/* Phase 2: Category */}
                 {phase === 2 && (
-                    <div style={{ marginTop: '40px' }}>
-                        <h2 style={{ marginBottom: '16px', fontWeight: 900, fontSize: '32px', fontFamily: 'var(--typography-heading-family)', textAlign: 'center' }}>
-                            {language === 'en' ? 'Select your industry' : 'သင်၏လုပ်ငန်းအမျိုးအစားကို ရွေးချယ်ပါ'}
-                        </h2>
+                    <div style={{ marginTop: '40px', width: '100%' }}>
+                        <div style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', marginBottom: '16px', minHeight: '40px' }}>
+                            <div style={{ position: 'absolute', left: 0 }}>
+                                <button 
+                                    className="back-button"
+                                    onClick={() => setPhase(1)}
+                                >
+                                    &larr; {language === 'en' ? 'Back' : 'နောက်သို့'}
+                                </button>
+                            </div>
+                            <h2 style={{ margin: 0, fontWeight: 900, fontSize: '32px', fontFamily: 'var(--typography-heading-family)', textAlign: 'center', padding: '0 80px' }}>
+                                {language === 'en' ? 'Select your industry' : 'သင်၏လုပ်ငန်းအမျိုးအစားကို ရွေးချယ်ပါ'}
+                            </h2>
+                        </div>
                         <p className="text-secondary" style={{ marginBottom: '48px', fontSize: '18px', textAlign: 'center' }}>
                             {language === 'en' ? `Based on your choice (${location}), here are the best fits:` : 'သင့်ရွေးချယ်မှုအပေါ် အခြေခံ၍ အကောင်းဆုံး အမျိုးအစားများ-'}
                         </p>
@@ -167,15 +215,12 @@ export default function OnboardingPage() {
                                 </div>
                             ))}
                         </div>
-                        <button onClick={() => setPhase(1)} style={{ marginTop: '32px', background: 'transparent', color: 'var(--color-text-muted)', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-                            &larr; Back to Location
-                        </button>
                     </div>
                 )}
 
                 {/* Phase 3: Chat Wizard */}
                 {phase === 3 && (
-                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--color-surface-card)', borderRadius: '24px', border: '1px solid var(--color-border-light)', overflow: 'hidden', marginTop: '24px', height: '600px' }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--color-surface-card)', borderRadius: '24px', border: '1px solid var(--color-border-light)', overflow: 'hidden', marginTop: '24px', height: '600px', maxHeight: '600px', flexShrink: 0 }}>
                         
                         {/* Header */}
                         <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border-light)', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -195,11 +240,11 @@ export default function OnboardingPage() {
                             <div style={{ width: '100%' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                                     <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontWeight: 600 }}>Blueprint Progress</span>
-                                    <span style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 700 }}>{Math.round(((onboardingProgress || 0) / 7) * 100)}%</span>
+                                    <span style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 700 }}>{Math.round(((onboardingProgress || 0) / 5) * 100)}%</span>
                                 </div>
                                 <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '99px', overflow: 'hidden' }}>
                                     <div style={{ 
-                                        width: `${Math.min(100, ((onboardingProgress || 0) / 7) * 100)}%`, 
+                                        width: `${Math.min(100, ((onboardingProgress || 0) / 5) * 100)}%`, 
                                         height: '100%', 
                                         background: 'linear-gradient(90deg, #A78BFA, var(--color-accent))',
                                         transition: 'width 0.5s ease-out',
@@ -209,8 +254,8 @@ export default function OnboardingPage() {
                             </div>
                         </div>
 
-                        {/* Chat Messages */}
-                        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        {/* Chat History */}
+                        <div ref={chatContainerRef} style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', minHeight: 0 }}>
                             {onboardingChatHistory.map((msg, i) => {
                                 // Skip the initial invisible trigger message if needed, but here we just render all
                                 if (i === 0 && msg.role === 'user' && msg.content.includes("ready to start")) return null;
@@ -232,7 +277,8 @@ export default function OnboardingPage() {
                                             borderBottomLeftRadius: isModel ? '4px' : '16px',
                                             borderBottomRightRadius: !isModel ? '4px' : '16px',
                                             lineHeight: '1.5',
-                                            fontSize: '15px'
+                                            fontSize: '15px',
+                                            whiteSpace: 'pre-wrap'
                                         }}>
                                             {msg.content}
                                         </div>
@@ -313,7 +359,31 @@ export default function OnboardingPage() {
                 )}
             </div>
 
+            </section>
+            
             <style jsx>{`
+                .back-button {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 8px 18px;
+                    background: rgba(255, 255, 255, 0.03);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border-radius: 999px;
+                    color: var(--color-text-secondary);
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+                    backdrop-filter: blur(8px);
+                }
+                .back-button:hover {
+                    background: rgba(255, 255, 255, 0.08);
+                    color: var(--color-text-primary);
+                    border-color: rgba(255, 255, 255, 0.25);
+                    transform: translateX(-4px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                }
                 .typing-dot {
                     width: 6px;
                     height: 6px;
@@ -331,6 +401,6 @@ export default function OnboardingPage() {
                     box-shadow: 0 10px 30px rgba(0, 242, 254, 0.1);
                 }
             `}</style>
-        </section>
+        </div>
     );
 }

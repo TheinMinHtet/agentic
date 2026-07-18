@@ -339,7 +339,7 @@ export function WorkflowProvider({ children }) {
       addThinkingLog('finance', 'Simulating monthly breakeven timeline metrics...');
       
       try {
-        const result = await runFinanceAgent(refinedConcept, businessInfo, marketResearch, key, language);
+        const result = await runFinanceAgent(refinedConcept || DEFAULT_CONCEPT_FALLBACK, businessInfo, marketResearch || DEFAULT_MARKET_FALLBACK, key, language);
         setFinanceModel(result);
         await persistAgentOutput('agent_finance_models', result, (output) => ({
           thinking: output.thinking,
@@ -371,7 +371,7 @@ export function WorkflowProvider({ children }) {
       addThinkingLog('brand', 'Formulating visual branding tagline options...');
       
       try {
-        const result = await runBrandAgent(refinedConcept, businessInfo, key, language);
+        const result = await runBrandAgent(refinedConcept || DEFAULT_CONCEPT_FALLBACK, businessInfo, key, language);
         setBrandPackage(result);
         await persistAgentOutput('agent_brand_packages', result, (output) => ({
           thinking: output.thinking,
@@ -404,7 +404,7 @@ export function WorkflowProvider({ children }) {
       addThinkingLog('website', 'Selecting recommended technical stack components...');
       
       try {
-        const result = await runWebsiteAgent(refinedConcept, businessInfo, brandPackage || { palette: { primary: '#1b0624', secondary: '#aeec1d' }, names: ['Brand'] }, key, language);
+        const result = await runWebsiteAgent(refinedConcept || DEFAULT_CONCEPT_FALLBACK, businessInfo, brandPackage || { palette: { primary: '#1b0624', secondary: '#aeec1d' }, names: ['Brand'] }, key, language);
         setDigitalPresence(result);
         await persistAgentOutput('agent_digital_presence', result, (output) => ({
           thinking: output.thinking,
@@ -435,7 +435,7 @@ export function WorkflowProvider({ children }) {
       addThinkingLog('marketing', 'Structuring first 90-day roadmap phases...');
       
       try {
-        const result = await runMarketingAgent(refinedConcept, businessInfo, marketResearch, key, language);
+        const result = await runMarketingAgent(refinedConcept || DEFAULT_CONCEPT_FALLBACK, businessInfo, marketResearch || DEFAULT_MARKET_FALLBACK, key, language);
         setGrowthPlan(result);
         await persistAgentOutput('agent_growth_plans', result, (output) => ({
           thinking: output.thinking,
@@ -710,6 +710,17 @@ export function WorkflowProvider({ children }) {
     setGrowthPlan(null);
     setBusinessPlan(null);
     updateCurrentIdeaId(null);
+    
+    // Clear onboarding state
+    setOnboardingChatHistory([]);
+    setOnboardingProgress(0);
+    
+    // Clear idea and business info state and storage
+    setRawUserIdea('');
+    setBusinessInfo(DEFAULT_BUSINESS_INFO);
+    localStorage.removeItem(STARTUP_IDEA_KEY);
+    localStorage.removeItem(BUSINESS_INFO_KEY);
+
     setAgentProgress({
       refinement: 'idle',
       market: 'idle',
