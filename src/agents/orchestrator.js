@@ -9,6 +9,7 @@ import { runBusinessAgent } from './businessAgent';
 import { runRefinementChatAgent } from './refinementChatAgent';
 import { runOnboardingAgent } from './onboardingAgent';
 import { runRoadmapBreakdownAgent } from './roadmapBreakdownAgent';
+import { runAgenticUpdateAgent } from './agenticUpdateAgent';
 
 export {
   evaluateIdeaAsync,
@@ -21,6 +22,7 @@ export {
   runBusinessAgent,
   runRefinementChatAgent,
   runOnboardingAgent,
-  runRoadmapBreakdownAgent
+  runRoadmapBreakdownAgent,
+  runAgenticUpdateAgent
 };
 
