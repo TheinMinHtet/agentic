@@ -339,7 +339,7 @@ export function WorkflowProvider({ children }) {
       addThinkingLog('finance', 'Simulating monthly breakeven timeline metrics...');
       
       try {
-        const result = await runFinanceAgent(refinedConcept, businessInfo, marketResearch, key, language);
+        const result = await runFinanceAgent(refinedConcept || DEFAULT_CONCEPT_FALLBACK, businessInfo, marketResearch || DEFAULT_MARKET_FALLBACK, key, language);
         setFinanceModel(result);
         await persistAgentOutput('agent_finance_models', result, (output) => ({
           thinking: output.thinking,
@@ -371,7 +371,7 @@ export function WorkflowProvider({ children }) {
       addThinkingLog('brand', 'Formulating visual branding tagline options...');
       
       try {
-        const result = await runBrandAgent(refinedConcept, businessInfo, key, language);
+        const result = await runBrandAgent(refinedConcept || DEFAULT_CONCEPT_FALLBACK, businessInfo, key, language);
         setBrandPackage(result);
         await persistAgentOutput('agent_brand_packages', result, (output) => ({
           thinking: output.thinking,
@@ -404,7 +404,7 @@ export function WorkflowProvider({ children }) {
       addThinkingLog('website', 'Selecting recommended technical stack components...');
       
       try {
-        const result = await runWebsiteAgent(refinedConcept, businessInfo, brandPackage || { palette: { primary: '#1b0624', secondary: '#aeec1d' }, names: ['Brand'] }, key, language);
+        const result = await runWebsiteAgent(refinedConcept || DEFAULT_CONCEPT_FALLBACK, businessInfo, brandPackage || { palette: { primary: '#1b0624', secondary: '#aeec1d' }, names: ['Brand'] }, key, language);
         setDigitalPresence(result);
         await persistAgentOutput('agent_digital_presence', result, (output) => ({
           thinking: output.thinking,
@@ -435,7 +435,7 @@ export function WorkflowProvider({ children }) {
       addThinkingLog('marketing', 'Structuring first 90-day roadmap phases...');
       
       try {
-        const result = await runMarketingAgent(refinedConcept, businessInfo, marketResearch, key, language);
+        const result = await runMarketingAgent(refinedConcept || DEFAULT_CONCEPT_FALLBACK, businessInfo, marketResearch || DEFAULT_MARKET_FALLBACK, key, language);
         setGrowthPlan(result);
         await persistAgentOutput('agent_growth_plans', result, (output) => ({
           thinking: output.thinking,
@@ -509,6 +509,126 @@ export function WorkflowProvider({ children }) {
     localStorage.setItem(BUSINESS_INFO_KEY, JSON.stringify(info));
     setBusinessInfo(info);
   };
+
+  const updateFinanceModelDirect = async (updatedFinance) => {
+    setFinanceModel(updatedFinance);
+    await persistAgentOutput('agent_finance_models', updatedFinance, (output) => ({
+      thinking: output.thinking || '',
+      markdown_deliverable: output.markdown_deliverable || '',
+      cost_breakdown: output.costBreakdown || [],
+      revenue_forecast: output.revenueForecast || '',
+      pricing_strategy: output.pricingStrategy || '',
+      breakeven_month: output.breakevenMonth || 0
+    }));
+  };
+
+  const updateMarketResearchDirect = async (updatedMarket) => {
+    setMarketResearch(updatedMarket);
+    await persistAgentOutput('agent_market_research', updatedMarket, (output) => ({
+      thinking: output.thinking || '',
+      markdown_deliverable: output.markdown_deliverable || '',
+      tam: output.tam || '',
+      competitors: output.competitors || [],
+      opportunities: output.opportunities || [],
+      saturation_level: output.saturation_level || 0,
+      target_personas: output.target_personas || []
+    }));
+  };
+
+  const updateBrandPackageDirect = async (updatedBrand) => {
+    setBrandPackage(updatedBrand);
+    await persistAgentOutput('agent_brand_packages', updatedBrand, (output) => ({
+      thinking: output.thinking || '',
+      markdown_deliverable: output.markdown_deliverable || '',
+      names: output.names || [],
+      tagline: output.tagline || '',
+      voice: output.voice || '',
+      palette: output.palette || {},
+      logo_concept: output.logoConcept || ''
+    }));
+  };
+
+  const updateDigitalPresenceDirect = async (updatedDigital) => {
+    setDigitalPresence(updatedDigital);
+    await persistAgentOutput('agent_digital_presence', updatedDigital, (output) => ({
+      thinking: output.thinking || '',
+      markdown_deliverable: output.markdown_deliverable || '',
+      landing_page_outline: output.landingPageOutline || [],
+      features: output.features || [],
+      stack: output.stack || []
+    }));
+  };
+
+  const updateGrowthPlanDirect = async (updatedGrowth) => {
+    setGrowthPlan(updatedGrowth);
+    await persistAgentOutput('agent_growth_plans', updatedGrowth, (output) => ({
+      thinking: output.thinking || '',
+      markdown_deliverable: output.markdown_deliverable || '',
+      channels: output.channels || [],
+      acquisition_plan: output.acquisitionPlan || '',
+      roadmap_90_day: output.roadmap90Day || []
+    }));
+  };
+
+  const triggerRediscovery = async (changedModelName) => {
+    const key = getApiKey();
+    
+    let currentRefined = refinedConcept || DEFAULT_CONCEPT_FALLBACK;
+    let currentMarket = marketResearch || DEFAULT_MARKET_FALLBACK;
+    let currentFinance = financeModel || DEFAULT_FINANCE_FALLBACK;
+    let currentBrand = brandPackage || DEFAULT_BRAND_FALLBACK;
+    let currentDigital = digitalPresence || DEFAULT_DIGITAL_FALLBACK;
+    let currentGrowth = growthPlan || DEFAULT_MARKETING_FALLBACK;
+
+    addThinkingLog('business', `Triggering rediscovery cascade from updated ${changedModelName} model...`);
+
+    try {
+      if (changedModelName === 'market') {
+        addThinkingLog('finance', 'Market demographics updated. Re-running financial estimates...');
+        const newFinance = await runFinanceAgent(currentRefined, businessInfo, currentMarket, key, language);
+        setFinanceModel(newFinance);
+        currentFinance = newFinance;
+
+        addThinkingLog('marketing', 'Market opportunities updated. Re-evaluating customer acquisition channels...');
+        const newGrowth = await runMarketingAgent(currentRefined, businessInfo, currentMarket, key, language);
+        setGrowthPlan(newGrowth);
+        currentGrowth = newGrowth;
+      }
+
+      if (changedModelName === 'brand') {
+        addThinkingLog('website', 'Brand name or colors changed. Re-running landing page architecture...');
+        const newDigital = await runWebsiteAgent(currentRefined, businessInfo, currentBrand, key, language);
+        setDigitalPresence(newDigital);
+        currentDigital = newDigital;
+      }
+
+      addThinkingLog('business', 'Integrating all modified properties into updated Lean Canvas...');
+      const bizPlanResult = await runBusinessAgent(
+        currentRefined,
+        currentMarket,
+        currentFinance,
+        currentBrand,
+        currentDigital,
+        currentGrowth,
+        key,
+        language
+      );
+
+      setBusinessPlan(bizPlanResult);
+      await persistAgentOutput('agent_business_plans', bizPlanResult, (output) => ({
+        thinking: output.thinking,
+        lean_canvas_markdown: output.lean_canvas_markdown
+      }));
+
+      addThinkingLog('business', 'Rediscovery successfully synchronized and persisted.');
+      return true;
+    } catch (err) {
+      console.error("Rediscovery failed:", err);
+      addThinkingLog('business', `Rediscovery error: ${err.message}`);
+      return false;
+    }
+  };
+
 
   const executeRefinementChat = async (userMessage) => {
     const key = getApiKey();
@@ -590,6 +710,17 @@ export function WorkflowProvider({ children }) {
     setGrowthPlan(null);
     setBusinessPlan(null);
     updateCurrentIdeaId(null);
+    
+    // Clear onboarding state
+    setOnboardingChatHistory([]);
+    setOnboardingProgress(0);
+    
+    // Clear idea and business info state and storage
+    setRawUserIdea('');
+    setBusinessInfo(DEFAULT_BUSINESS_INFO);
+    localStorage.removeItem(STARTUP_IDEA_KEY);
+    localStorage.removeItem(BUSINESS_INFO_KEY);
+
     setAgentProgress({
       refinement: 'idle',
       market: 'idle',
@@ -647,7 +778,13 @@ export function WorkflowProvider({ children }) {
       setOnboardingChatHistory,
       onboardingProgress,
       setOnboardingProgress,
-      resetWorkflow
+      resetWorkflow,
+      updateFinanceModelDirect,
+      updateMarketResearchDirect,
+      updateBrandPackageDirect,
+      updateDigitalPresenceDirect,
+      updateGrowthPlanDirect,
+      triggerRediscovery
     }}>
       {children}
     </WorkflowContext.Provider>
