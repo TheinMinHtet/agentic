@@ -34,6 +34,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!mounted) return;
       setUser(data.user);
       setLoading(false);
+    }).catch((err) => {
+      console.error('Failed to retrieve user session:', err);
+      if (mounted) {
+        setLoading(false);
+      }
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -48,8 +53,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase]);
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('Failed to sign out from Supabase:', err);
+    } finally {
+      setUser(null);
+    }
   };
 
   return (

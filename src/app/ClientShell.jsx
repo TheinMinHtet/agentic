@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogIn, LogOut, Sparkles } from 'lucide-react';
@@ -15,7 +15,11 @@ function Navbar() {
   const { language, toggleLanguage, t } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
-  const isLanding = pathname === '/';
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = async () => {
     await logout();
@@ -23,6 +27,23 @@ function Navbar() {
   };
 
   const isActive = (path) => pathname === path;
+
+  if (!mounted) {
+    return (
+      <nav className="navbar navbar-dark-landing">
+        <Link href="/" className="brand-link" aria-label="Agentic Workflow home">
+          <span className="brand-mark"><Sparkles size={18} /></span>
+          <span>Agentic Workflow</span>
+        </Link>
+        <div className="nav-center-links">
+          <span className="nav-link" style={{ opacity: 0 }}>{t('navbar.home')}</span>
+        </div>
+        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', opacity: 0 }}>
+          <button type="button" className="button-secondary">{language === 'en' ? 'မြန်မာ' : 'English'}</button>
+        </div>
+      </nav>
+    );
+  }
 
   return (
     <nav className="navbar navbar-dark-landing">

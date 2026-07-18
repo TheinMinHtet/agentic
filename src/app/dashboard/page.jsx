@@ -6,6 +6,7 @@ import { useWorkflow } from '../context/WorkflowContext';
 import { createClient } from '@/lib/supabase/client';
 import MarkdownPreviewer from '../components/MarkdownPreviewer';
 import { useLanguage } from '../context/LanguageContext';
+import RoadmapCalendar from '../components/RoadmapCalendar';
 import { 
   ArrowLeft, 
   FileText, 
@@ -16,7 +17,8 @@ import {
   Globe, 
   Megaphone,
   CheckCircle,
-  ExternalLink
+  ExternalLink,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -42,7 +44,8 @@ export default function DashboardPage() {
         setGrowthPlan,
         setBusinessPlan,
         updateCurrentIdeaId,
-        resetWorkflow
+        resetWorkflow,
+        currentIdeaId
     } = useWorkflow();
 
     const getCurrencySymbol = () => {
@@ -296,7 +299,8 @@ export default function DashboardPage() {
         { id: 'finance', label: t('dashboard.tabFinance'), icon: DollarSign, deliverable: fallbackFinance.markdown_deliverable, filename: 'financial_model.md' },
         { id: 'brand', label: t('dashboard.tabBrand'), icon: Sparkles, deliverable: fallbackBrand.markdown_deliverable, filename: 'brand_package.md' },
         { id: 'digital', label: t('dashboard.tabDigital'), icon: Globe, deliverable: fallbackDigital.markdown_deliverable, filename: 'digital_presence.md' },
-        { id: 'growth', label: t('dashboard.tabGrowth'), icon: Megaphone, deliverable: fallbackMarketing.markdown_deliverable, filename: 'growth_plan.md' }
+        { id: 'growth', label: t('dashboard.tabGrowth'), icon: Megaphone, deliverable: fallbackMarketing.markdown_deliverable, filename: 'growth_plan.md' },
+        { id: 'calendar', label: language === 'en' ? 'Roadmap Calendar' : 'တိုးတက်မှု ပြက္ခဒိန်', icon: CalendarIcon, deliverable: '', filename: '' }
     ];
 
     const currentTabInfo = tabsList.find(t => t.id === activeTab);
@@ -735,6 +739,16 @@ export default function DashboardPage() {
                                         </div>
                                     </div>
                                 </div>
+                            )}
+
+                            {/* 7. ROADMAP CALENDAR TAB */}
+                            {activeTab === 'calendar' && (
+                                <RoadmapCalendar 
+                                    growthPlan={growthPlan || fallbackMarketing} 
+                                    businessInfo={businessInfo}
+                                    refinedConcept={refinedConcept || fallbackConcept}
+                                    ideaId={ideaId || currentIdeaId}
+                                />
                             )}
 
                         </div>
