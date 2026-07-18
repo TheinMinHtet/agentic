@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function BusinessInfoPage() {
     const router = useRouter();
-    const { businessInfo, updateBusinessInfo, setActiveStep } = useWorkflow();
+    const { businessInfo, updateBusinessInfo, setActiveStep, updateCurrentIdeaId } = useWorkflow();
     const supabase = useMemo(() => createClient(), []);
     const { user, loading } = useAuth();
 
