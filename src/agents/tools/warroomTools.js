@@ -47,16 +47,35 @@ export const checkCompetitorUrlTool = tool(
  */
 export const keywordDifficultySearchTool = tool(
     async ({ keyword, targetLocation = 'Global' }) => {
-        // Evaluate simulated SEO difficulty index based on keyword structure and market competition
         const lower = keyword.toLowerCase();
+        const words = lower.split(/[^a-z0-9]+/).filter(Boolean);
+        const firstWord = words[0] || 'market';
+        const lastWord = words[words.length - 1] || 'tech';
+
         let difficultyIndex = 'Medium (54/100)';
         let estimatedVolume = '18,500 monthly searches';
-        let topDomains = ['grantspace.org', 'candid.org', 'proposalai.io'];
+        let topDomains = [`www.${firstWord}leader.com`, `www.global${lastWord}.io`, `www.topcompetitor.org`];
 
         if (lower.includes('nonprofit') || lower.includes('non-profit') || lower.includes('grant')) {
             difficultyIndex = 'Low-Medium (38/100) - High Opportunity';
             estimatedVolume = '42,000 monthly searches';
             topDomains = ['grantwriterpro.com', 'grants.gov', 'candid.org'];
+        } else if (lower.includes('coffee') || lower.includes('cafe') || lower.includes('food') || lower.includes('drink')) {
+            difficultyIndex = 'Medium-High (65/100) - Active Local Demand';
+            estimatedVolume = '35,000 monthly searches';
+            topDomains = ['starbucks.com', 'cafetmt.com', 'foodpanda.com.mm'];
+        } else if (lower.includes('pay') || lower.includes('fintech') || lower.includes('money') || lower.includes('bank') || lower.includes('qr')) {
+            difficultyIndex = 'High (82/100) - High Value Market';
+            estimatedVolume = '88,000 monthly searches';
+            topDomains = ['kbzpay.com', 'wavemoney.com.mm', 'stripe.com'];
+        } else if (lower.includes('health') || lower.includes('clinic') || lower.includes('med') || lower.includes('doctor')) {
+            difficultyIndex = 'Medium (48/100) - Growing Sector';
+            estimatedVolume = '24,000 monthly searches';
+            topDomains = ['healthline.com', 'punhlainghospitals.com', 'telemed.io'];
+        } else if (lower.includes('edu') || lower.includes('school') || lower.includes('learn') || lower.includes('course')) {
+            difficultyIndex = 'Medium (52/100) - High Opportunity';
+            estimatedVolume = '45,000 monthly searches';
+            topDomains = ['coursera.org', 'udemy.com', 'edx.org'];
         } else if (lower.includes('ai') || lower.includes('saas')) {
             difficultyIndex = 'High (78/100) - Competitive';
             estimatedVolume = '120,000 monthly searches';

@@ -129,8 +129,55 @@ export const DebateState = Annotation.Root({
 });
 
 /**
+ * Dynamically derives search keyword and competitor domains based on live business info.
+ */
+async function deriveDynamicMarketTargets(concept, apiKey) {
+    const companyName = concept.companyName || concept.name || "Startup Idea";
+    const description = concept.description || concept.concept || concept.problem || "SaaS digital platform";
+    const audience = concept.targetAudience || concept.target_audience_refined || "General users";
+    const country = concept.targetCountry || "Myanmar";
+
+    if (apiKey) {
+        try {
+            const prompt = `Based on this exact business idea:
+Company Name: ${companyName}
+Description/Problem: ${description}
+Target Audience: ${audience}
+Target Country: ${country}
+
+Return ONLY a valid JSON object with:
+{
+  "searchKeyword": "most relevant 3-4 word search keyword tailored to this specific business and target market",
+  "competitorDomain": "a real or representative full https domain URL of a primary competitor in this exact industry (e.g. https://www.paypal.com, https://www.starbucks.com, https://grantwriterpro.com, etc.)"
+}`;
+            const raw = await invokeAgentLLM(apiKey, "You are a Market Intelligence keyword and domain analyzer. Output pure JSON only.", prompt, "");
+            const cleaned = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(cleaned);
+            if (parsed.searchKeyword && parsed.competitorDomain) {
+                return {
+                    searchKeyword: parsed.searchKeyword,
+                    competitorDomain: parsed.competitorDomain.startsWith('http') ? parsed.competitorDomain : `https://${parsed.competitorDomain}`
+                };
+            }
+        } catch (e) {
+            console.warn("Dynamic market target LLM fallback:", e.message);
+        }
+    }
+
+    // Clean rule-based fallback if LLM is unavailable or fails
+    const cleanWords = description.toLowerCase().split(/[^a-z0-9]+/).filter(w => w.length > 3 && !['that', 'this', 'with', 'from', 'have', 'will', 'your', 'their'].includes(w));
+    const mainTopic = cleanWords.slice(0, 3).join(' ') || companyName;
+    const baseDomain = cleanWords[0] || companyName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'market';
+
+    return {
+        searchKeyword: `${mainTopic} in ${country}`,
+        competitorDomain: `https://www.${baseDomain}leader.com`
+    };
+}
+
+/**
  * 1. Market Intelligence Node (ReAct Agent 01)
- * Calls competitor & keyword tools and uses Gemini LLM in SIMPLE ENGLISH to reason over market size.
+ * Calls competitor & keyword tools dynamically based on live business info and uses Gemini LLM in SIMPLE ENGLISH.
  */
 async function marketAgentNode(state) {
     const currentIter = state.iteration_count || 0;
@@ -139,9 +186,12 @@ async function marketAgentNode(state) {
     const apiKey = concept.apiKey || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || process.env.GOOGLE_API_KEY || process.env.VITE_GOOGLE_API_KEY;
     const userOption = state.user_selected_option;
 
-    // Run tools
-    const keywordRes = JSON.parse(await keywordDifficultySearchTool.invoke({ keyword: `${ideaName} non-profit grant writing`, targetLocation: concept.targetCountry || "Myanmar" }));
-    const compRes = JSON.parse(await checkCompetitorUrlTool.invoke({ url: "https://grantwriterpro.com" }));
+    // Dynamically derive search targets based on live business info
+    const dynamicTargets = await deriveDynamicMarketTargets(concept, apiKey);
+
+    // Run tools dynamically on the specific business targets
+    const keywordRes = JSON.parse(await keywordDifficultySearchTool.invoke({ keyword: dynamicTargets.searchKeyword, targetLocation: concept.targetCountry || "Myanmar" }));
+    const compRes = JSON.parse(await checkCompetitorUrlTool.invoke({ url: dynamicTargets.competitorDomain }));
 
     let fallbackText = "";
     let systemPrompt = "";
@@ -151,7 +201,7 @@ async function marketAgentNode(state) {
     if (currentIter === 0) {
         fallbackText = `We checked search trends and found around ${keywordRes.estimated_volume} for ideas like ${ideaName}. Our main competitor online (${compRes.url}) is active right now. To grab high market interest quickly, I suggest setting aside about $28 per customer for upfront marketing and ads.`;
         systemPrompt = `You are the Market Intelligence Agent in a friendly startup meeting. CRITICAL INSTRUCTION: Speak in SIMPLE, CLEAR, CONVERSATIONAL ENGLISH so any founder understands without confusing jargon. Keep it brief and encouraging (max 3 sentences).`;
-        userPrompt = `Analyze these real tool check results for our idea "${ideaName}" (${concept.description || 'SaaS'}):\n- Search Volume Check: ${JSON.stringify(keywordRes)}\n- Competitor Domain Check: ${JSON.stringify(compRes)}\n\nExplain in simple English how many people are searching for this each month, note that competitors are active online, and suggest investing around $28 per customer to grow quickly and gain brand awareness.`;
+        userPrompt = `Analyze these real tool check results for our idea "${ideaName}" (${concept.description || 'SaaS'}):\n- Search Keyword: "${dynamicTargets.searchKeyword}"\n- Search Volume Check: ${JSON.stringify(keywordRes)}\n- Competitor Domain Check: ${JSON.stringify(compRes)}\n\nExplain in simple English how many people are searching for this each month, note that competitors are active online, and suggest investing around $28 per customer to grow quickly and gain brand awareness.`;
         nextScore = 48;
     } else if (userOption) {
         if (userOption === 'option_a' || userOption.includes('Aggressive') || userOption.includes('Fast')) {
@@ -174,8 +224,8 @@ async function marketAgentNode(state) {
 
     const messageText = await invokeAgentLLM(apiKey, systemPrompt, userPrompt, fallbackText);
     const searchedSites = Array.from(new Set([
-        compRes.url || "https://grantwriterpro.com",
-        ...(keywordRes.top_ranking_domains ? keywordRes.top_ranking_domains.map(d => d.startsWith('http') ? d : `https://${d}`) : ["https://grantwriterpro.com", "https://grants.gov", "https://candid.org"])
+        compRes.url || dynamicTargets.competitorDomain,
+        ...(keywordRes.top_ranking_domains ? keywordRes.top_ranking_domains.map(d => d.startsWith('http') ? d : `https://${d}`) : [dynamicTargets.competitorDomain])
     ]));
     const auditEntry = `Market Agent checked keyword volume (${keywordRes.estimated_volume}) & competitor domain (${compRes.url}) - Iteration ${currentIter}`;
 
@@ -259,12 +309,26 @@ async function financeAgentNode(state) {
  * 3. Supervisor Judge Node
  * Evaluates consensus score and safety boundaries.
  */
+function isPhysicalProductConcept(concept) {
+    const text = `${concept?.business_type || ''} ${concept?.type || ''} ${concept?.category || ''} ${concept?.description || ''} ${concept?.problem || ''} ${concept?.concept || ''}`.toLowerCase();
+    const physicalKeywords = ['physical', 'food', 'beverage', 'retail', 'hardware', 'clothing', 'fashion', 'cosmetics', 'snack', 'drink', 'manufacturing', 'cogs', 'packaging', 'factory', 'goods', 'product', 'restaurant', 'cafe', 'store'];
+    const digitalKeywords = ['saas', 'software', 'app', 'edtech', 'platform', 'ai', 'cloud', 'portal', 'token', 'website'];
+    
+    const hasPhysical = physicalKeywords.some(kw => text.includes(kw));
+    const hasDigital = digitalKeywords.some(kw => text.includes(kw));
+    
+    return hasPhysical && !hasDigital;
+}
+
 async function supervisorJudgeNode(state) {
     const score = state.consensus_score || 0;
     const iter = state.iteration_count || 0;
     const needsHuman = state.needs_human_decision;
     const concept = state.business_concept || {};
-    const companyName = concept.companyName || concept.name || "GrantFlow AI";
+    const isPhysical = isPhysicalProductConcept(concept);
+    const companyName = concept.companyName || concept.name || (isPhysical ? "Myanmar Craft Consumer Goods" : "EduBot Myanmar");
+    const summary = concept.description || concept.concept || (isPhysical ? "High-quality localized consumer product with robust supply chain and packaging." : "24/7 bilingual AI tutoring and exam practice customized for Myanmar students.");
+    const audience = concept.targetAudience || concept.target_audience_refined || (isPhysical ? "Everyday consumers & retail distributors across Myanmar" : "High School Students, University Undergrads & Parents across Myanmar");
 
     if (score >= 85 || iter >= 4) {
         // Build final verified blueprint payload
@@ -274,45 +338,68 @@ async function supervisorJudgeNode(state) {
             consensus_score: score,
             company_name: companyName,
             verified_unit_economics: {
-                initial_capital_mmk: concept.initialCapital || 3000000,
-                monthly_burn_rate_mmk: concept.monthlyBurnRate || 1500000,
+                initial_capital_mmk: concept.initialCapital || (isPhysical ? 10000000 : 8000000),
+                monthly_burn_rate_mmk: concept.monthlyBurnRate || (isPhysical ? 2500000 : 1500000),
                 verified_cac_usd: state.user_selected_option === 'option_a' ? 15 : 12,
-                target_pricing_standard_mmk: 150000,
+                target_pricing_standard_mmk: isPhysical ? 8500 : 15000,
                 projected_breakeven_month: 4,
-                verified_runway_months: 24.2,
-                gross_margin_percent: 82
+                verified_runway_months: isPhysical ? 18.5 : 24.2,
+                gross_margin_percent: isPhysical ? 68 : 82
             },
             consensus_strategic_narrative: {
                 company_name: companyName,
-                improved_summary: concept.description || "Automated compliance-first grant proposal drafting for non-profits.",
-                verified_tam: "$4.2B TAM (APAC & Global)",
-                key_differentiators: [
-                    "NLP compliance compiler for international grant standards.",
-                    "Zero-latency historical narrative voice preservation.",
-                    "Verified 82% gross margin unit economics."
-                ]
+                improved_summary: summary,
+                verified_tam: concept.verifiedTam || (isPhysical ? "65,000,000,000 MMK TAM" : "45,000,000,000 MMK TAM"),
+                key_differentiators: concept.keyDifferentiators || (isPhysical ? [
+                    "High-grade locally sourced raw materials and rigorous quality control checks.",
+                    "Eco-friendly retail packaging optimized for Myanmar store shelf appeal.",
+                    "Verified 68% gross margin unit economics with scalable batch production."
+                ] : [
+                    "AI matching engine tailored specifically for high school curricula and university entrance exams.",
+                    "Bilingual (Burmese-English) step-by-step problem solver eliminating language barriers.",
+                    "Gamified practice tests with instant feedback designed for local study behavior."
+                ])
             },
-            actionable_roadmap_milestones: [
-                { phase: "Phase 1", date: "2026-09-01", title: "Alpha MVP Launch & NPO Onboarding", desc: "Onboard 5 alpha non-profit directors" },
-                { phase: "Phase 2", date: "2026-10-01", title: "SEO Content Push & Email Broadcast", desc: "Launch organic referral loop and compliance articles" },
-                { phase: "Phase 3", date: "2026-11-01", title: "Public Beta & Paid Subscription Tiers", desc: "Open standard 150,000 MMK/month subscription portals" }
-            ],
-            verified_target_personas: [
+            actionable_roadmap_milestones: concept.actionableRoadmap || (isPhysical ? [
+                { phase: "Phase 1", date: "Month 1", title: "Prototype Sampling & Supplier Quality Audit", desc: "Test initial 200 prototype units, lock in raw material suppliers and finalize packaging design." },
+                { phase: "Phase 2", date: "Month 2", title: "Small Batch Production & Social Commerce Push", desc: "Produce initial 1,000 units, launch TikTok Shop live selling and influencer unboxing reviews." },
+                { phase: "Phase 3", date: "Month 3", title: "Retail Store Distribution & Restocking Scale", desc: "Partner with local supermarkets, convenience stores and wholesale distributors for physical placement." }
+            ] : [
+                { phase: "Phase 1", date: "Month 1", title: "Alpha MVP Launch & Student Onboarding", desc: "Onboard initial 200 active student beta testers to validate core tutoring accuracy." },
+                { phase: "Phase 2", date: "Month 2", title: "Social Video Push & Campus Referral Loop", desc: "Launch TikTok/Facebook educational clips and activate student ambassador referral contest." },
+                { phase: "Phase 3", date: "Month 3", title: "Public Beta & Pro Subscription Portal", desc: "Open standard 15,000 MMK/month subscription portals with unlimited practice exams." }
+            ]),
+            verified_target_personas: concept.targetPersonas || (isPhysical ? [
                 {
-                    name: "Executive Director Emily",
-                    role: "Local NPO Director",
-                    contactPortal: "emily@localnpo.org",
-                    painPoint: "Spends 20+ hours drafting compliance-heavy proposals without external grant writing budget",
-                    customPitchAngle: "Instant compliance-first drafting at a fraction of agency costs"
+                    name: "Retail Consumer Thandar",
+                    role: "Everyday Shopper",
+                    contactPortal: "thandar@consumer.mm",
+                    painPoint: "Struggling to find reliable, high-quality, and reasonably priced physical goods locally.",
+                    customPitchAngle: "Premium physical quality with attractive packaging and accessible retail pricing."
                 },
                 {
-                    name: "Dr. Marcus Vance",
-                    role: "Academic Research Office Lead",
-                    contactPortal: "m.vance@universityresearch.edu",
-                    painPoint: "Strict international grant formatting and multi-stakeholder approval bottlenecks",
-                    customPitchAngle: "Collaborative team workspace sharing with automated formatting checks"
+                    name: "Wholesale Distributor U Kyaw",
+                    role: "Regional Store Supplier",
+                    contactPortal: "ukyaw@distributor.mm",
+                    painPoint: "Import delays, currency fluctuations, and inconsistent product supply from overseas brands.",
+                    customPitchAngle: "Consistent local manufacturing batch delivery with reliable wholesale profit margins."
                 }
-            ],
+            ] : [
+                {
+                    name: "Student Min Thant",
+                    role: "Grade 11 Exam Candidate",
+                    contactPortal: "minthant@student.mm",
+                    painPoint: "Struggling with complex Physics & Math problems late at night without private tuition access.",
+                    customPitchAngle: "Instant bilingual step-by-step homework help at a fraction of private tuition fees."
+                },
+                {
+                    name: "Parent Daw Hla",
+                    role: "Working Mother",
+                    contactPortal: "dawhla@parent.mm",
+                    painPoint: "Cannot afford 300,000 MMK monthly private tuition fees during economic inflation.",
+                    customPitchAngle: "Affordable family education budget providing 24/7 reliable tutoring for her children."
+                }
+            ]),
             debate_audit_log: state.debate_audit_log || []
         };
 

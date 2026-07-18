@@ -183,16 +183,16 @@ export default function OnboardingPage() {
                                 updateBusinessInfo({
                                     location: "Yangon, Myanmar",
                                     target_country: "Myanmar",
-                                    budget: "3,000,000 MMK",
-                                    target_customers: "Non-profit organizations & Academic Researchers",
-                                    business_type: "SaaS",
-                                    experience_level: "Beginner",
+                                    budget: "8,000,000 MMK",
+                                    target_customers: "High School Students, University Undergrads & Parents across Myanmar",
+                                    business_type: "EdTech / SaaS",
+                                    experience_level: "Intermediate",
                                     goal: "local",
-                                    core_painpoint: "Small to medium-sized non-profit organizations (NPOs) and independent researchers spend hundreds of hours annually searching for and writing grant proposals without agency budgets.",
-                                    launch_timeline: "3 months",
-                                    revenue_stream: "Subscription"
+                                    core_painpoint: "High private tuition costs and limited access to quality educators outside major cities leave students struggling with complex subjects and exam preparations without 24/7 support.",
+                                    launch_timeline: "6 months",
+                                    revenue_stream: "Freemium & Monthly Subscription"
                                 });
-                                updateStartupIdea("GrantFlow AI is a specialized Software-as-a-Service (SaaS) platform that streamlines the entire grant acquisition process for non-profits and researchers.");
+                                updateStartupIdea("EduBot Myanmar is an AI-powered EdTech platform that provides bilingual (Burmese-English) 24/7 tutoring, interactive courses, and personalized learning paths for high school and university students across Myanmar.");
                                 setActiveStep('planning');
                                 router.push('/specialized-agents');
                             }}
