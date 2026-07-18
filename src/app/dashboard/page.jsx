@@ -319,9 +319,6 @@ export default function DashboardPage() {
         markdown_deliverable: `# Growth & Marketing Plan: GrantFlow AI\n\n## Acquisition Channels\n1. **Organic Search / SEO**: Target keywords targeting non-profit grant writing tips.\n2. **NPO Partnerships**: Partner with incubator programs.\n3. **Direct Email Outreach**: Target directors of foundation portals.\n\n## Launch Roadmap (First 90 Days)\n- **Phase 1 (Days 1-30)**: Alpha launch with 5 test non-profits. Collect compliance case studies.\n- **Phase 2 (Days 31-60)**: Push organic content articles. Run outreach sequences.\n- **Phase 3 (Days 61-90)**: Open paid tiers. Scale via partner affiliates.`
     };
 
-    // Alias fallbackMarketing to fallbackGrowth to prevent reference error
-    const fallbackGrowth = fallbackMarketing;
-
     const fallbackBusiness = businessPlan || {
         lean_canvas_markdown: `# Business Overview: Lean Canvas (GrantFlow AI)
  
