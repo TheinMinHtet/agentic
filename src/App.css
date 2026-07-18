@@ -77,17 +77,16 @@
 /* pi.dev inspired navbar overrides specifically for Landing Page */
 .navbar.navbar-dark-landing {
   position: sticky !important;
-  top: 14px !important;
+  top: 0 !important;
   z-index: 50 !important;
-  width: min(100% - 48px, 960px) !important;
-  margin: 14px auto -66px auto !important;
-  min-height: 52px !important;
-  padding: 8px 20px !important;
+  width: 100% !important;
+  margin: 0 !important;
+  min-height: 60px !important;
+  padding: 12px 32px !important;
   background: rgba(20, 23, 31, 0.85) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-top-color: rgba(255, 255, 255, 0.22) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65) !important;
   backdrop-filter: blur(20px) !important;
   -webkit-backdrop-filter: blur(20px) !important;
 }

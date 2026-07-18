@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { LogIn, LogOut, Sparkles } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Footer from './components/Footer';
+import GlobalStepper from './components/GlobalStepper';
 import { WorkflowProvider } from './context/WorkflowContext';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 
@@ -15,7 +16,6 @@ function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const isLanding = pathname === '/';
-  const isDarkTheme = isLanding || pathname === '/login' || pathname === '/register';
 
   const handleLogout = async () => {
     await logout();
@@ -25,7 +25,7 @@ function Navbar() {
   const isActive = (path) => pathname === path;
 
   return (
-    <nav className={`navbar ${isDarkTheme ? 'navbar-dark-landing' : ''}`}>
+    <nav className="navbar navbar-dark-landing">
       <Link href="/" className="brand-link" aria-label="Agentic Workflow home">
         <span className="brand-mark"><Sparkles size={18} /></span>
         <span>Agentic Workflow</span>
@@ -64,15 +64,15 @@ function Navbar() {
 export default function ClientShell({ children }) {
   const pathname = usePathname();
   const isLanding = pathname === '/';
-  const isDarkTheme = isLanding || pathname === '/login' || pathname === '/register';
 
   return (
     <LanguageProvider>
       <AuthProvider>
         <WorkflowProvider>
-          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: isDarkTheme ? '#080B11' : 'var(--color-background)' }}>
+          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
             <Navbar />
             <main className="app-main" style={{ position: 'relative', zIndex: 10 }}>
+              <GlobalStepper />
               {children}
             </main>
             <Footer isLanding={isLanding} />
