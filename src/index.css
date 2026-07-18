@@ -221,6 +221,11 @@ a {
   box-shadow: 0 0 0 4px rgba(0, 242, 254, 0.15), 0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
+.input-text option {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
 .badge-primary {
   background: var(--gradient-ai);
   color: var(--color-text-inverse);

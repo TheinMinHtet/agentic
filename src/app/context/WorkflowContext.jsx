@@ -12,7 +12,8 @@ import {
   runWebsiteAgent,
   runMarketingAgent,
   runBusinessAgent,
-  runRefinementChatAgent
+  runRefinementChatAgent,
+  runOnboardingAgent
 } from '../../agents/orchestrator';
 
 const WorkflowContext = createContext();
@@ -123,6 +124,8 @@ export function WorkflowProvider({ children }) {
   const [validationResult, setValidationResult] = useState(null);
   const [businessInfo, setBusinessInfo] = useState(DEFAULT_BUSINESS_INFO);
   const [currentIdeaId, setCurrentIdeaId] = useState(null);
+  const [onboardingChatHistory, setOnboardingChatHistory] = useState([]);
+  const [onboardingProgress, setOnboardingProgress] = useState(0);
   
   // Agent outputs
   const [refinedConcept, setRefinedConcept] = useState(null);
@@ -542,6 +545,37 @@ export function WorkflowProvider({ children }) {
     }
   };
 
+  const executeOnboardingChat = async (userMessage, location, category) => {
+    const key = getApiKey();
+    try {
+      const response = await runOnboardingAgent(userMessage, onboardingChatHistory, location, category, key, language);
+      
+      const newHistory = [
+        ...onboardingChatHistory,
+        { role: 'user', content: userMessage }
+      ];
+      if (response.reply_message) {
+          newHistory.push({ role: 'model', content: response.reply_message });
+      }
+      
+      setOnboardingChatHistory(newHistory);
+
+      if (response.requirements_met_count !== undefined) {
+          setOnboardingProgress(response.requirements_met_count);
+      }
+
+      if (response.is_complete) {
+        updateStartupIdea(response.startup_idea_summary);
+        updateBusinessInfo(response.business_info_payload);
+      }
+
+      return response;
+    } catch (err) {
+      console.error("Onboarding Chat failed:", err);
+      throw err;
+    }
+  };
+
   const resetWorkflow = () => {
     setValidationResult(null);
     setRefinedConcept(null);
@@ -604,6 +638,11 @@ export function WorkflowProvider({ children }) {
       runSequentialPlanning,
       runParallelSpecializedPlanning,
       executeRefinementChat,
+      executeOnboardingChat,
+      onboardingChatHistory,
+      setOnboardingChatHistory,
+      onboardingProgress,
+      setOnboardingProgress,
       resetWorkflow
     }}>
       {children}
