@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogIn, LogOut, Sparkles } from 'lucide-react';
@@ -72,7 +72,7 @@ export default function ClientShell({ children }) {
         <WorkflowProvider>
           <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: isDarkTheme ? '#080B11' : 'var(--color-background)' }}>
             <Navbar />
-            <main className="app-main">
+            <main className="app-main" style={{ position: 'relative', zIndex: 10 }}>
               {children}
             </main>
             <Footer isLanding={isLanding} />
