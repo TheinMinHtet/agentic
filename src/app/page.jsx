@@ -4,22 +4,22 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Sparkles, Play } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
+import { useLanguage } from './context/LanguageContext';
 import WarRoomNodeGraph from './components/WarRoomNodeGraph';
 
 export default function LandingPage() {
     const router = useRouter();
     const { isAuthenticated } = useAuth();
+    const { language, t } = useLanguage();
 
     const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
     const [isSimulating, setIsSimulating] = useState(false);
     const containerRef = useRef(null);
 
     // ── Typing animation state ──
-    const typingPhrases = [
-        'WarRoom',
-        'Blueprint Studio',
-        'Growth Engine',
-    ];
+    const typingPhrases = language === 'en'
+        ? ['WarRoom', 'Blueprint Studio', 'Growth Engine']
+        : ['လုပ်ငန်းစီမံချက်', 'စီးပွားရေးဗျူဟာ', 'တိုးတက်မှုအင်ဂျင်'];
     const [phraseIndex, setPhraseIndex] = useState(0);
     const [charIndex, setCharIndex] = useState(0);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -363,17 +363,17 @@ export default function LandingPage() {
                 {/* TOP HALF: Clean, Bold Headline and Primary Black CTA */}
                 <span className="landing-badge">
                     <Sparkles size={16} className="text-purple-400" />
-                    <span>AI-Native Multi-Agent Orchestration</span>
+                    <span>{t('landing.heroBadge')}</span>
                 </span>
 
                 <h1 className="landing-title">
-                    Your AI Startup{' '}
+                    {t('landing.heroTitlePrefix')}{' '}
                     <span className="title-gradient-highlight">{typedText}</span>
                     <span className="typing-cursor" />
                 </h1>
 
                 <p className="landing-copy">
-                    Turn raw ideas into investor-ready blueprints with 5 specialized AI agents collaborating in real time.
+                    {t('landing.heroSubtitle')}
                 </p>
 
                 <div className="cta-buttons-group">
@@ -383,7 +383,7 @@ export default function LandingPage() {
                         onClick={handleSimulateClick}
                     >
                         <Play size={18} className={isSimulating ? 'text-cyan-400 animate-spin' : 'text-cyan-400 fill-cyan-400'} />
-                        <span>{isSimulating ? 'Simulating Data Flow...' : 'Simulate Idea'}</span>
+                        <span>{isSimulating ? (language === 'en' ? 'Simulating Data Flow...' : 'စနစ်စမ်းသပ်နေသည်...') : t('landing.simulateTitle')}</span>
                         <ArrowRight size={18} />
                     </button>
 
@@ -392,7 +392,7 @@ export default function LandingPage() {
                         className="warroom-secondary-link"
                         onClick={() => router.push(isAuthenticated ? '/idea-prompt' : '/login')}
                     >
-                        <span>Open Studio Dashboard</span>
+                        <span>{t('landing.buttonStart')}</span>
                     </button>
                 </div>
 
@@ -406,25 +406,15 @@ export default function LandingPage() {
                     </div>
 
                     <div className="split-right-panel">
-                        <h2 className="pi-style-heading">Why WarRoom?</h2>
+                        <h2 className="pi-style-heading">{t('landing.simulateTitle')}</h2>
                         <div className="pi-style-paragraphs">
                             <p>
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+                                {t('landing.simulateDesc')}
                             </p>
                             <p>
-                                Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-                            </p>
-                            <p>
-                                Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, nec luctus magna felis sollicitudin mauris. Integer in mauris eu nibh euismod gravida.
-                            </p>
-                            <p>
-                                WarRoom ships with powerful defaults for multi-agent startup simulation. Ask your specialized agents to build what you want, or customize the consensus protocol your way.
-                            </p>
-                            <p>
-                                Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
-                            </p>
-                            <p>
-                                Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet.
+                                {language === 'en' 
+                                  ? "WarRoom ships with powerful defaults for multi-agent startup simulation. Ask your specialized agents to build what you want, or customize the consensus protocol your way."
+                                  : "WarRoom တွင် အဆင့်မြင့် AI အေဂျင့်စနစ်များ ပါဝင်ပြီး လုပ်ငန်းသစ်တစ်ခု၏ အစီအစဉ်များကို စမ်းသပ်သရုပ်ပြပေးနိုင်ပါသည်။ စိတ်ကြိုက်အစီအစဉ်များကို AI အေဂျင့်များမှ တည်ဆောက်ပေးမည်ဖြစ်ပါသည်။"}
                             </p>
                         </div>
                     </div>

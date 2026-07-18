@@ -112,6 +112,12 @@ function hasRandomCharacterPattern(rawInput) {
     return true;
   }
 
+  const isNonLatin = /[^\x00-\x7F]/.test(cleaned) || /[\u1000-\u109F]/.test(cleaned);
+  if (isNonLatin) {
+    // Bypasses the English-only vowel check and checks if the text contains non-empty script content
+    return cleaned.replace(/[^\p{L}\p{N}]/gu, '').length < 3;
+  }
+
   // Must have at least one vowel/y character
   if (!/[aeiouy]/i.test(cleaned)) {
     return true;
@@ -259,6 +265,24 @@ export function getIdeaRouteDecision(validationResult) {
 export function evaluateIdea(rawIdeaInput) {
   const rawInput = (rawIdeaInput ?? '').trim();
 
+  const isNonLatin = /[^\x00-\x7F]/.test(rawInput) || /[\u1000-\u109F]/.test(rawInput);
+  if (isNonLatin && rawInput.length >= 10 && rawInput.replace(/[^\p{L}\p{N}]/gu, '').length >= 3) {
+    return {
+      clarity_score: 75,
+      actionability_score: 75,
+      uniqueness_score: 75,
+      is_valid: true,
+      constructive_feedback: "Startup idea in Burmese/non-Latin script detected. Proceeding to questionnaire configuration.",
+      score: 75,
+      decision: "proceed",
+      clarity: 75,
+      actionability: 75,
+      uniqueness: 75,
+      feedback: "Startup idea in Burmese/non-Latin script detected. Proceeding to questionnaire configuration.",
+      structuredIdea: { concept: rawInput }
+    };
+  }
+
   if (!rawInput) {
     const defaultFeedback = 'Idea is empty. Please describe your startup concept in at least 1-2 clear sentences.';
     return {
@@ -389,9 +413,12 @@ Calculate the average of clarity_score, actionability_score, and uniqueness_scor
 - If the average is < 50, then is_valid should be false.
 
 Write constructive_feedback based on your reasoning. If the idea is invalid or weak, provide detailed, actionable, and specific feedback on how to refine it, explaining what details are missing (e.g. who they serve, the exact problem, why their approach is different, how they will monetize) and suggesting how they can address them.
-Do not use a generic or hardcoded template; customize your reasoning and constructive feedback to the specific startup idea provided.`;
+Do not use a generic or hardcoded template; customize your reasoning and constructive feedback to the specific startup idea provided.
 
-async function evaluateIdeaWithGemini(rawInput, apiKey) {
+CRITICAL GUARDRAIL - LANGUAGE ALIGNMENT:
+- Generate all feedback, comments, and constructive suggestions in the same language as the user's input (e.g. if the user prompts in Burmese, write the feedback in Burmese; if in English, write in English).`;
+
+async function evaluateIdeaWithGemini(rawInput, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -400,10 +427,13 @@ async function evaluateIdeaWithGemini(rawInput, apiKey) {
 
   const structuredModel = model.withStructuredOutput(ValidationResultSchema);
 
+  const isBurmese = language === 'my' || /[\u1000-\u109F]/.test(rawInput);
+  const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
+
   console.log('Invoking structured Gemini model...');
   const parsed = await structuredModel.invoke([
     { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: `Evaluate this startup idea:\n\n"${rawInput}"` }
+    { role: 'user', content: `Evaluate this startup idea. IMPORTANT: You MUST write/generate all output fields (thinking, constructive_feedback) in the ${targetLanguage}. Do NOT write them in English:\n\n"${rawInput}"` }
   ]);
 
   if (!parsed) {
@@ -445,14 +475,14 @@ async function evaluateIdeaWithGemini(rawInput, apiKey) {
   return mappedResult;
 }
 
-export async function evaluateIdeaAsync(rawIdeaInput) {
+export async function evaluateIdeaAsync(rawIdeaInput, language) {
   const rawInput = (rawIdeaInput ?? '').trim();
   const apiKey = process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || process.env.VITE_GOOGLE_API_KEY;
 
   if (apiKey && apiKey.trim()) {
     try {
       console.log('Evaluating idea with Gemini Deep Agent...');
-      const result = await evaluateIdeaWithGemini(rawInput, apiKey);
+      const result = await evaluateIdeaWithGemini(rawInput, apiKey, language);
       console.log('Gemini Deep Agent evaluation succeeded.');
       return result;
     } catch (error) {

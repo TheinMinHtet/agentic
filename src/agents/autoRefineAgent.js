@@ -21,7 +21,10 @@ The new pitch MUST:
 3. Clearly state the proposed solution.
 4. Address the missing elements identified in the feedback questions.
 
-Make reasonable, professional assumptions to flesh out the idea if the user hasn't provided details. DO NOT ask any questions. DO NOT add conversational filler. ONLY return the rewritten pitch text.`;
+Make reasonable, professional assumptions to flesh out the idea if the user hasn't provided details. DO NOT ask any questions. DO NOT add conversational filler. ONLY return the rewritten pitch text.
+
+CRITICAL GUARDRAIL - LANGUAGE ALIGNMENT:
+- Generate the refined_idea in the same language as the user's input/raw idea (e.g. if the raw idea is in Burmese, write the refined pitch in Burmese; if in English, write in English).`;
 
 export async function autoRefineIdeaAsync(rawIdea, clarificationQuestions) {
   const apiKey = process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || process.env.VITE_GOOGLE_API_KEY;

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useWorkflow } from '../context/WorkflowContext';
 import { createClient } from '@/lib/supabase/client';
 import MarkdownPreviewer from '../components/MarkdownPreviewer';
+import { useLanguage } from '../context/LanguageContext';
 import { 
   ArrowLeft, 
   FileText, 
@@ -21,9 +22,11 @@ import {
 export default function DashboardPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { language, t } = useLanguage();
     const ideaId = searchParams.get('ideaId');
     const supabase = useMemo(() => createClient(), []);
     const {
+        businessInfo,
         refinedConcept,
         marketResearch,
         financeModel,
@@ -41,6 +44,14 @@ export default function DashboardPage() {
         updateCurrentIdeaId,
         resetWorkflow
     } = useWorkflow();
+
+    const getCurrencySymbol = () => {
+        return 'MMK';
+    };
+
+    const formatCost = (cost) => {
+        return `${Math.round(cost).toLocaleString()} MMK`;
+    };
 
     const [activeTab, setActiveTab] = useState('overview');
     const [previewDoc, setPreviewDoc] = useState(false);
@@ -207,24 +218,24 @@ export default function DashboardPage() {
             "Higher academic institutions demanding faster micro-grant writing automation tools."
         ],
         target_personas: [
-            { name: "Executive Director Emily", role: "NPO Director", pain_points: ["Spends 20+ hours per grant proposal", "Lacks writing budget"], budget_limit: "$100/mo max" },
-            { name: "Researcher Roger", role: "University Grant Applicant", pain_points: ["Compliance checklist overload", "Missed submission deadlines"], budget_limit: "$150/mo research budget" }
+            { name: "Executive Director Emily", role: "NPO Director", pain_points: ["Spends 20+ hours per grant proposal", "Lacks writing budget"], budget_limit: "300,000 MMK/mo max" },
+            { name: "Researcher Roger", role: "University Grant Applicant", pain_points: ["Compliance checklist overload", "Missed submission deadlines"], budget_limit: "450,000 MMK/mo research budget" }
         ],
         markdown_deliverable: `# Market Intelligence Report: GrantFlow AI\n\n## Target Market & Personas\nGrantFlow AI targets small-to-medium non-profits, academic researchers, and social impact startups.\n\n### Ideal Customer Personas (ICPs)\n- **Executive Director Emily**: Manages a local community service non-profit. Spends 20+ hours per grant and has zero writing budget.\n- **Researcher Roger**: University researcher who deals with complex compliance requirements.\n\n## Competitor Mapping\n| Competitor | URL | Weakness |\n|---|---|---|\n| GrantWriter Pro | https://grantwriterpro.com | High pricing & templates only |\n| ProposalAI | https://proposalai.io | Generic copy, low compliance checks |\n| FundraisingHub | Not Publicly Available | Focuses on donation CRMs, not writing |\n\n## Market Trends & Opportunities\n- Growth in government micro-grants.\n- Increasing demand for low-cost automated proposal writers.\n- Saturation Level: **25%** (Low-medium market penetration).`
     };
 
     const fallbackFinance = financeModel || {
         costBreakdown: [
-            { item: "Gemini API token costs", cost: 120 },
-            { item: "Hosting & Server infrastructure", cost: 80 },
-            { item: "Domain & SSL registration", cost: 15 },
-            { item: "Customer support software license", cost: 35 },
-            { item: "Basic marketing and ads", cost: 250 }
+            { item: "Gemini API token costs", cost: 360000 },
+            { item: "Hosting & Server infrastructure", cost: 240000 },
+            { item: "Domain & SSL registration", cost: 45000 },
+            { item: "Customer support software license", cost: 105000 },
+            { item: "Basic marketing and ads", cost: 750000 }
         ],
-        revenueForecast: "$5,000 monthly recurring revenue (MRR) projected in Month 6.",
-        pricingStrategy: "Tiered subscription model: Standard ($49/mo) and Premium ($99/mo) with credits-based drafting caps.",
+        revenueForecast: "15,000,000 MMK monthly recurring revenue (MRR) projected in Month 6.",
+        pricingStrategy: "Tiered subscription model: Standard (150,000 MMK/mo) and Premium (300,000 MMK/mo) with credits-based drafting caps.",
         breakevenMonth: 4,
-        markdown_deliverable: `# Financial Model & Projections: GrantFlow AI\n\n## Startup Capital Allocation\nBelow is the itemized budget allocation mapping back to our $1,000 setup limit:\n\n| Expense Item | Monthly Cost ($) |\n|---|---|\n| Gemini API token costs | $120.00 |\n| Hosting & Server infrastructure | $80.00 |\n| Domain & SSL registration | $15.00 |\n| Customer support software | $35.00 |\n| Marketing campaigns | $250.00 |\n| **Total Estimated Run-rate** | **$500.00/mo** |\n\n## Revenue Forecast\n- Projecting **Month 4 Breakeven**.\n- Targeting 100 active non-profit subscribers by Month 6 ($5,000 MRR).\n\n## Pricing Strategy\n- **Standard Plan**: $49/mo (up to 3 proposals monthly)\n- **Premium Plan**: $99/mo (unlimited proposals & compliance checking)`
+        markdown_deliverable: `# Financial Model & Projections: GrantFlow AI\n\n## Startup Capital Allocation\nBelow is the itemized budget allocation mapping back to our 3,000,000 MMK setup limit:\n\n| Expense Item | Monthly Cost (MMK) |\n|---|---|\n| Gemini API token costs | 360,000 MMK |\n| Hosting & Server infrastructure | 240,000 MMK |\n| Domain & SSL registration | 45,000 MMK |\n| Customer support software | 105,000 MMK |\n| Marketing campaigns | 750,000 MMK |\n| **Total Estimated Run-rate** | **1,500,000 MMK/mo** |\n\n## Revenue Forecast\n- Projecting **Month 4 Breakeven**.\n- Targeting 100 active non-profit subscribers by Month 6 (15,000,000 MMK MRR).\n\n## Pricing Strategy\n- **Standard Plan**: 150,000 MMK/mo (up to 3 proposals monthly)\n- **Premium Plan**: 300,000 MMK/mo (unlimited proposals & compliance checking)`
     };
 
     const fallbackBrand = brandPackage || {
@@ -280,12 +291,12 @@ export default function DashboardPage() {
     };
 
     const tabsList = [
-        { id: 'overview', label: 'Business Overview', icon: Briefcase, deliverable: fallbackBusiness.lean_canvas_markdown, filename: 'business_overview.md' },
-        { id: 'market', label: 'Market Intelligence', icon: TrendingUp, deliverable: fallbackMarket.markdown_deliverable, filename: 'market_intelligence.md' },
-        { id: 'finance', label: 'Financial Model', icon: DollarSign, deliverable: fallbackFinance.markdown_deliverable, filename: 'financial_model.md' },
-        { id: 'brand', label: 'Brand Package', icon: Sparkles, deliverable: fallbackBrand.markdown_deliverable, filename: 'brand_package.md' },
-        { id: 'digital', label: 'Digital Presence', icon: Globe, deliverable: fallbackDigital.markdown_deliverable, filename: 'digital_presence.md' },
-        { id: 'growth', label: 'Growth Plan', icon: Megaphone, deliverable: fallbackMarketing.markdown_deliverable, filename: 'growth_plan.md' }
+        { id: 'overview', label: t('dashboard.tabOverview'), icon: Briefcase, deliverable: fallbackBusiness.lean_canvas_markdown, filename: 'business_overview.md' },
+        { id: 'market', label: t('dashboard.tabMarket'), icon: TrendingUp, deliverable: fallbackMarket.markdown_deliverable, filename: 'market_intelligence.md' },
+        { id: 'finance', label: t('dashboard.tabFinance'), icon: DollarSign, deliverable: fallbackFinance.markdown_deliverable, filename: 'financial_model.md' },
+        { id: 'brand', label: t('dashboard.tabBrand'), icon: Sparkles, deliverable: fallbackBrand.markdown_deliverable, filename: 'brand_package.md' },
+        { id: 'digital', label: t('dashboard.tabDigital'), icon: Globe, deliverable: fallbackDigital.markdown_deliverable, filename: 'digital_presence.md' },
+        { id: 'growth', label: t('dashboard.tabGrowth'), icon: Megaphone, deliverable: fallbackMarketing.markdown_deliverable, filename: 'growth_plan.md' }
     ];
 
     const currentTabInfo = tabsList.find(t => t.id === activeTab);
@@ -300,9 +311,9 @@ export default function DashboardPage() {
                 marginBottom: '32px'
             }}>
                 <div>
-                    <span className="badge-accent dashboard-badge" style={{ fontWeight: 800 }}>✦ SYSTEM BLUEPRINT GENERATED</span>
+                    <span className="badge-accent dashboard-badge" style={{ fontWeight: 800 }}>{language === 'en' ? '✦ SYSTEM BLUEPRINT GENERATED' : '✦ လုပ်ငန်းစီမံချက် ဖန်တီးပြီးပါပြီ'}</span>
                     <h2 style={{ fontSize: '36px', fontWeight: 900, marginTop: '8px', fontFamily: 'var(--typography-heading-family)' }}>
-                        {fallbackBrand.names[0] || 'Startup Blueprint'}
+                        {fallbackBrand.names[0] || (language === 'en' ? 'Startup Blueprint' : 'လုပ်ငန်းစီမံချက်')}
                     </h2>
                     <p className="text-secondary" style={{ fontSize: '15px', marginTop: '4px', maxWidth: '680px' }}>
                         {fallbackConcept.improved_summary}
@@ -312,7 +323,7 @@ export default function DashboardPage() {
                 <div style={{ display: 'flex', gap: '16px' }}>
                     <button className="button-secondary" onClick={handleRestart} style={{ borderRadius: '12px' }}>
                         <ArrowLeft size={16} />
-                        Run New Idea
+                        {t('dashboard.buttonNew')}
                     </button>
                 </div>
             </div>
@@ -398,7 +409,7 @@ export default function DashboardPage() {
                             }}
                         >
                             <FileText size={16} />
-                            {previewDoc ? 'Show Dashboard View' : 'Preview Document (.md)'}
+                            {previewDoc ? (language === 'en' ? 'Show Dashboard View' : 'ဒက်ရှ်ဘုတ် မြင်ကွင်း ပြရန်') : (language === 'en' ? 'Preview Document (.md)' : 'စာရွက်စာတမ်း ဖတ်ရန် (.md)')}
                         </button>
                     </div>
 
@@ -415,13 +426,13 @@ export default function DashboardPage() {
                             {activeTab === 'overview' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                                     <div style={{ backgroundColor: 'var(--color-background)', padding: '24px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                        <h4 style={{ fontWeight: 900, marginBottom: '8px' }}>Concept Statement</h4>
+                                        <h4 style={{ fontWeight: 900, marginBottom: '8px' }}>{t('dashboard.concept')}</h4>
                                         <p style={{ margin: 0, fontSize: '15px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>
                                             {fallbackConcept.concept}
                                         </p>
                                     </div>
                                     <div style={{ backgroundColor: 'var(--color-background)', padding: '24px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                        <h4 style={{ fontWeight: 900, marginBottom: '16px' }}>Key Differentiators</h4>
+                                        <h4 style={{ fontWeight: 900, marginBottom: '16px' }}>{t('dashboard.differentiators')}</h4>
                                         <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                             {fallbackConcept.key_differentiators.map((diff, idx) => (
                                                 <li key={idx} style={{ fontSize: '15px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
@@ -438,25 +449,25 @@ export default function DashboardPage() {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                         <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)', textAlign: 'center' }}>
-                                            <p style={{ margin: '0 0 6px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Total Addressable Market</p>
+                                            <p style={{ margin: '0 0 6px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>{language === 'en' ? 'Total Addressable Market' : 'စုစုပေါင်း ဆွဲဆောင်နိုင်သည့် ဈေးကွက် TAM'}</p>
                                             <h4 style={{ margin: 0, fontSize: '28px', fontWeight: 900, color: 'var(--color-primary)' }}>{fallbackMarket.tam}</h4>
                                         </div>
                                         <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)', textAlign: 'center' }}>
-                                            <p style={{ margin: '0 0 6px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Market Saturation Index</p>
+                                            <p style={{ margin: '0 0 6px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>{language === 'en' ? 'Market Saturation Index' : 'ဈေးကွက် ပြည့်နှက်မှု အညွှန်းကိန်း'}</p>
                                             <h4 style={{ margin: 0, fontSize: '28px', fontWeight: 900, color: 'var(--color-primary)' }}>{fallbackMarket.saturation_level}%</h4>
                                         </div>
                                     </div>
 
                                     {/* Competitors List Table */}
                                     <div>
-                                        <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>Competitor Analysis</h4>
+                                        <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{language === 'en' ? 'Competitor Analysis' : 'ပြိုင်ဘက်များ ဆန်းစစ်ချက်'}</h4>
                                         <div style={{ overflowX: 'auto', borderRadius: '16px', border: '1px solid var(--color-border-light)' }}>
                                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', backgroundColor: 'var(--color-background)' }}>
                                                 <thead>
                                                     <tr style={{ backgroundColor: 'var(--color-surface-light)', borderBottom: '2px solid var(--color-border-light)' }}>
-                                                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>Competitor</th>
-                                                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>Domain / URL</th>
-                                                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>Weak Spot</th>
+                                                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>{language === 'en' ? 'Competitor' : 'ပြိုင်ဘက်'}</th>
+                                                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>{language === 'en' ? 'Domain / URL' : 'ဝဘ်လိပ်စာ / URL'}</th>
+                                                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>{language === 'en' ? 'Weak Spot' : 'အားနည်းချက်'}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -480,20 +491,20 @@ export default function DashboardPage() {
 
                                     {/* ICP target personas */}
                                     <div>
-                                        <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>Target Customer Personas</h4>
+                                        <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{language === 'en' ? 'Target Customer Personas' : 'ပစ်မှတ် သုံးစွဲသူအမျိုးအစား'}</h4>
                                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                             {fallbackMarket.target_personas.map((pers, idx) => (
                                                 <div key={idx} style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
                                                     <h5 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 900 }}>{pers.name}</h5>
                                                     <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>{pers.role}</span>
                                                     <div style={{ marginTop: '12px' }}>
-                                                        <p style={{ margin: '0 0 6px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)' }}>Key Pain Points:</p>
+                                                        <p style={{ margin: '0 0 6px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)' }}>{language === 'en' ? 'Key Pain Points:' : 'အဓိက အခက်အခဲများ -'}</p>
                                                         <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
                                                             {pers.pain_points.map((p, i) => <li key={i}>{p}</li>)}
                                                         </ul>
                                                     </div>
                                                     <p style={{ margin: '12px 0 0 0', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                                                        <strong>Price Sensitivity:</strong> {pers.budget_limit}
+                                                        <strong>{language === 'en' ? 'Price Sensitivity:' : 'စျေးနှုန်းအပေါ် တုံ့ပြန်လွယ်မှု -'}</strong> {pers.budget_limit}
                                                     </p>
                                                 </div>
                                             ))}
@@ -507,31 +518,31 @@ export default function DashboardPage() {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                         <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                            <p style={{ margin: '0 0 4px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)' }}>Target Breakeven</p>
-                                            <h4 style={{ margin: 0, fontSize: '24px', fontWeight: 900 }}>Month {fallbackFinance.breakevenMonth}</h4>
+                                            <p style={{ margin: '0 0 4px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)' }}>{t('dashboard.breakeven')}</p>
+                                            <h4 style={{ margin: 0, fontSize: '24px', fontWeight: 900 }}>{fallbackFinance.breakevenMonth} {t('dashboard.months')}</h4>
                                         </div>
                                         <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                            <p style={{ margin: '0 0 4px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)' }}>Revenue Projections</p>
+                                            <p style={{ margin: '0 0 4px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)' }}>{t('dashboard.monthlyRevenue')}</p>
                                             <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>{fallbackFinance.revenueForecast}</p>
                                         </div>
                                     </div>
 
                                     {/* Cost table */}
                                     <div>
-                                        <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>Startup Cost Breakdown</h4>
+                                        <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{t('dashboard.initialCost')}</h4>
                                         <div style={{ overflowX: 'auto', borderRadius: '16px', border: '1px solid var(--color-border-light)' }}>
                                             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', backgroundColor: 'var(--color-background)' }}>
                                                 <thead>
                                                     <tr style={{ backgroundColor: 'var(--color-surface-light)', borderBottom: '2px solid var(--color-border-light)' }}>
-                                                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>Expense Item</th>
-                                                        <th style={{ padding: '12px 16px', fontWeight: 800, textAlign: 'right' }}>Cost ($)</th>
+                                                        <th style={{ padding: '12px 16px', fontWeight: 800 }}>{language === 'en' ? 'Expense Item' : 'အသုံးစရိတ် အမျိုးအစား'}</th>
+                                                        <th style={{ padding: '12px 16px', fontWeight: 800, textAlign: 'right' }}>{language === 'en' ? 'Cost' : 'ကုန်ကျစရိတ်'} ({getCurrencySymbol() === 'MMK' ? 'MMK' : '$'})</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {fallbackFinance.costBreakdown.map((item, idx) => (
                                                         <tr key={idx} style={{ borderBottom: idx === fallbackFinance.costBreakdown.length - 1 ? 'none' : '1px solid var(--color-border-light)' }}>
                                                             <td style={{ padding: '12px 16px', color: 'var(--color-text-secondary)' }}>{item.item}</td>
-                                                            <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 700 }}>${item.cost.toFixed(2)}</td>
+                                                            <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 700 }}>{formatCost(item.cost)}</td>
                                                         </tr>
                                                     ))}
                                                 </tbody>
@@ -540,7 +551,7 @@ export default function DashboardPage() {
                                     </div>
 
                                     <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                        <h4 style={{ fontWeight: 900, marginBottom: '8px' }}>Pricing & Subscription Tiers</h4>
+                                        <h4 style={{ fontWeight: 900, marginBottom: '8px' }}>{language === 'en' ? 'Pricing & Subscription Tiers' : 'စျေးနှုန်းနှင့် လစဉ်ကြေး သတ်မှတ်ချက်များ'}</h4>
                                         <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>{fallbackFinance.pricingStrategy}</p>
                                     </div>
                                 </div>
@@ -552,7 +563,7 @@ export default function DashboardPage() {
                                     
                                     {/* Suggested Name badges */}
                                     <div>
-                                        <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>Brainstormed Brand Names</h4>
+                                        <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{language === 'en' ? 'Brainstormed Brand Names' : 'အမှတ်တံဆိပ် အမည်များ'}</h4>
                                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
                                             {fallbackBrand.names.map((name, idx) => (
                                                 <span key={idx} style={{
@@ -574,23 +585,23 @@ export default function DashboardPage() {
                                     {/* Tagline & Voice */}
                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                         <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                            <h4 style={{ fontWeight: 900, marginBottom: '6px', fontSize: '16px' }}>Marketing Tagline</h4>
+                                            <h4 style={{ fontWeight: 900, marginBottom: '6px', fontSize: '16px' }}>{language === 'en' ? 'Marketing Tagline' : 'ဆောင်ပုဒ် (Tagline)'}</h4>
                                             <p style={{ margin: 0, fontStyle: 'italic', fontSize: '15px', color: 'var(--color-text-secondary)' }}>"{fallbackBrand.tagline}"</p>
                                         </div>
                                         <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                            <h4 style={{ fontWeight: 900, marginBottom: '6px', fontSize: '16px' }}>Brand Voice</h4>
+                                            <h4 style={{ fontWeight: 900, marginBottom: '6px', fontSize: '16px' }}>{language === 'en' ? 'Brand Voice' : 'အမှတ်တံဆိပ် ပြောဆိုပုံ (Brand Voice)'}</h4>
                                             <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-secondary)' }}>{fallbackBrand.voice}</p>
                                         </div>
                                     </div>
 
                                     {/* Color palette */}
                                     <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                        <h4 style={{ fontWeight: 900, marginBottom: '16px' }}>Hex Color Palette</h4>
+                                        <h4 style={{ fontWeight: 900, marginBottom: '16px' }}>{language === 'en' ? 'Hex Color Palette' : 'အရောင်အသွေး သတ်မှတ်ချက်'}</h4>
                                         <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                                             {[
-                                                { label: 'Primary Brand Color', hex: fallbackBrand.palette.primary },
-                                                { label: 'Secondary Accent', hex: fallbackBrand.palette.secondary },
-                                                { label: 'Canvas Background', hex: fallbackBrand.palette.background }
+                                                { label: language === 'en' ? 'Primary Brand Color' : 'အဓိက အရောင်', hex: fallbackBrand.palette.primary },
+                                                { label: language === 'en' ? 'Secondary Accent' : 'တွဲဖက် အရောင်', hex: fallbackBrand.palette.secondary },
+                                                { label: language === 'en' ? 'Canvas Background' : 'နောက်ခံ အရောင်', hex: fallbackBrand.palette.background }
                                             ].map((color, i) => (
                                                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                                     <div style={{
@@ -610,7 +621,7 @@ export default function DashboardPage() {
 
                                     {/* Logo Concept */}
                                     <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                        <h4 style={{ fontWeight: 900, marginBottom: '8px' }}>Visual Logo Concept</h4>
+                                        <h4 style={{ fontWeight: 900, marginBottom: '8px' }}>{language === 'en' ? 'Visual Logo Concept' : 'လိုဂို ပုံရိပ် Concept'}</h4>
                                         <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>{fallbackBrand.logoConcept}</p>
                                     </div>
                                 </div>
@@ -623,12 +634,12 @@ export default function DashboardPage() {
                                         
                                         {/* Wireframe Outline */}
                                         <div>
-                                            <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>Landing Page Wireframe Elements</h4>
+                                            <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{language === 'en' ? 'Landing Page Wireframe Elements' : 'ဝဘ်ဆိုက် Layout Wireframe အစိတ်အပိုင်းများ'}</h4>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                                 {fallbackDigital.landingPageOutline.map((sec, idx) => (
                                                     <div key={idx} style={{ backgroundColor: 'var(--color-background)', padding: '16px', borderRadius: '16px', border: '1px solid var(--color-border-light)' }}>
                                                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                                            <strong style={{ textTransform: 'uppercase', fontSize: '11px', color: 'var(--color-text-muted)' }}>{sec.section_id} section</strong>
+                                                            <strong style={{ textTransform: 'uppercase', fontSize: '11px', color: 'var(--color-text-muted)' }}>{sec.section_id} {language === 'en' ? 'section' : 'အပိုင်း'}</strong>
                                                             {sec.cta_text && sec.cta_text !== 'None' && (
                                                                 <span style={{ fontSize: '10px', fontWeight: 700, backgroundColor: 'var(--color-primary)', color: 'white', padding: '2px 8px', borderRadius: '4px' }}>
                                                                     CTA: {sec.cta_text}

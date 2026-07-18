@@ -12,6 +12,7 @@ import {
     Sparkles
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 /* ── Inline SVG social icons (lucide-react doesn't ship brand marks) ── */
 function GitHubIcon({ size = 18 }) {
@@ -49,6 +50,7 @@ function LinkedInIcon({ size = 18 }) {
 export default function Footer({ isLanding = true }) {
     const router = useRouter();
     const { isAuthenticated } = useAuth();
+    const { t } = useLanguage();
 
     return (
         <footer className="footer-root">
@@ -210,6 +212,10 @@ export default function Footer({ isLanding = true }) {
                         transparent 100%
                     );
                     margin-bottom: 56px;
+                }
+
+                .footer-divider-top {
+                    margin-top: 56px;
                 }
 
                 /* ─────────── LINK GRID ─────────── */
@@ -385,31 +391,33 @@ export default function Footer({ isLanding = true }) {
             `}</style>
 
             <div className="footer-inner">
-                {/* ── CTA Banner ── */}
-                <div className="footer-cta">
-                    <div className="footer-cta-text">
-                        <h3 className="footer-cta-title">
-                            Ready to build your <span>AI venture blueprint</span>?
-                        </h3>
-                        <p className="footer-cta-desc">
-                            Deploy 5 specialized agents to stress-test assumptions, audit financial risks, and generate an investor-ready consensus model.
-                        </p>
+                {/* ── CTA Banner (Landing page only) ── */}
+                {isLanding && (
+                    <div className="footer-cta">
+                        <div className="footer-cta-text">
+                            <h3 className="footer-cta-title">
+                                Ready to build your <span>AI venture blueprint</span>?
+                            </h3>
+                            <p className="footer-cta-desc">
+                                Deploy 5 specialized agents to stress-test assumptions, audit financial risks, and generate an investor-ready consensus model.
+                            </p>
+                        </div>
+                        <div className="footer-cta-actions">
+                            <button
+                                type="button"
+                                className="cta-primary-btn"
+                                onClick={() => router.push(isAuthenticated ? '/idea-prompt' : '/login')}
+                            >
+                                <Sparkles size={16} />
+                                <span>Launch Studio</span>
+                                <ArrowRight size={16} />
+                            </button>
+                        </div>
                     </div>
-                    <div className="footer-cta-actions">
-                        <button
-                            type="button"
-                            className="cta-primary-btn"
-                            onClick={() => router.push(isAuthenticated ? '/idea-prompt' : '/login')}
-                        >
-                            <Sparkles size={16} />
-                            <span>Launch Studio</span>
-                            <ArrowRight size={16} />
-                        </button>
-                    </div>
-                </div>
+                )}
 
                 {/* ── Gradient divider ── */}
-                <div className="footer-divider" />
+                <div className={`footer-divider ${!isLanding ? 'footer-divider-top' : ''}`} />
 
                 {/* ── Link columns ── */}
                 <div className="footer-columns">
@@ -432,7 +440,7 @@ export default function Footer({ isLanding = true }) {
                             </span>
                         </Link>
                         <p className="footer-brand-desc">
-                            The autonomous multi-agent simulation studio for founders, architects, and venture strategists.
+                            {t('footer.builtWith')}
                         </p>
                         <div className="footer-status-chip">
                             <span className="footer-status-dot" />
@@ -489,7 +497,7 @@ export default function Footer({ isLanding = true }) {
 
                 {/* ── Bottom bar ── */}
                 <div className="footer-bottom">
-                    <p className="footer-copy">© 2026 Agentic Workflow Inc. All rights reserved.</p>
+                    <p className="footer-copy">{t('footer.rights')}</p>
                     <div className="footer-socials">
                         <a href="https://github.com" target="_blank" rel="noreferrer" className="footer-social-btn" aria-label="GitHub">
                             <GitHubIcon size={17} />

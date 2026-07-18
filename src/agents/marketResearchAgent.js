@@ -13,7 +13,7 @@ const MarketIntelligenceSchema = {
     },
     tam: {
       type: "string",
-      description: "Estimated Total Addressable Market (TAM), e.g. $4.2B."
+      description: "Estimated Total Addressable Market (TAM), e.g. 5,000,000,000 MMK or $4.2B."
     },
     competitors: {
       type: "array",
@@ -45,7 +45,7 @@ const MarketIntelligenceSchema = {
           name: { type: "string", description: "Typical name representing the persona, e.g. Freelance Frank." },
           role: { type: "string", description: "Persona description or title." },
           pain_points: { type: "array", items: { type: "string" }, description: "Pain points this persona experiences." },
-          budget_limit: { type: "string", description: "Persona spending capacity or budget description." }
+          budget_limit: { type: "string", description: "Persona spending capacity or budget description, e.g. 50,000 MMK/mo or $100/mo." }
         },
         required: ["name", "role", "pain_points", "budget_limit"]
       },
@@ -61,9 +61,11 @@ You must synthesize a comprehensive intelligence package.
 CRITICAL GUARDRAILS:
 - Competitor URL verification: If competitor domains are unknown or not validated, write "Not Publicly Available" instead of fabricating fake domains.
 - Saturation level: Must be between 0 and 100.
-- Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Market Intelligence Report". Use headers (H2, H3), bullet points, and markdown tables. Outline Target Market, Competitors Mapping, and Trends/Saturation.`;
+- Currency: All currency and market sizing details must be calculated and displayed in MMK (Myanmar Kyat). Do NOT use USD ($). Use realistic local pricing and volume levels for Myanmar (e.g. a bottle of beverage is around 3,000 - 4,000 MMK, not 400 MMK; local customer budgets and TAM are in thousands/millions/billions of MMK).
+- Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Market Intelligence Report". Use headers (H2, H3), bullet points, and markdown tables. Outline Target Market, Competitors Mapping, and Trends/Saturation.
+- Language Alignment: Generate all textual properties, descriptions, target personas (names, roles, pain points, budget limits), competitor weaknesses, opportunities list, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).`;
 
-export async function runMarketResearchAgent(refinedConcept, businessInfo, apiKey) {
+export async function runMarketResearchAgent(refinedConcept, businessInfo, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -71,6 +73,9 @@ export async function runMarketResearchAgent(refinedConcept, businessInfo, apiKe
   });
 
   const structuredModel = model.withStructuredOutput(MarketIntelligenceSchema);
+
+  const isBurmese = language === 'my' || /[\u1000-\u109F]/.test(refinedConcept.concept);
+  const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `
 Refined Startup Concept:
@@ -88,7 +93,7 @@ Business Info questionnaire:
 
   const response = await structuredModel.invoke([
     { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: `Perform market research for this startup concept:\n\n${promptContent}` }
+    { role: 'user', content: `Perform market research for this startup concept. IMPORTANT: You MUST write/generate all output fields (thinking, markdown_deliverable, target_personas, opportunities, competitor weaknesses, etc.) in the ${targetLanguage}. Do NOT write them in English:\n\n${promptContent}` }
   ]);
 
   if (!response) {

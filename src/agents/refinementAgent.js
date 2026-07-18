@@ -30,9 +30,13 @@ const RefinedConceptSchema = {
 
 const SYSTEM_PROMPT = `You are the Refinement Agent. Your role is to take a raw business idea and questionnaire inputs (such as location, budget, target customers, business type, experience level, goal, core painpoint, and launch timeline) and synthesize it into a highly professional, cohesive, and refined startup concept.
 Formulate a clear value proposition, identify exactly 3 key competitive differentiators, and refine the target audience description.
-Focus on highlighting how the solution solves the core pain points under the specific business constraints (e.g. budget, timeline).`;
+Focus on highlighting how the solution solves the core pain points under the specific business constraints (e.g. budget, timeline).
 
-export async function runRefinementAgent(rawIdea, businessInfo, apiKey) {
+CRITICAL GUARDRAILS:
+- Currency Alignment: Always describe and align any monetary references, targets, or pricing examples in terms of MMK (Myanmar Kyat) rather than USD ($) or standard dollar units.
+- Language Alignment: Generate all textual properties in the output schema (such as thinking, concept, improved_summary, key_differentiators, target_audience_refined) in the same language as the user's input raw idea/concept (e.g. if the raw startup idea is in Burmese, write all properties in Burmese; if in English, write in English).`;
+
+export async function runRefinementAgent(rawIdea, businessInfo, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -40,6 +44,9 @@ export async function runRefinementAgent(rawIdea, businessInfo, apiKey) {
   });
 
   const structuredModel = model.withStructuredOutput(RefinedConceptSchema);
+
+  const isBurmese = language === 'my' || /[\u1000-\u109F]/.test(rawIdea);
+  const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `
 Raw Startup Idea:
@@ -59,7 +66,7 @@ Business Context:
 
   const response = await structuredModel.invoke([
     { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: `Refine this startup concept:\n\n${promptContent}` }
+    { role: 'user', content: `Refine this startup concept. IMPORTANT: You MUST write/generate all output fields (thinking, concept, improved_summary, key_differentiators, target_audience_refined) in the ${targetLanguage}. Do NOT write them in English:\n\n${promptContent}` }
   ]);
 
   if (!response) {
