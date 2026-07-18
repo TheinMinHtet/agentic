@@ -25,6 +25,7 @@ const CURRENT_IDEA_ID_KEY = 'agentic:currentIdeaId';
 
 const DEFAULT_BUSINESS_INFO = {
   location: "Yangon, Myanmar",
+  target_country: "Myanmar",
   budget: "3,000,000 MMK",
   target_customers: "Billionare",
   business_type: "SaaS",
@@ -135,6 +136,7 @@ export function WorkflowProvider({ children }) {
   const [digitalPresence, setDigitalPresence] = useState(null);
   const [growthPlan, setGrowthPlan] = useState(null);
   const [businessPlan, setBusinessPlan] = useState(null);
+  const [verifiedBlueprint, setVerifiedBlueprint] = useState(null);
 
   // Flow statuses
   const [agentProgress, setAgentProgress] = useState({
@@ -183,6 +185,16 @@ export function WorkflowProvider({ children }) {
       setBusinessInfo(DEFAULT_BUSINESS_INFO);
     }
 
+    // Verified Blueprint
+    const savedBlueprint = localStorage.getItem('agentic:verifiedBlueprint');
+    if (savedBlueprint) {
+      try {
+        setVerifiedBlueprint(JSON.parse(savedBlueprint));
+      } catch (e) {
+        console.error("Error parsing stored verifiedBlueprint:", e);
+      }
+    }
+
     // Force auth active for this agentic workflow
     localStorage.setItem(AUTH_KEY, 'true');
 
@@ -191,6 +203,15 @@ export function WorkflowProvider({ children }) {
       setCurrentIdeaId(savedIdeaId);
     }
   }, []);
+
+  const updateVerifiedBlueprint = (data) => {
+    if (data) {
+      localStorage.setItem('agentic:verifiedBlueprint', JSON.stringify(data));
+    } else {
+      localStorage.removeItem('agentic:verifiedBlueprint');
+    }
+    setVerifiedBlueprint(data);
+  };
 
   const updateCurrentIdeaId = (ideaId) => {
     if (ideaId) {
@@ -759,6 +780,8 @@ export function WorkflowProvider({ children }) {
       digitalPresence,
       growthPlan,
       businessPlan,
+      verifiedBlueprint,
+      updateVerifiedBlueprint,
       setFinanceModel,
       setBrandPackage,
       setDigitalPresence,

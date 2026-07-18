@@ -1,72 +1,184 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWorkflow } from '../context/WorkflowContext';
 import { useLanguage } from '../context/LanguageContext';
+import { debateGraph } from '../../agents/debateOrchestrator';
 
 export default function SpecializedAgentsPage() {
     const router = useRouter();
     const {
-        agentProgress,
-        agentThinking,
-        runParallelSpecializedPlanning,
-        setActiveStep
+        businessInfo,
+        refinedConcept,
+        updateVerifiedBlueprint,
+        setActiveStep,
+        getApiKey
     } = useWorkflow();
-    const { language, t } = useLanguage();
+    const { language } = useLanguage();
 
     const [error, setError] = useState(null);
+    const [activeSpeaker, setActiveSpeaker] = useState('market'); // 'market', 'finance', 'both', 'idle'
+    const [consensusScore, setConsensusScore] = useState(38);
+    const [consensusReached, setConsensusReached] = useState(false);
+    const [showOptionBox, setShowOptionBox] = useState(false);
+    const [messages, setMessages] = useState([
+        {
+            role: 'system',
+            content: 'Initializing WarRoom ReAct Loop: Market Intelligence & Financial Modeler agents online.',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+    ]);
+    const [verifiedPayload, setVerifiedPayload] = useState(null);
+    const [tradeoffOptions, setTradeoffOptions] = useState(null);
+    const [isThinking, setIsThinking] = useState(false);
+    const messagesEndRef = useRef(null);
+    const streamContainerRef = useRef(null);
 
-    // Trigger parallel multi-agent runner on mount
+    const threadConfig = useMemo(() => ({
+        configurable: { thread_id: "warroom_debate_session_" + Date.now() }
+    }), []);
+
+    const scrollToBottom = () => {
+        if (streamContainerRef.current) {
+            streamContainerRef.current.scrollTo({
+                top: streamContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
+    // Run the initial ReAct debate loop on mount
     useEffect(() => {
         let isCurrent = true;
 
-        async function execute() {
+        async function startDebate() {
+            setIsThinking(true);
             try {
-                const success = await runParallelSpecializedPlanning();
-                if (success && isCurrent) {
-                    setActiveStep('dashboard');
-                    setTimeout(() => {
-                        router.push('/dashboard');
-                    }, 2000);
-                } else if (isCurrent) {
-                    setError("Specialized orchestration failed. Please verify your Google API Key and try again.");
+                // Initial input to graph
+                const conceptData = {
+                    companyName: refinedConcept?.companyName || businessInfo?.company_name || businessInfo?.title || "GrantFlow AI",
+                    targetCountry: refinedConcept?.target_country || businessInfo?.target_country || "Myanmar",
+                    location: businessInfo?.location || "Yangon, Myanmar",
+                    initialCapital: 3000000,
+                    monthlyBurnRate: 1500000,
+                    description: refinedConcept?.improved_summary || businessInfo?.core_painpoint,
+                    apiKey: getApiKey?.()
+                };
+
+                // Step 1: Market Agent runs
+                setActiveSpeaker('market');
+                await new Promise(r => setTimeout(r, 1200));
+                
+                const res1 = await debateGraph.invoke({
+                    business_concept: conceptData,
+                    messages: [],
+                    consensus_score: 38,
+                    iteration_count: 0
+                }, threadConfig);
+
+                if (!isCurrent) return;
+                setMessages(prev => [...prev, ...(res1.messages || [])]);
+                setConsensusScore(res1.consensus_score || 48);
+
+                // Step 2: Finance Agent runs & hits tradeoff breakpoint
+                setActiveSpeaker('finance');
+                await new Promise(r => setTimeout(r, 1800));
+
+                const res2 = await debateGraph.invoke(null, threadConfig);
+                if (!isCurrent) return;
+
+                setMessages(prev => [...prev, ...(res2.messages || [])]);
+                setConsensusScore(res2.consensus_score || 56);
+                if (res2.tradeoff_options && res2.tradeoff_options.length > 0) {
+                    setTradeoffOptions(res2.tradeoff_options);
+                }
+                
+                // Check if needs human decision
+                if (res2.needs_human_decision) {
+                    setActiveSpeaker('idle');
+                    setShowOptionBox(true);
+                    setIsThinking(false);
+                } else if (res2.consensus_reached) {
+                    setConsensusReached(true);
+                    setActiveSpeaker('both');
+                    setVerifiedPayload(res2.verified_payload);
+                    setIsThinking(false);
                 }
             } catch (err) {
-                console.error(err);
+                console.error("Debate graph error:", err);
                 if (isCurrent) {
-                    setError(err.message || "An unexpected error occurred during specialized planning.");
+                    setError(err.message || "An error occurred in the WarRoom ReAct Loop.");
+                    setIsThinking(false);
                 }
             }
         }
 
-        execute();
+        startDebate();
 
         return () => {
             isCurrent = false;
         };
     }, []);
 
-    // Get color for progress statuses
-    const getStatusStyles = (status) => {
-        switch (status) {
-            case 'completed':
-                return { label: language === 'en' ? 'COMPLETED' : 'ပြီးစီးသည်', bg: 'rgba(174, 236, 29, 0.15)', color: '#3d6b00' };
-            case 'running':
-                return { label: language === 'en' ? 'RUNNING' : 'လုပ်ဆောင်နေသည်', bg: 'rgba(56, 189, 248, 0.15)', color: '#0369a1' };
-            case 'failed':
-                return { label: language === 'en' ? 'FAILED' : 'မအောင်မြင်ပါ', bg: 'rgba(239, 68, 68, 0.15)', color: '#b91c1c' };
-            default:
-                return { label: language === 'en' ? 'PENDING' : 'စောင့်ဆိုင်းဆဲ', bg: 'var(--color-surface-light)', color: 'var(--color-text-muted)' };
+    // Handle Option Selection (HITL resume)
+    const handleSelectOption = async (optionId) => {
+        setShowOptionBox(false);
+        setIsThinking(true);
+        setActiveSpeaker('market');
+
+        try {
+            // Append user decision notice
+            setMessages(prev => [...prev, {
+                role: 'system',
+                content: `Founder selected strategy: ${optionId === 'option_a' ? 'Option A (Aggressive Expansion - $15 CAC)' : 'Option B (Conservative Growth - $12 CAC Viral Loop)'}. Resuming ReAct convergence...`,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }]);
+
+            await new Promise(r => setTimeout(r, 1400));
+
+            // Resume graph execution passing selected option
+            const res3 = await debateGraph.invoke({
+                user_selected_option: optionId,
+                needs_human_decision: false
+            }, threadConfig);
+
+            setMessages(prev => [...prev, ...(res3.messages || [])]);
+            setConsensusScore(res3.consensus_score || 88);
+            setActiveSpeaker('finance');
+
+            await new Promise(r => setTimeout(r, 1600));
+
+            // Final convergence check
+            const res4 = await debateGraph.invoke(null, threadConfig);
+            if (res4.messages && res4.messages.length > 0) {
+                setMessages(prev => [...prev, ...res4.messages]);
+            }
+            setConsensusScore(res4.consensus_score || 98);
+
+            if (res4.consensus_reached || (res4.consensus_score || 0) >= 85) {
+                setConsensusReached(true);
+                setActiveSpeaker('both');
+                setVerifiedPayload(res4.verified_payload);
+            }
+            setIsThinking(false);
+        } catch (err) {
+            console.error("Resume graph error:", err);
+            setError("Failed to resume debate loop: " + err.message);
+            setIsThinking(false);
         }
     };
 
-    const agentsList = [
-        { key: 'finance', title: language === 'en' ? 'Finance Agent' : 'ဘဏ္ဍာရေး အေဂျင့်', desc: language === 'en' ? 'Sizing capital requirements, operational margins & revenue tiers.' : 'ကနဦးကုန်ကျစရိတ်များ၊ လည်ပတ်မှုစရိတ်များနှင့် ဝင်ငွေပုံစံများကို တွက်ချက်ခြင်း။' },
-        { key: 'brand', title: language === 'en' ? 'Brand Agent' : 'အမှတ်တံဆိပ် အေဂျင့်', desc: language === 'en' ? 'Crafting guidelines, taglines, suggested names & visual palette.' : 'အမှတ်တံဆိပ် အမည်များ၊ ဆောင်ပုဒ်များ၊ လိုဂိုနှင့် အရောင်အသွေးများကို ဖန်တီးခြင်း။' },
-        { key: 'website', title: language === 'en' ? 'Website Agent' : 'ဝဘ်ဆိုက် အေဂျင့်', desc: language === 'en' ? 'Defining wireframe sections, product capabilities & tech stacks.' : 'ဝဘ်ဆိုက်ပုံစံ (Wireframe Layout)၊ လုပ်ဆောင်ချက်များနှင့် နည်းပညာစနစ်များကို သတ်မှတ်ခြင်း။' },
-        { key: 'marketing', title: language === 'en' ? 'Marketing Agent' : 'စျေးကွက် အေဂျင့်', desc: language === 'en' ? 'Formulating acquisition strategies and 90-day launch roadmap.' : 'သုံးစွဲသူရရှိမည့် စျေးကွက်ဗျူဟာများနှင့် ရက်ပေါင်း ၉၀ စီမံကိန်းကို ဖန်တီးခြင်း။' }
-    ];
+    const handleProceedBlueprint = () => {
+        if (!consensusReached || !verifiedPayload) return;
+        updateVerifiedBlueprint(verifiedPayload);
+        setActiveStep('dashboard');
+        router.push('/dashboard');
+    };
 
     return (
         <>
@@ -99,6 +211,8 @@ export default function SpecializedAgentsPage() {
                 .inner-glow { border: 1px solid rgba(255, 255, 255, 0.08); }
                 .inner-glow:hover { border-color: rgba(255, 255, 255, 0.15); }
                 .glowing-border { border: 1px solid #00F2FE; box-shadow: inset 0 0 10px rgba(0, 242, 254, 0.2); }
+                .glowing-border-purple { border: 1px solid #A78BFA; box-shadow: inset 0 0 10px rgba(167, 139, 250, 0.2); }
+                .glowing-border-green { border: 1px solid #34D399; box-shadow: inset 0 0 10px rgba(52, 211, 153, 0.2); }
                 
                 .hover-text-primary:hover { color: #c0c1ff !important; }
                 .hover-bg-surface-variant:hover { background-color: #34343d !important; }
@@ -128,7 +242,6 @@ export default function SpecializedAgentsPage() {
                 gap: '16px',
                 WebkitFontSmoothing: 'antialiased',
                 color: '#e4e1ed',
-                
                 fontFamily: '"Inter", sans-serif',
                 overflowY: 'auto',
                 margin: 0
@@ -151,7 +264,7 @@ export default function SpecializedAgentsPage() {
                     backdropFilter: 'blur(40px)'
                 }}>
                     
-                    {/* Top App Bar equivalent */}
+                    {/* Top App Bar */}
                     <header style={{
                         height: '4rem',
                         display: 'flex',
@@ -163,25 +276,33 @@ export default function SpecializedAgentsPage() {
                         zIndex: 10,
                         borderBottom: '1px solid rgba(255,255,255,0.08)'
                     }}>
-                        <div style={{
-                            fontFamily: '"Plus Jakarta Sans", sans-serif',
-                            fontSize: '24px',
-                            lineHeight: '32px',
-                            fontWeight: 800,
-                            color: 'transparent',
-                            WebkitBackgroundClip: 'text',
-                            backgroundClip: 'text',
-                            backgroundImage: 'linear-gradient(to right, #c0c1ff, #adc6ff)'
-                        }}>
-                            WarRoom OS
-                        </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <button className="hover-text-primary transition-all" style={{ color: '#c7c4d7', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                                <span className="material-symbols-outlined">notifications</span>
-                            </button>
-                            <button className="hover-text-primary transition-all" style={{ color: '#c7c4d7', background: 'transparent', border: 'none', cursor: 'pointer' }}>
-                                <span className="material-symbols-outlined">share</span>
-                            </button>
+                            <div style={{
+                                fontFamily: '"Plus Jakarta Sans", sans-serif',
+                                fontSize: '24px',
+                                lineHeight: '32px',
+                                fontWeight: 800,
+                                color: 'transparent',
+                                WebkitBackgroundClip: 'text',
+                                backgroundClip: 'text',
+                                backgroundImage: 'linear-gradient(to right, #c0c1ff, #adc6ff)'
+                            }}>
+                                WarRoom OS
+                            </div>
+                            <span style={{
+                                padding: '2px 10px',
+                                borderRadius: '9999px',
+                                backgroundColor: consensusReached ? 'rgba(52, 211, 153, 0.15)' : 'rgba(0, 242, 254, 0.15)',
+                                color: consensusReached ? '#34D399' : '#00F2FE',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                border: `1px solid ${consensusReached ? 'rgba(52, 211, 153, 0.3)' : 'rgba(0, 242, 254, 0.3)'}`
+                            }}>
+                                Alignment: {consensusScore}%
+                            </span>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                             <button className="hover-bg-surface-variant transition-colors" style={{
                                 padding: '0.375rem 0.75rem',
                                 borderRadius: '0.375rem',
@@ -189,7 +310,6 @@ export default function SpecializedAgentsPage() {
                                 color: '#c7c4d7',
                                 fontFamily: '"Inter", sans-serif',
                                 fontSize: '11px',
-                                lineHeight: '16px',
                                 fontWeight: 600,
                                 letterSpacing: '0.05em',
                                 background: 'transparent',
@@ -200,17 +320,16 @@ export default function SpecializedAgentsPage() {
                             <button className="inner-glow" style={{
                                 padding: '0.375rem 0.75rem',
                                 borderRadius: '0.375rem',
-                                backgroundImage: 'linear-gradient(to right, #8083ff, #c0c1ff)',
-                                color: '#1000a9',
+                                backgroundImage: consensusReached ? 'linear-gradient(to right, #34D399, #10B981)' : 'linear-gradient(to right, #8083ff, #c0c1ff)',
+                                color: consensusReached ? '#064E3B' : '#1000a9',
                                 fontFamily: '"Inter", sans-serif',
                                 fontSize: '11px',
-                                lineHeight: '16px',
-                                fontWeight: 600,
+                                fontWeight: 700,
                                 letterSpacing: '0.05em',
                                 border: 'none',
                                 cursor: 'pointer'
                             }}>
-                                Execute Consensus
+                                {consensusReached ? 'Consensus Locked' : 'ReAct Loop Active'}
                             </button>
                         </div>
                     </header>
@@ -224,170 +343,195 @@ export default function SpecializedAgentsPage() {
 
                     {/* Meeting Stage Grid */}
                     <div style={{ paddingLeft: '24px', paddingRight: '24px', paddingTop: '1.5rem', paddingBottom: '1rem', flexShrink: 0, marginBottom: '0.5rem' }}>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '1rem', height: '180px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', maxWidth: '760px', marginLeft: 'auto', marginRight: 'auto', gap: '1.5rem', height: '180px' }}>
                             
-                            {/* Speaking Agent */}
-                            <div className="glowing-border" style={{ backgroundColor: '#0D121F', borderRadius: '0.75rem', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
-                                <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'radial-gradient(ellipse at center, rgba(0,242,254,0.1), transparent)', opacity: 0.5 }}></div>
-                                <div style={{ width: '4rem', height: '4rem', borderRadius: '9999px', overflow: 'hidden', border: '2px solid #00F2FE', marginBottom: '0.75rem', position: 'relative', zIndex: 10 }}>
+                            {/* Market Intelligence Agent Card */}
+                            <div className={activeSpeaker === 'market' || activeSpeaker === 'both' ? 'glowing-border' : 'inner-glow'} style={{ backgroundColor: '#0D121F', borderRadius: '0.75rem', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', overflow: 'hidden' }}>
+                                {(activeSpeaker === 'market' || activeSpeaker === 'both') && (
+                                    <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, background: 'radial-gradient(ellipse at center, rgba(0,242,254,0.1), transparent)', opacity: 0.5 }}></div>
+                                )}
+                                <div style={{ width: '4rem', height: '4rem', borderRadius: '9999px', overflow: 'hidden', border: `2px solid ${activeSpeaker === 'market' || activeSpeaker === 'both' ? '#00F2FE' : 'rgba(70, 69, 84, 0.5)'}`, marginBottom: '0.75rem', position: 'relative', zIndex: 10 }}>
                                     <img style={{ width: '100%', height: '100%', objectFit: 'cover' }} src="https://lh3.googleusercontent.com/aida-public/AB6AXuCk_nY__9icBAQdCckdv-oT8bt1Qqv7zjOhmRRy9H17lRJqkqUkkXpQz3SY5jiXdzPIuWWfDEluOhaAnIXjhs8xCHn-52YCkoetuRPyb_n9rea-yKIgT6-rAHXgf4qmGjLqPLqICCaGawznEiRYdcpLRhwKxiz6z5ke2okDYujePzakZSpsjtH0FG2k5zHAR0IsMfWiKwkwA_Xwq0w7AEu0HRgRuVBcW96m1y-W-t3OfjKL5Lsjhs1EcYfVzUER0BQUdLOyyOmdO2eQ" alt="Market Analyst" />
                                 </div>
-                                <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', lineHeight: '18px', fontWeight: 500, letterSpacing: '0.01em', color: '#e4e1ed', zIndex: 10 }}>Market Intel</span>
-                                <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', display: 'flex', height: '0.75rem', alignItems: 'center', zIndex: 10 }}>
-                                    <span className="eq-bar"></span><span className="eq-bar"></span><span className="eq-bar"></span>
-                                </div>
-                                <span style={{ position: 'absolute', bottom: '0.75rem', left: '0.75rem', padding: '0.125rem 0.5rem', borderRadius: '9999px', backgroundColor: 'rgba(0,242,254,0.1)', color: '#00F2FE', fontFamily: '"Inter", sans-serif', fontSize: '11px', lineHeight: '16px', fontWeight: 600, letterSpacing: '0.05em', border: '1px solid rgba(0,242,254,0.2)' }}>Speaking</span>
+                                <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', fontWeight: 500, color: '#e4e1ed', zIndex: 10 }}>Market Intel</span>
+                                {(activeSpeaker === 'market' || activeSpeaker === 'both') ? (
+                                    <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', display: 'flex', height: '0.75rem', alignItems: 'center', zIndex: 10 }}>
+                                        <span className="eq-bar"></span><span className="eq-bar"></span><span className="eq-bar"></span>
+                                    </div>
+                                ) : null}
+                                <span style={{ position: 'absolute', bottom: '0.75rem', left: '0.75rem', padding: '0.125rem 0.5rem', borderRadius: '9999px', backgroundColor: activeSpeaker === 'market' || activeSpeaker === 'both' ? 'rgba(0,242,254,0.1)' : '#34343d', color: activeSpeaker === 'market' || activeSpeaker === 'both' ? '#00F2FE' : '#c7c4d7', fontSize: '11px', fontWeight: 600 }}>
+                                    {activeSpeaker === 'market' || activeSpeaker === 'both' ? 'Speaking' : 'Listening'}
+                                </span>
                             </div>
 
-                            {/* Listening Agent 1 */}
-                            <div className="inner-glow hover-opacity-100 transition-opacity" style={{ backgroundColor: 'rgba(13, 18, 31, 0.65)', backdropFilter: 'blur(8px)', borderRadius: '0.75rem', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', opacity: 0.7 }}>
-                                <div style={{ width: '4rem', height: '4rem', borderRadius: '9999px', overflow: 'hidden', border: '1px solid rgba(70, 69, 84, 0.5)', marginBottom: '0.75rem', filter: 'grayscale(100%)', opacity: 0.8 }}>
-                                    <img style={{ width: '100%', height: '100%', objectFit: 'cover' }} src="https://lh3.googleusercontent.com/aida-public/AB6AXuC830cscOQ6SMzY0DcqTOUadOxo30_r16zgHrMwHtxYfBvsSvoqnAeb32dxLih3wgAzZskQ2b9p1eKK8GExSK8z8hf--blojps8tYDkJ2OSy7mtt1aaBjdiFLGiciznQAN3aDK4FoWcI0rf8oD4_7xWBWD0aTsS-plesZ4sAAQZoY2ugC-yVtrc0AB7W8Ml3YGPg92qZrgKOhvdJ-bNgrn6Kk7HF2whPYDziK2w3i9KUwuS2rNJNoWmxVKRaDl2h1AiBkl0gRTUl7pw" alt="Tech Architect" />
-                                </div>
-                                <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', lineHeight: '18px', fontWeight: 500, letterSpacing: '0.01em', color: '#e4e1ed' }}>Tech Architect</span>
-                                <span style={{ position: 'absolute', bottom: '0.75rem', left: '0.75rem', padding: '0.125rem 0.5rem', borderRadius: '9999px', backgroundColor: '#34343d', color: '#c7c4d7', fontFamily: '"Inter", sans-serif', fontSize: '11px', lineHeight: '16px', fontWeight: 600, letterSpacing: '0.05em' }}>Listening</span>
-                            </div>
-
-                            {/* Listening Agent 2 */}
-                            <div className="inner-glow hover-opacity-100 transition-opacity" style={{ backgroundColor: 'rgba(13, 18, 31, 0.65)', backdropFilter: 'blur(8px)', borderRadius: '0.75rem', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', opacity: 0.7 }}>
-                                <div style={{ width: '4rem', height: '4rem', borderRadius: '9999px', overflow: 'hidden', border: '1px solid rgba(70, 69, 84, 0.5)', marginBottom: '0.75rem', filter: 'grayscale(100%)', opacity: 0.8 }}>
-                                    <img style={{ width: '100%', height: '100%', objectFit: 'cover' }} src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFO64gtrrWtDLHCVxAyPgFmeMG9lLEQ2WXVs6JBGCwVoOtLOQvXxn7Ju6b0qikcKI8B0vnmfWUU1F_PNibAOOHdKJ6PNJcUcg5VS8JkmXlS-hr2rhnXr9Jtuopd8ZvUlaexBVgzHETV9sVnwKsnnrl_0CtmradHJJkxgwiUphuAqXiZWi5zxi-WsEm6ypswGqC4n9HoVc5d7fYmVQeY0K3_nM7BtFQDUUw0apMQDgyBJKtZKVbdAF-iBEKfhcZ1qsHrGnVjW5JzzOP" alt="Brand Identity" />
-                                </div>
-                                <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', lineHeight: '18px', fontWeight: 500, letterSpacing: '0.01em', color: '#e4e1ed' }}>Brand Identity</span>
-                                <span style={{ position: 'absolute', bottom: '0.75rem', left: '0.75rem', padding: '0.125rem 0.5rem', borderRadius: '9999px', backgroundColor: '#34343d', color: '#c7c4d7', fontFamily: '"Inter", sans-serif', fontSize: '11px', lineHeight: '16px', fontWeight: 600, letterSpacing: '0.05em' }}>Listening</span>
-                            </div>
-
-                            {/* Listening Agent 3 */}
-                            <div className="inner-glow hover-opacity-100 transition-opacity" style={{ backgroundColor: 'rgba(13, 18, 31, 0.65)', backdropFilter: 'blur(8px)', borderRadius: '0.75rem', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', opacity: 0.7 }}>
-                                <div style={{ width: '4rem', height: '4rem', borderRadius: '9999px', overflow: 'hidden', border: '1px solid rgba(70, 69, 84, 0.5)', marginBottom: '0.75rem', filter: 'grayscale(100%)', opacity: 0.8 }}>
+                            {/* Financial Modeler Agent Card */}
+                            <div className={activeSpeaker === 'finance' ? 'glowing-border-purple' : activeSpeaker === 'both' ? 'glowing-border-green' : 'inner-glow'} style={{ backgroundColor: 'rgba(13, 18, 31, 0.65)', backdropFilter: 'blur(8px)', borderRadius: '0.75rem', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                                <div style={{ width: '4rem', height: '4rem', borderRadius: '9999px', overflow: 'hidden', border: `2px solid ${activeSpeaker === 'finance' ? '#A78BFA' : activeSpeaker === 'both' ? '#34D399' : 'rgba(255,183,131,0.3)'}`, marginBottom: '0.75rem' }}>
                                     <img style={{ width: '100%', height: '100%', objectFit: 'cover' }} src="https://lh3.googleusercontent.com/aida-public/AB6AXuDleIs6dhFNwep_DS-eAp0VeOM219djpie7YBn9MNh3fv6oCiejB0uHLwTgVR4z6qP61vazNDi6WzP_KSRtiC5YyKUPhGN9YaazalhDMYTqS28hyW5pZwBcJR-D8zNoJduWsVNE--GaWsfgXBfrsSCHMiEWOCzbJBExK7axT6UL9gnocPUykV_mp985oY6h8YhN9DV-5seVsmCUeTko6t17fZiVzfjPRrIuaE5Ix4KoHH1YPj_Iy7Gqj-ZKjmvgYh6lm0bPAmwFHg4z" alt="Financial Modeler" />
                                 </div>
-                                <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', lineHeight: '18px', fontWeight: 500, letterSpacing: '0.01em', color: '#e4e1ed' }}>Financial Modeler</span>
-                                <span style={{ position: 'absolute', bottom: '0.75rem', left: '0.75rem', padding: '0.125rem 0.5rem', borderRadius: '9999px', backgroundColor: 'rgba(255,183,131,0.1)', color: '#ffb783', fontFamily: '"Inter", sans-serif', fontSize: '11px', lineHeight: '16px', fontWeight: 600, letterSpacing: '0.05em', border: '1px solid rgba(255,183,131,0.2)' }}>Auditing</span>
+                                <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', fontWeight: 500, color: '#e4e1ed' }}>Financial Modeler</span>
+                                {(activeSpeaker === 'finance' || activeSpeaker === 'both') && (
+                                    <div style={{ position: 'absolute', top: '0.75rem', right: '0.75rem', display: 'flex', height: '0.75rem', alignItems: 'center', zIndex: 10 }}>
+                                        <span className="eq-bar" style={{ backgroundColor: activeSpeaker === 'finance' ? '#A78BFA' : '#34D399' }}></span>
+                                        <span className="eq-bar" style={{ backgroundColor: activeSpeaker === 'finance' ? '#A78BFA' : '#34D399' }}></span>
+                                        <span className="eq-bar" style={{ backgroundColor: activeSpeaker === 'finance' ? '#A78BFA' : '#34D399' }}></span>
+                                    </div>
+                                )}
+                                <span style={{ position: 'absolute', bottom: '0.75rem', left: '0.75rem', padding: '0.125rem 0.5rem', borderRadius: '9999px', backgroundColor: activeSpeaker === 'finance' ? 'rgba(167,139,250,0.1)' : activeSpeaker === 'both' ? 'rgba(52,211,153,0.1)' : 'rgba(255,183,131,0.1)', color: activeSpeaker === 'finance' ? '#A78BFA' : activeSpeaker === 'both' ? '#34D399' : '#ffb783', fontSize: '11px', fontWeight: 600, border: '1px solid rgba(255,183,131,0.2)' }}>
+                                    {activeSpeaker === 'finance' ? 'Speaking' : activeSpeaker === 'both' ? 'Consensus' : 'Auditing'}
+                                </span>
                             </div>
                         </div>
                     </div>
 
-                    {/* Chat Stream */}
-                    <div style={{ flex: 1, minHeight: '520px', display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(8, 11, 17, 0.95)', margin: '0 24px 24px 24px', borderRadius: '0.75rem', backdropFilter: 'blur(4px)', border: '1px solid rgba(70, 69, 84, 0.3)', overflow: 'hidden' }}>
+                    {/* Chat Stream Container */}
+                    <div style={{ flex: 1, minHeight: '440px', display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(8, 11, 17, 0.95)', margin: '0 24px 24px 24px', borderRadius: '0.75rem', backdropFilter: 'blur(4px)', border: '1px solid rgba(70, 69, 84, 0.3)', overflow: 'hidden' }}>
                         
-                        {/* Upper Scrollable Message Stream */}
-                        <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+                        {/* Scrollable Message Stream restricted to ~2 messages height */}
+                        <div ref={streamContainerRef} style={{ maxHeight: '250px', overflowY: 'auto', padding: '16px 24px', borderBottom: '1px solid rgba(70, 69, 84, 0.2)' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '56rem', marginLeft: 'auto', marginRight: 'auto', width: '100%' }}>
-                                
-                                {/* System Message */}
-                                <div style={{ display: 'flex', gap: '1rem' }}>
-                                    {/* <div style={{ width: '2rem', height: '2rem', borderRadius: '0.375rem', backgroundColor: '#34343d', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '0.25rem' }}>
-                                        <span className="material-symbols-outlined" style={{ fontSize: '16px', color: '#c7c4d7' }}>terminal</span>
-                                    </div> */}
-                                    <div style={{ flex: 1, borderLeft: '2px solid #8083ff', paddingLeft: '0.75rem' }}>
-                                        <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                                            <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', lineHeight: '18px', fontWeight: 700, letterSpacing: '0.01em', color: '#e4e1ed' }}>System</span>
-                                            <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '11px', lineHeight: '16px', fontWeight: 600, letterSpacing: '0.05em', color: '#908fa0' }}>10:42 AM</span>
-                                        </div>
-                                        <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '14px', lineHeight: '22px', fontWeight: 400, color: '#c7c4d7', margin: 0 }}>WarRoom initialized. Topic: Q3 Expansion Strategy. 4 Agents active.</p>
-                                    </div>
-                                </div>
+                                {messages.map((msg, i) => (
+                                    <div key={i} style={{ display: 'flex', gap: '1rem' }}>
+                                        {msg.role === 'market' ? (
+                                            <div style={{ width: '2.2rem', height: '2.2rem', borderRadius: '0.375rem', overflow: 'hidden', flexShrink: 0, marginTop: '0.25rem', border: '1px solid rgba(0, 242, 254, 0.5)' }}>
+                                                <img style={{ width: '100%', height: '100%', objectFit: 'cover' }} src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtiiI0LxsiTgU7qMKI82JNFcPq3gUvBMnF4lQIFylL4No0KOIRWMRvYTr1j7UwTmDfN1vS0P5oAeFGFiGkW9jU4VBJu9ATraF97wj_kVzKYuM5DWXn8CKO9G4_O1ZL5L7jS4Rfqe96LcAi74kS8oaXn6jEKC8xNLxEBh2bQKTH-LzgAgSpQkb1WDc5GZ5BZ3BaFIYTP0av9KDk4rZiWQSl-_cXz9SHPs2kqDijG9gVQ0G6qs_yz6I38ML8xW-zC5YJ44a_gRfI_FAC" alt="Market Intel" />
+                                            </div>
+                                        ) : msg.role === 'finance' ? (
+                                            <div style={{ width: '2.2rem', height: '2.2rem', borderRadius: '0.375rem', overflow: 'hidden', flexShrink: 0, marginTop: '0.25rem', border: '1px solid rgba(167, 139, 250, 0.5)' }}>
+                                                <img style={{ width: '100%', height: '100%', objectFit: 'cover' }} src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4snu6T4IDE8PaaYhSoUnUxcRZ8BSkHdlSMpQNYhvH_L_CkywJZCrB7sDa45oZtV4WKCl0Xh8Q9PIQFpIHoursJrwaX8c8ihdkPMLuQVjB4D3yA1dipfFIRxKT-5ztvX1TMA4HR3SEJtnky7zAjhaSrI0IR41KUWVZceOZlRdle7Fov-d1Oz75tKzDead1E7gJrPks6F69Yb0O_ADeNlYLU7yo1yAKcET-Iy0fURzsLFxBWrGmx-2HPoyLj3z9oUr6TB2FKspfreBM" alt="Financial Modeler" />
+                                            </div>
+                                        ) : (
+                                            <div style={{ borderLeft: '2px solid #8083ff', paddingLeft: '0.75rem', flex: 1 }}>
+                                                <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#e4e1ed' }}>System</span>
+                                                    <span style={{ fontSize: '11px', color: '#908fa0' }}>{msg.timestamp || 'Live'}</span>
+                                                </div>
+                                                <p style={{ fontSize: '14px', lineHeight: '22px', color: '#c7c4d7', margin: 0 }}>{msg.content}</p>
+                                            </div>
+                                        )}
 
-                                {/* Agent Message */}
-                                <div style={{ display: 'flex', gap: '1rem' }}>
-                                    <div style={{ width: '2rem', height: '2rem', borderRadius: '0.375rem', overflow: 'hidden', flexShrink: 0, marginTop: '0.25rem', border: '1px solid rgba(192, 193, 255, 0.3)' }}>
-                                        <img style={{ width: '100%', height: '100%', objectFit: 'cover' }} src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtiiI0LxsiTgU7qMKI82JNFcPq3gUvBMnF4lQIFylL4No0KOIRWMRvYTr1j7UwTmDfN1vS0P5oAeFGFiGkW9jU4VBJu9ATraF97wj_kVzKYuM5DWXn8CKO9G4_O1ZL5L7jS4Rfqe96LcAi74kS8oaXn6jEKC8xNLxEBh2bQKTH-LzgAgSpQkb1WDc5GZ5BZ3BaFIYTP0av9KDk4rZiWQSl-_cXz9SHPs2kqDijG9gVQ0G6qs_yz6I38ML8xW-zC5YJ44a_gRfI_FAC" alt="Market Intel" />
+                                        {msg.role !== 'system' && (
+                                            <div style={{ flex: 1 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                                                    <span style={{ fontSize: '13px', fontWeight: 700, color: '#e4e1ed' }}>
+                                                        {msg.role === 'market' ? 'Market Intel' : 'Financial Modeler'}
+                                                    </span>
+                                                    <span style={{
+                                                        padding: '0.125rem 0.5rem',
+                                                        borderRadius: '9999px',
+                                                        backgroundColor: msg.role === 'market' ? 'rgba(0,242,254,0.1)' : 'rgba(167,139,250,0.1)',
+                                                        color: msg.role === 'market' ? '#00F2FE' : '#A78BFA',
+                                                        fontSize: '11px',
+                                                        fontWeight: 600,
+                                                        border: `1px solid ${msg.role === 'market' ? 'rgba(0,242,254,0.2)' : 'rgba(167,139,250,0.2)'}`
+                                                    }}>
+                                                        {msg.role === 'market' ? 'Active Analysis' : 'Auditing / Stress-Test'}
+                                                    </span>
+                                                    <span style={{ fontSize: '11px', color: '#908fa0' }}>{msg.timestamp || 'Live'}</span>
+                                                </div>
+                                                {msg.searched_sites && msg.searched_sites.length > 0 && (
+                                                    <div style={{ marginBottom: '0.5rem', padding: '0.35rem 0.6rem', borderRadius: '0.375rem', backgroundColor: msg.role === 'market' ? 'rgba(0, 242, 254, 0.05)' : 'rgba(167, 139, 250, 0.05)', borderLeft: `2px solid ${msg.role === 'market' ? 'rgba(0, 242, 254, 0.4)' : 'rgba(167, 139, 250, 0.4)'}` }}>
+                                                        {msg.searched_sites.map((site, sIdx) => (
+                                                            <div key={sIdx} style={{ fontSize: '11px', color: 'rgba(199, 196, 215, 0.6)', lineHeight: '18px', fontFamily: '"Plus Jakarta Sans", monospace', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                                <span style={{ color: msg.role === 'market' ? '#00F2FE' : '#A78BFA', fontSize: '10px' }}>⚡</span>
+                                                                <span>{msg.role === 'market' ? 'Checked site:' : 'Checked tool:'} {site}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                <p style={{ fontSize: '14px', lineHeight: 1.625, color: '#c7c4d7', margin: 0 }}>
+                                                    {msg.content}
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                                            <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', lineHeight: '18px', fontWeight: 700, letterSpacing: '0.01em', color: '#e4e1ed' }}>Market Intel</span>
-                                            <span style={{ padding: '0.125rem 0.5rem', borderRadius: '9999px', backgroundColor: 'rgba(0,242,254,0.1)', color: '#00F2FE', fontFamily: '"Inter", sans-serif', fontSize: '11px', lineHeight: '16px', fontWeight: 600, letterSpacing: '0.05em', border: '1px solid rgba(0,242,254,0.2)' }}>Active Analysis</span>
-                                            <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '11px', lineHeight: '16px', fontWeight: 600, letterSpacing: '0.05em', color: '#908fa0' }}>10:43 AM</span>
-                                        </div>
-                                        <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '14px', lineHeight: 1.625, fontWeight: 400, color: '#c7c4d7', margin: 0 }}>
-                                            Based on initial scans, the Target Addressable Market (TAM) in the APAC region has expanded to roughly <span style={{ color: '#e4e1ed', fontFamily: 'monospace' }}>$4.2B</span>. However, to penetrate effectively, we need to ensure our Customer Acquisition Cost (CAC) model holds up.
-                                        </p>
+                                ))}
+                                {isThinking && (
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: activeSpeaker === 'finance' ? '#A78BFA' : '#00F2FE', fontSize: '13px', fontStyle: 'italic', padding: '4px 0' }}>
+                                        <span className="eq-bar" style={{ backgroundColor: activeSpeaker === 'finance' ? '#A78BFA' : '#00F2FE' }}></span>
+                                        <span className="eq-bar" style={{ backgroundColor: activeSpeaker === 'finance' ? '#A78BFA' : '#00F2FE' }}></span>
+                                        <span>{activeSpeaker === 'market' ? 'tool calling......' : 'financial simulation & regulatory tool calling......'}</span>
                                     </div>
-                                </div>
-
-                                {/* Agent Message 2 */}
-                                <div style={{ display: 'flex', gap: '1rem' }}>
-                                    <div style={{ width: '2rem', height: '2rem', borderRadius: '0.375rem', overflow: 'hidden', flexShrink: 0, marginTop: '0.25rem', border: '1px solid rgba(255, 183, 131, 0.3)' }}>
-                                        <img style={{ width: '100%', height: '100%', objectFit: 'cover' }} src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4snu6T4IDE8PaaYhSoUnUxcRZ8BSkHdlSMpQNYhvH_L_CkywJZCrB7sDa45oZtV4WKCl0Xh8Q9PIQFpIHoursJrwaX8c8ihdkPMLuQVjB4D3yA1dipfFIRxKT-5ztvX1TMA4HR3SEJtnky7zAjhaSrI0IR41KUWVZceOZlRdle7Fov-d1Oz75tKzDead1E7gJrPks6F69Yb0O_ADeNlYLU7yo1yAKcET-Iy0fURzsLFxBWrGmx-2HPoyLj3z9oUr6TB2FKspfreBM" alt="Financial Modeler" />
-                                    </div>
-                                    <div style={{ flex: 1 }}>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                                            <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', lineHeight: '18px', fontWeight: 700, letterSpacing: '0.01em', color: '#e4e1ed' }}>Financial Modeler</span>
-                                            <span style={{ padding: '0.125rem 0.5rem', borderRadius: '9999px', backgroundColor: 'rgba(255,183,131,0.1)', color: '#ffb783', fontFamily: '"Inter", sans-serif', fontSize: '11px', lineHeight: '16px', fontWeight: 600, letterSpacing: '0.05em', border: '1px solid rgba(255,183,131,0.2)' }}>Auditor</span>
-                                            <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '11px', lineHeight: '16px', fontWeight: 600, letterSpacing: '0.05em', color: '#908fa0' }}>10:44 AM</span>
-                                        </div>
-                                        <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '14px', lineHeight: 1.625, fontWeight: 400, color: '#c7c4d7', margin: 0 }}>
-                                            I am running Monte Carlo simulations on the proposed ad spend. Maintaining a CAC of <span style={{ color: '#e4e1ed', fontFamily: 'monospace' }}>$12</span> is aggressive but achievable if we optimize funnel conversion by 15%. This preserves our Gross Margin target of <span style={{ color: '#c0c1ff', fontFamily: 'monospace' }}>82%</span>.
-                                        </p>
-                                    </div>
-                                </div>
+                                )}
+                                <div ref={messagesEndRef} />
                             </div>
                         </div>
 
-                        {/* Bottom Fixed Option Box */}
-                        <div style={{ flexShrink: 0, padding: '0 24px 24px 24px', borderTop: '1px solid rgba(70, 69, 84, 0.2)', paddingTop: '1.5rem', backgroundColor: 'rgba(8, 11, 17, 0.4)' }}>
-                            <div style={{ maxWidth: '56rem', marginLeft: 'auto', marginRight: 'auto', width: '100%' }}>
-                                {/* Consensus Block */}
-                                <div className="inner-glow" style={{ padding: '1.5rem', borderRadius: '0.75rem', backgroundColor: 'rgba(41, 41, 50, 0.5)', backdropFilter: 'blur(4px)', border: '1px solid rgba(192, 193, 255, 0.2)' }}>
-                                    <h3 style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '18px', lineHeight: '24px', fontWeight: 600, color: '#c0c1ff', margin: '0 0 1rem 0' }}>Consensus Reached: Select Primary Strategy</h3>
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
-                                        
-                                        {/* Option A */}
-                                        <div className="group hover-border-primary transition-all" style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'rgba(52, 52, 61, 0.4)', border: '1px solid rgba(70, 69, 84, 0.3)' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                                                <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', lineHeight: '18px', fontWeight: 700, letterSpacing: '0.01em', color: '#e4e1ed' }}>Option A</span>
-                                                <span className="material-symbols-outlined group-hover-opacity-100 transition-opacity" style={{ color: '#c0c1ff', opacity: 0 }}>rocket_launch</span>
-                                            </div>
-                                            <h4 style={{ fontFamily: '"Inter", sans-serif', fontSize: '16px', lineHeight: '26px', fontWeight: 700, color: '#e4e1ed', margin: '0 0 0.25rem 0' }}>Aggressive Expansion (APAC Focus)</h4>
-                                            <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '14px', lineHeight: '22px', fontWeight: 400, color: '#c7c4d7', margin: '0 0 1rem 0' }}>Prioritizes market share with a $12 CAC target and 15% funnel optimization.</p>
-                                            <button className="hover-btn-primary transition-all" style={{ width: '100%', padding: '0.5rem 0', borderRadius: '0.375rem', backgroundColor: 'rgba(192, 193, 255, 0.1)', border: '1px solid rgba(192, 193, 255, 0.3)', color: '#c0c1ff', fontFamily: '"Inter", sans-serif', fontSize: '11px', lineHeight: '16px', fontWeight: 600, letterSpacing: '0.05em', cursor: 'pointer' }}>
-                                                Select This Option
-                                            </button>
-                                        </div>
+                        {/* Bottom Option Box (Appears when graph hits interrupt()) */}
+                        {showOptionBox && (
+                            <div style={{ flexShrink: 0, padding: '0 24px 24px 24px', borderTop: '1px solid rgba(70, 69, 84, 0.2)', paddingTop: '1.5rem', backgroundColor: 'rgba(8, 11, 17, 0.6)' }}>
+                                <div style={{ maxWidth: '56rem', marginLeft: 'auto', marginRight: 'auto', width: '100%' }}>
+                                    <div className="inner-glow" style={{ padding: '1.5rem', borderRadius: '0.75rem', backgroundColor: 'rgba(41, 41, 50, 0.7)', backdropFilter: 'blur(8px)', border: '1px solid rgba(192, 193, 255, 0.3)' }}>
+                                        <h3 style={{ fontFamily: '"Plus Jakarta Sans", sans-serif', fontSize: '18px', lineHeight: '24px', fontWeight: 600, color: '#c0c1ff', margin: '0 0 1rem 0' }}>
+                                            ⚡ Consensus Trade-off: Select Primary Strategy
+                                        </h3>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                                            
+                                            {(tradeoffOptions || [
+                                                {
+                                                    id: 'option_a',
+                                                    title: 'Fast Market Share Growth ($15/customer)',
+                                                    tag: 'High Growth',
+                                                    description: 'Focus on fast customer acquisition using paid ads. Best for rapid brand awareness.'
+                                                },
+                                                {
+                                                    id: 'option_b',
+                                                    title: 'Safe Profit Margins & Viral Invites ($12/customer)',
+                                                    tag: 'Recommended',
+                                                    description: 'Focus on team referral sharing and organic invites. Keeps profit margins high and extends runway beyond 24 months.'
+                                                }
+                                            ]).map((opt, idx) => (
+                                                <div key={opt.id || idx} className={`group ${opt.id === 'option_b' ? 'hover-border-tertiary' : 'hover-border-primary'} transition-all`} style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'rgba(52, 52, 61, 0.5)', border: '1px solid rgba(70, 69, 84, 0.4)' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                                                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#e4e1ed' }}>{opt.id === 'option_a' ? 'Option A' : 'Option B'}</span>
+                                                        <span style={{ fontSize: '11px', color: opt.id === 'option_b' ? '#34D399' : '#c0c1ff', backgroundColor: opt.id === 'option_b' ? 'rgba(52,211,153,0.1)' : 'rgba(192,193,255,0.1)', padding: '2px 8px', borderRadius: '4px' }}>{opt.tag || (opt.id === 'option_b' ? 'Recommended' : 'High Growth')}</span>
+                                                    </div>
+                                                    <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#e4e1ed', margin: '0 0 0.25rem 0' }}>{opt.title}</h4>
+                                                    <p style={{ fontSize: '14px', lineHeight: '22px', color: '#c7c4d7', margin: '0 0 1rem 0' }}>{opt.description}</p>
+                                                    <button onClick={() => handleSelectOption(opt.id || 'option_a')} className={opt.id === 'option_b' ? 'hover-btn-surface transition-all' : 'hover-btn-primary transition-all'} style={{ width: '100%', padding: '0.6rem 0', borderRadius: '0.375rem', backgroundColor: opt.id === 'option_b' ? '#34D399' : 'rgba(192, 193, 255, 0.15)', border: opt.id === 'option_b' ? 'none' : '1px solid rgba(192, 193, 255, 0.4)', color: opt.id === 'option_b' ? '#064E3B' : '#c0c1ff', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
+                                                        Select This Option
+                                                    </button>
+                                                </div>
+                                            ))}
 
-                                        {/* Option B */}
-                                        <div className="group hover-border-tertiary transition-all" style={{ padding: '1rem', borderRadius: '0.5rem', backgroundColor: 'rgba(52, 52, 61, 0.4)', border: '1px solid rgba(70, 69, 84, 0.3)' }}>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                                                <span style={{ fontFamily: '"Inter", sans-serif', fontSize: '13px', lineHeight: '18px', fontWeight: 700, letterSpacing: '0.01em', color: '#e4e1ed' }}>Option B</span>
-                                                <span className="material-symbols-outlined group-hover-opacity-100 transition-opacity" style={{ color: '#ffb783', opacity: 0 }}>shield</span>
-                                            </div>
-                                            <h4 style={{ fontFamily: '"Inter", sans-serif', fontSize: '16px', lineHeight: '26px', fontWeight: 700, color: '#e4e1ed', margin: '0 0 0.25rem 0' }}>Conservative Growth (Margin Preservation)</h4>
-                                            <p style={{ fontFamily: '"Inter", sans-serif', fontSize: '14px', lineHeight: '22px', fontWeight: 400, color: '#c7c4d7', margin: '0 0 1rem 0' }}>Focuses on risk mitigation and maintaining 85%+ gross margins via organic growth.</p>
-                                            <button className="hover-btn-surface transition-all" style={{ width: '100%', padding: '0.5rem 0', borderRadius: '0.375rem', backgroundColor: '#34343d', border: '1px solid rgba(70, 69, 84, 0.3)', color: '#c7c4d7', fontFamily: '"Inter", sans-serif', fontSize: '11px', lineHeight: '16px', fontWeight: 600, letterSpacing: '0.05em', cursor: 'pointer' }}>
-                                                Select This Option
-                                            </button>
                                         </div>
-
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                 </main>
 
-                {/* Proceed Blueprint Button outside below main tag */}
-                <div style={{ width: '100%', maxWidth: '1100px', flexShrink: 0 }}>
-                    <button onClick={() => { setActiveStep('dashboard'); router.push('/dashboard'); }} className="inner-glow hover-opacity-90 transition-all" style={{
-                        width: '100%',
-                        padding: '1rem 0',
-                        borderRadius: '0.75rem',
-                        backgroundImage: 'linear-gradient(to right, #8083ff, #c0c1ff)',
-                        color: '#1000a9',
-                        fontFamily: '"Plus Jakarta Sans", sans-serif',
-                        fontSize: '18px',
-                        lineHeight: '24px',
-                        fontWeight: 600,
-                        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        border: 'none',
-                        cursor: 'pointer'
-                    }}>
-                        Proceed Blueprint
+                {/* Proceed Blueprint Button */}
+                <div style={{ width: '100%', maxWidth: '1100px', flexShrink: 0, display: 'flex', justifyContent: 'center', margin: '0 auto 1.5rem auto' }}>
+                    <button 
+                        onClick={handleProceedBlueprint}
+                        disabled={!consensusReached}
+                        className="inner-glow transition-all" 
+                        style={{
+                            width: '280px',
+                            maxWidth: '28%',
+                            padding: '0.75rem 1.25rem',
+                            borderRadius: '0.75rem',
+                            backgroundImage: consensusReached ? 'linear-gradient(to right, #34D399, #10B981)' : 'linear-gradient(to right, #34343d, #464554)',
+                            color: consensusReached ? '#064E3B' : '#908fa0',
+                            fontFamily: '"Plus Jakarta Sans", sans-serif',
+                            fontSize: '14px',
+                            fontWeight: 700,
+                            boxShadow: consensusReached ? '0 0 25px rgba(52, 211, 153, 0.4)' : 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.5rem',
+                            border: 'none',
+                            cursor: consensusReached ? 'pointer' : 'not-allowed',
+                            opacity: consensusReached ? 1 : 0.6,
+                            textAlign: 'center',
+                            lineHeight: '1.4'
+                        }}
+                    >
+                        {consensusReached ? 'Proceed To Blueprint →' : 'Awaiting Debate Consensus...'}
                     </button>
                 </div>
             </div>

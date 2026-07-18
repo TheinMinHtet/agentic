@@ -55,7 +55,8 @@ export default function DashboardPage() {
         updateBrandPackageDirect,
         updateDigitalPresenceDirect,
         updateGrowthPlanDirect,
-        triggerRediscovery
+        triggerRediscovery,
+        verifiedBlueprint
     } = useWorkflow();
 
     // Editing & Rediscovery States
@@ -63,6 +64,50 @@ export default function DashboardPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [statusMessage, setStatusMessage] = useState('');
     const [steps, setSteps] = useState([]);
+
+    // Executive Action Center States
+    const [executingActions, setExecutingActions] = useState(false);
+    const [actionResults, setActionResults] = useState({
+        excel_model: null,
+        word_proposal: null,
+        calendar_schedule: null,
+        outreach_campaign: null
+    });
+
+    const handleExecuteAll = async () => {
+        setExecutingActions(true);
+        try {
+            const { executeAllDeliverables } = await import('../../agents/executionAgent');
+            const res = await executeAllDeliverables(verifiedBlueprint || {
+                company_name: refinedConcept?.companyName || "GrantFlow AI",
+                consensus_strategic_narrative: {
+                    improved_summary: refinedConcept?.improved_summary || "Automated compliance grant drafting.",
+                    verified_tam: marketResearch?.tam || "$4.2B TAM"
+                }
+            });
+            setActionResults(res);
+        } catch (err) {
+            console.error("Execution error:", err);
+        } finally {
+            setExecutingActions(false);
+        }
+    };
+
+    const handleExecuteSingle = async (type) => {
+        setExecutingActions(true);
+        try {
+            const { executeAllDeliverables } = await import('../../agents/executionAgent');
+            const options = { excel: false, docx: false, calendar: false, email: false, [type]: true };
+            const res = await executeAllDeliverables(verifiedBlueprint || {
+                company_name: refinedConcept?.companyName || "GrantFlow AI"
+            }, options);
+            setActionResults(prev => ({ ...prev, ...res }));
+        } catch (err) {
+            console.error("Single execution error:", err);
+        } finally {
+            setExecutingActions(false);
+        }
+    };
 
     // Temporary editing form states
     const [editConcept, setEditConcept] = useState('');
@@ -637,6 +682,202 @@ export default function DashboardPage() {
                         />
                     ) : (
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+
+                            {/* Executive Action Center Card */}
+                            <div style={{
+                                background: 'linear-gradient(135deg, rgba(27, 6, 36, 0.9) 0%, rgba(13, 18, 31, 0.95) 100%)',
+                                border: '1px solid rgba(0, 242, 254, 0.3)',
+                                borderRadius: '24px',
+                                padding: '28px',
+                                marginBottom: '32px',
+                                boxShadow: '0 20px 40px -15px rgba(0, 242, 254, 0.15)',
+                                position: 'relative',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{ position: 'absolute', top: '-50px', right: '-50px', width: '200px', height: '200px', background: 'radial-gradient(circle, rgba(174, 236, 29, 0.1) 0%, transparent 70%)', borderRadius: '50%', pointerEvents: 'none' }}></div>
+                                
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '20px' }}>
+                                    <div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                                            <span style={{ padding: '4px 12px', borderRadius: '9999px', backgroundColor: 'rgba(52, 211, 153, 0.15)', color: '#34D399', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(52, 211, 153, 0.3)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <CheckCircle size={14} /> Verified by WarRoom Audit
+                                            </span>
+                                            {verifiedBlueprint && (
+                                                <span style={{ padding: '4px 12px', borderRadius: '9999px', backgroundColor: 'rgba(0, 242, 254, 0.15)', color: '#00F2FE', fontSize: '12px', fontWeight: 700, border: '1px solid rgba(0, 242, 254, 0.3)' }}>
+                                                    Consensus: {verifiedBlueprint.consensus_score || 98}%
+                                                </span>
+                                            )}
+                                        </div>
+                                        <h3 style={{ fontSize: '22px', fontWeight: 800, color: '#FFFFFF', margin: '0 0 6px 0' }}>
+                                            ⚡ Executive Action Center (Deliverables Engine)
+                                        </h3>
+                                        <p style={{ fontSize: '14px', color: '#c7c4d7', margin: 0, maxWidth: '650px' }}>
+                                            One-click ReAct execution using verified unit economics and market parameters from your WarRoom debate session.
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        onClick={handleExecuteAll}
+                                        disabled={executingActions}
+                                        style={{
+                                            padding: '12px 24px',
+                                            borderRadius: '16px',
+                                            background: executingActions ? '#34343d' : 'linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%)',
+                                            color: executingActions ? '#908fa0' : '#0D121F',
+                                            fontWeight: 800,
+                                            fontSize: '14px',
+                                            border: 'none',
+                                            cursor: executingActions ? 'wait' : 'pointer',
+                                            boxShadow: executingActions ? 'none' : '0 10px 25px -5px rgba(0, 242, 254, 0.4)',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            transition: 'all 0.3s ease'
+                                        }}
+                                    >
+                                        <Sparkles size={18} />
+                                        {executingActions ? 'Executing ReAct Tools...' : '⚡ Execute All Deliverables'}
+                                    </button>
+                                </div>
+
+                                {/* Individual Action Buttons & Results */}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+                                    <button
+                                        onClick={() => handleExecuteSingle('excel')}
+                                        style={{
+                                            padding: '14px 16px',
+                                            borderRadius: '14px',
+                                            backgroundColor: actionResults.excel_model ? 'rgba(52, 211, 153, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                                            border: `1px solid ${actionResults.excel_model ? '#34D399' : 'rgba(255, 255, 255, 0.1)'}`,
+                                            color: '#FFFFFF',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'flex-start',
+                                            gap: '6px',
+                                            cursor: 'pointer',
+                                            textAlign: 'left'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                                            <span style={{ fontWeight: 700, fontSize: '14px', color: actionResults.excel_model ? '#34D399' : '#FFFFFF', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                📊 Excel Model (.xlsx)
+                                            </span>
+                                            {actionResults.excel_model && <span style={{ fontSize: '11px', color: '#34D399' }}>Ready ✓</span>}
+                                        </div>
+                                        <span style={{ fontSize: '12px', color: '#908fa0' }}>12-month formulas & runway</span>
+                                        {actionResults.excel_model && (
+                                            <a
+                                                href={actionResults.excel_model.download_url}
+                                                download={actionResults.excel_model.workbook_name}
+                                                onClick={(e) => e.stopPropagation()}
+                                                style={{ marginTop: '4px', fontSize: '12px', color: '#00F2FE', textDecoration: 'underline', fontWeight: 600 }}
+                                            >
+                                                Download Excel File →
+                                            </a>
+                                        )}
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleExecuteSingle('docx')}
+                                        style={{
+                                            padding: '14px 16px',
+                                            borderRadius: '14px',
+                                            backgroundColor: actionResults.word_proposal ? 'rgba(52, 211, 153, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                                            border: `1px solid ${actionResults.word_proposal ? '#34D399' : 'rgba(255, 255, 255, 0.1)'}`,
+                                            color: '#FFFFFF',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'flex-start',
+                                            gap: '6px',
+                                            cursor: 'pointer',
+                                            textAlign: 'left'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                                            <span style={{ fontWeight: 700, fontSize: '14px', color: actionResults.word_proposal ? '#34D399' : '#FFFFFF', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                📄 Word Proposal (.docx)
+                                            </span>
+                                            {actionResults.word_proposal && <span style={{ fontSize: '11px', color: '#34D399' }}>Ready ✓</span>}
+                                        </div>
+                                        <span style={{ fontSize: '12px', color: '#908fa0' }}>Lean Canvas & TAM TOC</span>
+                                        {actionResults.word_proposal && (
+                                            <span style={{ marginTop: '4px', fontSize: '12px', color: '#00F2FE', fontWeight: 600 }}>
+                                                {actionResults.word_proposal.document_name} Generated ✓
+                                            </span>
+                                        )}
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleExecuteSingle('calendar')}
+                                        style={{
+                                            padding: '14px 16px',
+                                            borderRadius: '14px',
+                                            backgroundColor: actionResults.calendar_schedule ? 'rgba(52, 211, 153, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                                            border: `1px solid ${actionResults.calendar_schedule ? '#34D399' : 'rgba(255, 255, 255, 0.1)'}`,
+                                            color: '#FFFFFF',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'flex-start',
+                                            gap: '6px',
+                                            cursor: 'pointer',
+                                            textAlign: 'left'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                                            <span style={{ fontWeight: 700, fontSize: '14px', color: actionResults.calendar_schedule ? '#34D399' : '#FFFFFF', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                📅 90-Day Calendar
+                                            </span>
+                                            {actionResults.calendar_schedule && <span style={{ fontSize: '11px', color: '#34D399' }}>Scheduled ✓</span>}
+                                        </div>
+                                        <span style={{ fontSize: '12px', color: '#908fa0' }}>Phase 1-3 Google Cal links</span>
+                                        {actionResults.calendar_schedule && actionResults.calendar_schedule.schedule && (
+                                            <a
+                                                href={actionResults.calendar_schedule.schedule[0]?.google_calendar_link}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                style={{ marginTop: '4px', fontSize: '12px', color: '#00F2FE', textDecoration: 'underline', fontWeight: 600 }}
+                                            >
+                                                Add Phase 1 to Google Calendar →
+                                            </a>
+                                        )}
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleExecuteSingle('email')}
+                                        style={{
+                                            padding: '14px 16px',
+                                            borderRadius: '14px',
+                                            backgroundColor: actionResults.outreach_campaign ? 'rgba(52, 211, 153, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+                                            border: `1px solid ${actionResults.outreach_campaign ? '#34D399' : 'rgba(255, 255, 255, 0.1)'}`,
+                                            color: '#FFFFFF',
+                                            display: 'flex',
+                                            flexDirection: 'column',
+                                            alignItems: 'flex-start',
+                                            gap: '6px',
+                                            cursor: 'pointer',
+                                            textAlign: 'left'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                                            <span style={{ fontWeight: 700, fontSize: '14px', color: actionResults.outreach_campaign ? '#34D399' : '#FFFFFF', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                📧 B2B Cold Outreach
+                                            </span>
+                                            {actionResults.outreach_campaign && <span style={{ fontSize: '11px', color: '#34D399' }}>Prepared ✓</span>}
+                                        </div>
+                                        <span style={{ fontSize: '12px', color: '#908fa0' }}>Personalized emails & attachments</span>
+                                        {actionResults.outreach_campaign && actionResults.outreach_campaign.dispatches && (
+                                            <a
+                                                href={actionResults.outreach_campaign.dispatches[0]?.mailto_link}
+                                                onClick={(e) => e.stopPropagation()}
+                                                style={{ marginTop: '4px', fontSize: '12px', color: '#00F2FE', textDecoration: 'underline', fontWeight: 600 }}
+                                            >
+                                                Open Mailto: Director Emily →
+                                            </a>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
 
                             {/* 1. BUSINESS OVERVIEW TAB */}
                             {activeTab === 'overview' && (
