@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "ui-designer": {
+      "source": "daniel-dan-conrad/ui-designer-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "f0ac5fa687f9a83d6d651df33ff0ab9394e06b71d17ab712b6ecb1438777219d"
+    }
+  }
+}

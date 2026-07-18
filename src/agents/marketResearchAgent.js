@@ -63,7 +63,8 @@ CRITICAL GUARDRAILS:
 - Saturation level: Must be between 0 and 100.
 - Currency: All currency and market sizing details must be calculated and displayed in MMK (Myanmar Kyat). Do NOT use USD ($). Use realistic local pricing and volume levels for Myanmar (e.g. a bottle of beverage is around 3,000 - 4,000 MMK, not 400 MMK; local customer budgets and TAM are in thousands/millions/billions of MMK).
 - Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Market Intelligence Report". Use headers (H2, H3), bullet points, and markdown tables. Outline Target Market, Competitors Mapping, and Trends/Saturation.
-- Language Alignment: Generate all textual properties, descriptions, target personas (names, roles, pain points, budget limits), competitor weaknesses, opportunities list, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).`;
+- Language Alignment: Generate all textual properties, descriptions, target personas (names, roles, pain points, budget limits), competitor weaknesses, opportunities list, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).
+- Blueprint Alignment: You MUST strictly respect all constraints, exclusions, and requirements specified in the Refined Startup Concept. For example, if the concept contains "Please Don't Use AI" or "No AI", you must NOT analyze AI competitor capabilities or AI-based trends; focus on traditional grant consulting competitors, template databases, compliance guides, and non-AI opportunities.`;
 
 export async function runMarketResearchAgent(refinedConcept, businessInfo, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({

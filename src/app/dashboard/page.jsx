@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import MarkdownPreviewer from '../components/MarkdownPreviewer';
 import { useLanguage } from '../context/LanguageContext';
 import RoadmapCalendar from '../components/RoadmapCalendar';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     ArrowLeft,
     FileText,
@@ -55,6 +56,7 @@ export default function DashboardPage() {
         updateBrandPackageDirect,
         updateDigitalPresenceDirect,
         updateGrowthPlanDirect,
+        updateRefinedConceptDirect,
         triggerRediscovery
     } = useWorkflow();
 
@@ -99,19 +101,25 @@ export default function DashboardPage() {
         let mounted = true;
 
         const fetchSingle = async (table) => {
-            const { data, error } = await supabase
-                .from(table)
-                .select('*')
-                .eq('idea_id', ideaId)
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .maybeSingle();
+            try {
+                const { data, error } = await supabase
+                    .from(table)
+                    .select('*')
+                    .eq('idea_id', ideaId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
 
-            if (error) {
-                throw error;
+                if (error) {
+                    console.error(`Supabase error for table ${table}:`, error);
+                    return null;
+                }
+
+                return data;
+            } catch (err) {
+                console.error(`Fetch exception for table ${table}:`, err);
+                return null;
             }
-
-            return data;
         };
 
         const loadHistoryDashboard = async () => {
@@ -311,13 +319,16 @@ export default function DashboardPage() {
         markdown_deliverable: `# Growth & Marketing Plan: GrantFlow AI\n\n## Acquisition Channels\n1. **Organic Search / SEO**: Target keywords targeting non-profit grant writing tips.\n2. **NPO Partnerships**: Partner with incubator programs.\n3. **Direct Email Outreach**: Target directors of foundation portals.\n\n## Launch Roadmap (First 90 Days)\n- **Phase 1 (Days 1-30)**: Alpha launch with 5 test non-profits. Collect compliance case studies.\n- **Phase 2 (Days 31-60)**: Push organic content articles. Run outreach sequences.\n- **Phase 3 (Days 61-90)**: Open paid tiers. Scale via partner affiliates.`
     };
 
+    // Alias fallbackMarketing to fallbackGrowth to prevent reference error
+    const fallbackGrowth = fallbackMarketing;
+
     const fallbackBusiness = businessPlan || {
         lean_canvas_markdown: `# Business Overview: Lean Canvas (GrantFlow AI)
-
+ 
 | PROBLEM | SOLUTION | UNIQUE VALUE PROP | UNFAIR ADVANTAGE | CUSTOMER SEGMENTS |
 |---|---|---|---|---|
 | • NPOs spend hundreds of hours researching grants.<br/>• High compliance rejection rates.<br/>• Lacks budget for professional grant writers. | • Tailored, automated grant proposal drafting SaaS.<br/>• High-precision compliance checking tools. | • Winning proposal narratives compiled in minutes instead of weeks at a fraction of agency costs. | • Compliance matching algorithm checking rules in real-time. | • Small-to-medium non-profits (NPOs).<br/>• Higher academic independent researchers. |
-
+ 
 | KEY METRICS | CHANNELS | COST STRUCTURE | REVENUE STREAMS |
 |---|---|---|---|
 | • Proposal compilation count.<br/>• Success rate ratio.<br/>• Monthly recurring revenue (MRR). | • Organic Search / SEO.<br/>• Direct NPO Partnerships.<br/>• Referral programs. | • LLM Token API consumption.<br/>• Cloud servers infrastructure.<br/>• Ads & basic marketing. | • Subscription plans ($49/mo & $99/mo).<br/>• Customized extra proposal generation credits. |`
@@ -359,6 +370,7 @@ export default function DashboardPage() {
         setStatusMessage(language === 'en' ? 'Saving edited details to your cloud configuration...' : 'ပြင်ဆင်ချက်များကို ဒေတာဘေ့စ်တွင် သိမ်းဆည်းနေပါသည်...');
         await new Promise(r => setTimeout(r, 1000));
 
+        let updatedValue = null;
         try {
             if (activeTab === 'overview') {
                 const updatedConcept = {
@@ -366,14 +378,8 @@ export default function DashboardPage() {
                     concept: editConcept,
                     key_differentiators: editDifferentiators.split('\n').filter(Boolean)
                 };
-                setRefinedConcept(updatedConcept);
-                await persistAgentOutput('agent_refinements', updatedConcept, (output) => ({
-                    thinking: output.thinking || '',
-                    concept: output.concept,
-                    improved_summary: output.improved_summary,
-                    key_differentiators: output.key_differentiators,
-                    target_audience_refined: output.target_audience_refined
-                }));
+                await updateRefinedConceptDirect(updatedConcept);
+                updatedValue = updatedConcept;
             } else if (activeTab === 'market') {
                 const updatedMarket = {
                     ...fallbackMarket,
@@ -383,6 +389,7 @@ export default function DashboardPage() {
                     target_personas: editMarketPersonas
                 };
                 await updateMarketResearchDirect(updatedMarket);
+                updatedValue = updatedMarket;
             } else if (activeTab === 'finance') {
                 const updatedFinance = {
                     ...fallbackFinance,
@@ -392,6 +399,7 @@ export default function DashboardPage() {
                     pricingStrategy: editFinancePricing
                 };
                 await updateFinanceModelDirect(updatedFinance);
+                updatedValue = updatedFinance;
             } else if (activeTab === 'brand') {
                 const updatedBrand = {
                     ...fallbackBrand,
@@ -400,6 +408,7 @@ export default function DashboardPage() {
                     voice: editBrandVoice
                 };
                 await updateBrandPackageDirect(updatedBrand);
+                updatedValue = updatedBrand;
             } else if (activeTab === 'digital') {
                 const updatedDigital = {
                     ...fallbackDigital,
@@ -407,6 +416,7 @@ export default function DashboardPage() {
                     features: editDigitalFeatures.split(',').map(s => s.trim()).filter(Boolean)
                 };
                 await updateDigitalPresenceDirect(updatedDigital);
+                updatedValue = updatedDigital;
             } else if (activeTab === 'growth') {
                 const updatedGrowth = {
                     ...fallbackGrowth,
@@ -414,6 +424,7 @@ export default function DashboardPage() {
                     acquisitionPlan: editGrowthPlanText
                 };
                 await updateGrowthPlanDirect(updatedGrowth);
+                updatedValue = updatedGrowth;
             }
 
             setSteps([
@@ -425,7 +436,7 @@ export default function DashboardPage() {
             await new Promise(r => setTimeout(r, 1200));
 
             // Re-run downstream agents and integrator
-            await triggerRediscovery(activeTab);
+            await triggerRediscovery(activeTab, updatedValue);
 
             setSteps([
                 { label: language === 'en' ? 'Persisting edited values' : 'ပြင်ဆင်ချက်များကို သိမ်းဆည်းနေသည်', status: 'completed' },
@@ -457,26 +468,48 @@ export default function DashboardPage() {
     const currentTabInfo = tabsList.find(t => t.id === activeTab);
 
     return (
-        <section className="dashboard-section container" style={{ minHeight: 'calc(100vh - 56px)' }}>
+        <section className="perplexity-dashboard-container container">
+            {/* Background Spotlights */}
+            <div className="perplexity-dashboard-glow-1" />
+            <div className="perplexity-dashboard-glow-2" />
 
             {/* Dashboard Header */}
-            <div className="dashboard-header" style={{
-                borderBottom: '1px solid var(--color-border-light)',
-                paddingBottom: '24px',
-                marginBottom: '32px'
-            }}>
+            <div className="perplexity-dashboard-header">
                 <div>
-                    <span className="badge-accent dashboard-badge" style={{ fontWeight: 800 }}>{language === 'en' ? '✦ SYSTEM BLUEPRINT GENERATED' : '✦ လုပ်ငန်းစီမံချက် ဖန်တီးပြီးပါပြီ'}</span>
-                    <h2 style={{ fontSize: '36px', fontWeight: 900, marginTop: '8px', fontFamily: 'var(--typography-heading-family)' }}>
+                    <div className="perplexity-dashboard-header-badge">
+                        <Sparkles size={12} style={{ color: 'var(--color-accent)' }} />
+                        <span>{language === 'en' ? 'SYSTEM BLUEPRINT GENERATED' : 'လုပ်ငန်းစီမံချက် ဖန်တီးပြီးပါပြီ'}</span>
+                    </div>
+                    <h2 className="perplexity-dashboard-header-title">
                         {fallbackBrand.names[0] || (language === 'en' ? 'Startup Blueprint' : 'လုပ်ငန်းစီမံချက်')}
                     </h2>
-                    <p className="text-secondary" style={{ fontSize: '15px', marginTop: '4px', maxWidth: '680px' }}>
+                    <p className="perplexity-dashboard-header-subtitle">
                         {fallbackConcept.improved_summary}
                     </p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '16px' }}>
-                    <button className="button-secondary" onClick={handleRestart} style={{ borderRadius: '12px' }}>
+                <div>
+                    <button
+                        className="button-secondary"
+                        onClick={handleRestart}
+                        style={{
+                            borderRadius: '12px',
+                            padding: '10px 18px',
+                            fontSize: '14px',
+                            fontWeight: 600,
+                            backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                            border: '1px solid rgba(255, 255, 255, 0.1)',
+                            color: '#E2E8F0',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s ease',
+                            outline: 'none'
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)'; }}
+                    >
                         <ArrowLeft size={16} />
                         {t('dashboard.buttonNew')}
                     </button>
@@ -484,21 +517,10 @@ export default function DashboardPage() {
             </div>
 
             {/* Main Tabs Layout */}
-            <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'minmax(0, 260px) minmax(0, 1fr)',
-                gap: '40px',
-                alignItems: 'start'
-            }}>
+            <div className="perplexity-dashboard-grid-layout">
 
                 {/* Left Sidebar Navigation */}
-                <aside style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: '8px',
-                    position: 'sticky',
-                    top: '80px'
-                }}>
+                <aside className="perplexity-dashboard-sidebar">
                     {tabsList.map(({ id, label, icon: Icon }) => (
                         <button
                             key={id}
@@ -506,41 +528,27 @@ export default function DashboardPage() {
                                 setActiveTab(id);
                                 setPreviewDoc(false);
                             }}
-                            style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px',
-                                padding: '14px 20px',
-                                borderRadius: '16px',
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontSize: '15px',
-                                fontWeight: 700,
-                                textAlign: 'left',
-                                backgroundColor: activeTab === id ? 'var(--color-primary)' : 'transparent',
-                                color: activeTab === id ? 'white' : 'var(--color-text-secondary)',
-                                transition: 'all 0.2s ease-in-out'
-                            }}
-                            className="dashboard-tab-btn"
+                            className={`perplexity-dashboard-tab-btn ${activeTab === id ? 'active' : ''}`}
+                            style={{ position: 'relative' }}
                         >
-                            <Icon size={18} />
-                            {label}
+                            {activeTab === id && (
+                                <motion.div
+                                    layoutId="activeTabIndicator"
+                                    className="perplexity-dashboard-active-pill"
+                                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                                />
+                            )}
+                            <span style={{ zIndex: 1, display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
+                                <Icon size={18} style={{ color: activeTab === id ? 'var(--color-accent)' : 'inherit', transition: 'color 0.2s' }} />
+                                <span style={{ flex: 1 }}>{label}</span>
+                            </span>
                         </button>
                     ))}
                 </aside>
 
                 {/* Right Tab Panel Content */}
-                <main className="card" style={{
-                    position: 'relative',
-                    borderRadius: '32px',
-                    padding: '40px',
-                    backgroundColor: 'var(--color-surface-medium)',
-                    boxShadow: 'var(--elevation-card)',
-                    minHeight: '520px',
-                    display: 'flex',
-                    flexDirection: 'column'
-                }}>
-                    {/* Glowing Scan and Loading Overlay */}
+                <main className="perplexity-dashboard-main-card">
+                    {/* Glowing Scan Overlay */}
                     <AgentRediscoveryOverlay
                         isVisible={isSaving}
                         statusMessage={statusMessage}
@@ -548,15 +556,8 @@ export default function DashboardPage() {
                     />
 
                     {/* Tab Header Controls */}
-                    <div style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        borderBottom: '1px solid var(--color-border-light)',
-                        paddingBottom: '16px',
-                        marginBottom: '32px'
-                    }}>
-                        <h3 style={{ fontSize: '24px', fontWeight: 900, fontFamily: 'var(--typography-heading-family)' }}>
+                    <div className="perplexity-dashboard-panel-header">
+                        <h3 className="perplexity-dashboard-panel-title">
                             {currentTabInfo.label}
                         </h3>
 
@@ -569,11 +570,18 @@ export default function DashboardPage() {
                                             onClick={() => setIsEditing(false)}
                                             style={{
                                                 borderRadius: '12px',
-                                                fontSize: '13px',
+                                                fontSize: '13.5px',
+                                                fontWeight: 600,
                                                 minHeight: '38px',
                                                 padding: '8px 16px',
-                                                cursor: 'pointer'
+                                                cursor: 'pointer',
+                                                backgroundColor: 'rgba(255,255,255,0.04)',
+                                                border: '1px solid rgba(255,255,255,0.08)',
+                                                color: '#E2E8F0',
+                                                outline: 'none'
                                             }}
+                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'}
+                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'}
                                         >
                                             {language === 'en' ? 'Cancel' : 'မလုပ်တော့ပါ'}
                                         </button>
@@ -582,12 +590,16 @@ export default function DashboardPage() {
                                             onClick={handleSaveAndRediscover}
                                             style={{
                                                 borderRadius: '12px',
-                                                fontSize: '13px',
+                                                fontSize: '13.5px',
+                                                fontWeight: 600,
                                                 minHeight: '38px',
                                                 padding: '8px 16px',
                                                 background: 'linear-gradient(135deg, #6366F1 0%, #3B82F6 100%)',
                                                 color: '#FFFFFF',
-                                                cursor: 'pointer'
+                                                cursor: 'pointer',
+                                                border: 'none',
+                                                boxShadow: '0 4px 15px rgba(99, 102, 241, 0.35)',
+                                                outline: 'none'
                                             }}
                                         >
                                             {language === 'en' ? 'Save & Rediscover' : 'ပြင်ဆင်ချက်သိမ်းပြီး ပြန်လည်မောင်းနှင်ရန်'}
@@ -599,13 +611,23 @@ export default function DashboardPage() {
                                         onClick={handleStartEdit}
                                         style={{
                                             borderRadius: '12px',
-                                            fontSize: '13px',
+                                            fontSize: '13.5px',
+                                            fontWeight: 600,
                                             minHeight: '38px',
                                             padding: '8px 16px',
-                                            cursor: 'pointer'
+                                            cursor: 'pointer',
+                                            backgroundColor: 'rgba(255,255,255,0.04)',
+                                            border: '1px solid rgba(255,255,255,0.08)',
+                                            color: '#E2E8F0',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '6px',
+                                            outline: 'none'
                                         }}
+                                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'}
+                                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'}
                                     >
-                                        {language === 'en' ? '✏️ Edit Config' : '✏️ ပြင်ဆင်ရန်'}
+                                        <span>✏️</span> {language === 'en' ? 'Edit Config' : 'ပြင်ဆင်ရန်'}
                                     </button>
                                 )
                             )}
@@ -617,741 +639,766 @@ export default function DashboardPage() {
                                 }}
                                 style={{
                                     borderRadius: '12px',
-                                    fontSize: '13px',
+                                    fontSize: '13.5px',
+                                    fontWeight: 600,
                                     minHeight: '38px',
                                     padding: '8px 16px',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer',
+                                    backgroundColor: previewDoc ? 'rgba(255,255,255,0.06)' : 'var(--color-primary)',
+                                    border: previewDoc ? '1px solid rgba(255,255,255,0.1)' : 'none',
+                                    color: '#FFFFFF',
+                                    boxShadow: previewDoc ? 'none' : '0 4px 15px rgba(99, 102, 241, 0.25)',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    outline: 'none'
                                 }}
                             >
                                 <FileText size={16} />
-                                {previewDoc ? (language === 'en' ? 'Show Dashboard View' : 'ဒက်ရှ်ဘုတ် မြင်ကွင်း ပြရန်') : (language === 'en' ? 'Preview Document (.md)' : 'စာရွက်စာတမ်း ဖတ်ရန် (.md)')}
+                                <span>{previewDoc ? (language === 'en' ? 'Show Dashboard View' : 'ဒက်ရှ်ဘုတ် မြင်ကွင်း ပြရန်') : (language === 'en' ? 'Preview Document (.md)' : 'စာရွက်စာတမ်း ဖတ်ရန် (.md)')}</span>
                             </button>
                         </div>
                     </div>
 
                     {/* Content Section: Markdown Document Preview vs Styled UI Layout */}
-                    {previewDoc ? (
-                        <MarkdownPreviewer
-                            markdown={currentTabInfo.deliverable}
-                            filename={currentTabInfo.filename}
-                        />
-                    ) : (
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab + (previewDoc ? '-preview' : '-view') + (isEditing ? '-edit' : '-read')}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -12 }}
+                            transition={{ duration: 0.25, ease: 'easeInOut' }}
+                            style={{ flex: 1, display: 'flex', flexDirection: 'column', zIndex: 1 }}
+                        >
+                            {previewDoc ? (
+                                <MarkdownPreviewer
+                                    markdown={currentTabInfo.deliverable}
+                                    filename={currentTabInfo.filename}
+                                />
+                            ) : (
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
 
-                            {/* 1. BUSINESS OVERVIEW TAB */}
-                            {activeTab === 'overview' && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                    {isEditing ? (
-                                        <>
-                                            <div style={{ backgroundColor: 'var(--color-background)', padding: '24px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{t('dashboard.concept')}</h4>
-                                                <textarea
-                                                    value={editConcept}
-                                                    onChange={(e) => setEditConcept(e.target.value)}
-                                                    style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', fontSize: '15px', lineHeight: '1.6', fontFamily: 'var(--font-inter)', minHeight: '120px', outline: 'none' }}
-                                                />
-                                            </div>
-                                            <div style={{ backgroundColor: 'var(--color-background)', padding: '24px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{t('dashboard.differentiators')} ({language === 'en' ? 'One per line' : 'တစ်ကြောင်းလျှင် တစ်ခု'})</h4>
-                                                <textarea
-                                                    value={editDifferentiators}
-                                                    onChange={(e) => setEditDifferentiators(e.target.value)}
-                                                    placeholder={language === 'en' ? 'Line 1\nLine 2...' : 'ပထမအချက်\nဒုတိယအချက်...'}
-                                                    style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', fontSize: '15px', lineHeight: '1.6', fontFamily: 'var(--font-inter)', minHeight: '120px', outline: 'none' }}
-                                                />
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div style={{ backgroundColor: 'var(--color-background)', padding: '24px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '8px' }}>{t('dashboard.concept')}</h4>
-                                                <p style={{ margin: 0, fontSize: '15px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>
-                                                    {fallbackConcept.concept}
-                                                </p>
-                                            </div>
-                                            <div style={{ backgroundColor: 'var(--color-background)', padding: '24px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '16px' }}>{t('dashboard.differentiators')}</h4>
-                                                <ul style={{ margin: 0, paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                                    {fallbackConcept.key_differentiators.map((diff, idx) => (
-                                                        <li key={idx} style={{ fontSize: '15px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
-                                                            {diff}
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* 2. MARKET INTELLIGENCE TAB */}
-                            {activeTab === 'market' && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-                                    {isEditing ? (
-                                        <>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
-                                                        {language === 'en' ? 'Total Addressable Market (TAM)' : 'စုစုပေါင်း TAM'}
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={editMarketTam}
-                                                        onChange={(e) => setEditMarketTam(e.target.value)}
-                                                        style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', fontSize: '15px', outline: 'none' }}
-                                                    />
-                                                </div>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
-                                                        {language === 'en' ? 'Market Saturation Index (%)' : 'ဈေးကွက် ပြည့်နှက်မှု အညွှန်းကိန်း (%)'}
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        value={editMarketSaturation}
-                                                        onChange={(e) => setEditMarketSaturation(Number(e.target.value))}
-                                                        style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', fontSize: '15px', outline: 'none' }}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Competitors List Table */}
-                                            <div>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                                    <h4 style={{ fontWeight: 900, margin: 0 }}>{language === 'en' ? 'Competitor Analysis' : 'ပြိုင်ဘက်များ ဆန်းစစ်ချက်'}</h4>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setEditMarketCompetitors([...editMarketCompetitors, { name: '', url: '', weakness: '' }])}
-                                                        style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                                    >
-                                                        <Plus size={14} /> {language === 'en' ? 'Add' : 'ထည့်ရန်'}
-                                                    </button>
-                                                </div>
-                                                <div style={{ overflowX: 'auto', borderRadius: '16px', border: '1px solid var(--color-border-light)' }}>
-                                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', backgroundColor: 'var(--color-background)' }}>
-                                                        <thead>
-                                                            <tr style={{ backgroundColor: 'var(--color-surface-light)', borderBottom: '2px solid var(--color-border-light)' }}>
-                                                                <th style={{ padding: '12px 16px', fontWeight: 800, textAlign: 'left' }}>{language === 'en' ? 'Competitor' : 'ပြိုင်ဘက်'}</th>
-                                                                <th style={{ padding: '12px 16px', fontWeight: 800, textAlign: 'left' }}>{language === 'en' ? 'Domain / URL' : 'ဝဘ်လိပ်စာ / URL'}</th>
-                                                                <th style={{ padding: '12px 16px', fontWeight: 800, textAlign: 'left' }}>{language === 'en' ? 'Weak Spot' : 'အားနည်းချက်'}</th>
-                                                                <th style={{ padding: '12px 16px', width: '60px' }}></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {editMarketCompetitors.map((comp, idx) => (
-                                                                <tr key={idx} style={{ borderBottom: idx === editMarketCompetitors.length - 1 ? 'none' : '1px solid var(--color-border-light)' }}>
-                                                                    <td style={{ padding: '8px 12px' }}>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={comp.name}
-                                                                            onChange={(e) => {
-                                                                                const updated = [...editMarketCompetitors];
-                                                                                updated[idx].name = e.target.value;
-                                                                                setEditMarketCompetitors(updated);
-                                                                            }}
-                                                                            style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', outline: 'none' }}
-                                                                        />
-                                                                    </td>
-                                                                    <td style={{ padding: '8px 12px' }}>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={comp.url}
-                                                                            onChange={(e) => {
-                                                                                const updated = [...editMarketCompetitors];
-                                                                                updated[idx].url = e.target.value;
-                                                                                setEditMarketCompetitors(updated);
-                                                                            }}
-                                                                            style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', outline: 'none' }}
-                                                                        />
-                                                                    </td>
-                                                                    <td style={{ padding: '8px 12px' }}>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={comp.weakness}
-                                                                            onChange={(e) => {
-                                                                                const updated = [...editMarketCompetitors];
-                                                                                updated[idx].weakness = e.target.value;
-                                                                                setEditMarketCompetitors(updated);
-                                                                            }}
-                                                                            style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', outline: 'none' }}
-                                                                        />
-                                                                    </td>
-                                                                    <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => setEditMarketCompetitors(editMarketCompetitors.filter((_, i) => i !== idx))}
-                                                                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                                                        >
-                                                                            <Trash2 size={16} />
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
+                                    {/* 1. BUSINESS OVERVIEW TAB */}
+                                    {activeTab === 'overview' && (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                                            {isEditing ? (
+                                                <>
+                                                    <div className="perplexity-dashboard-glass-box-edit">
+                                                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>{t('dashboard.concept')}</label>
+                                                        <textarea
+                                                            value={editConcept}
+                                                            onChange={(e) => setEditConcept(e.target.value)}
+                                                            className="input-text"
+                                                            style={{ width: '100%', minHeight: '140px', outline: 'none' }}
+                                                        />
+                                                    </div>
+                                                    <div className="perplexity-dashboard-glass-box-edit">
+                                                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>{t('dashboard.differentiators')} ({language === 'en' ? 'One per line' : 'တစ်ကြောင်းလျှင် တစ်ခု'})</label>
+                                                        <textarea
+                                                            value={editDifferentiators}
+                                                            onChange={(e) => setEditDifferentiators(e.target.value)}
+                                                            placeholder={language === 'en' ? 'Line 1\nLine 2...' : 'ပထမအချက်\nဒုတိယအချက်...'}
+                                                            className="input-text"
+                                                            style={{ width: '100%', minHeight: '120px', outline: 'none' }}
+                                                        />
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="perplexity-dashboard-glass-box">
+                                                        <h4 style={{ fontWeight: 900, fontSize: '18px', color: '#ffffff', marginBottom: '14px', letterSpacing: '-0.01em' }}>{t('dashboard.concept')}</h4>
+                                                        <p className="perplexity-dashboard-concept-text">
+                                                            {fallbackConcept.concept}
+                                                        </p>
+                                                    </div>
+                                                    <div className="perplexity-dashboard-glass-box">
+                                                        <h4 style={{ fontWeight: 900, fontSize: '18px', color: '#ffffff', marginBottom: '20px', letterSpacing: '-0.01em' }}>{t('dashboard.differentiators')}</h4>
+                                                        <ul className="perplexity-dashboard-bullet-list">
+                                                            {fallbackConcept.key_differentiators.map((diff, idx) => (
+                                                                <li key={idx} className="perplexity-dashboard-bullet-item">
+                                                                    <span className="perplexity-dashboard-bullet-dot" />
+                                                                    <span>{diff}</span>
+                                                                </li>
                                                             ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
+                                                        </ul>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
 
-                                            {/* ICP target personas */}
-                                            <div>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{language === 'en' ? 'Target Customer Personas' : 'ပစ်မှတ် သုံးစွဲသူအမျိုးအစား'}</h4>
-                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                                    {editMarketPersonas.map((pers, idx) => (
-                                                        <div key={idx} style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                                                <input
-                                                                    type="text"
-                                                                    placeholder="Persona Name"
-                                                                    value={pers.name}
-                                                                    onChange={(e) => {
-                                                                        const updated = [...editMarketPersonas];
-                                                                        updated[idx].name = e.target.value;
-                                                                        setEditMarketPersonas(updated);
-                                                                    }}
-                                                                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', fontSize: '14px', fontWeight: 800, outline: 'none' }}
-                                                                />
-                                                                <input
-                                                                    type="text"
-                                                                    placeholder="Role/Job"
-                                                                    value={pers.role}
-                                                                    onChange={(e) => {
-                                                                        const updated = [...editMarketPersonas];
-                                                                        updated[idx].role = e.target.value;
-                                                                        setEditMarketPersonas(updated);
-                                                                    }}
-                                                                    style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', fontSize: '12px', outline: 'none' }}
-                                                                />
-                                                                <div>
-                                                                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '4px' }}>Pain Points (one per line):</label>
-                                                                    <textarea
-                                                                        value={pers.pain_points.join('\n')}
-                                                                        onChange={(e) => {
-                                                                            const updated = [...editMarketPersonas];
-                                                                            updated[idx].pain_points = e.target.value.split('\n').filter(Boolean);
-                                                                            setEditMarketPersonas(updated);
-                                                                        }}
-                                                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', fontSize: '13px', minHeight: '60px', outline: 'none', fontFamily: 'var(--font-inter)' }}
-                                                                    />
-                                                                </div>
-                                                                <div>
-                                                                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '4px' }}>Price Sensitivity / Limit:</label>
+                                    {/* 2. MARKET INTELLIGENCE TAB */}
+                                    {activeTab === 'market' && (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                                            {isEditing ? (
+                                                <>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                                                        <div className="perplexity-dashboard-glass-box-edit">
+                                                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                                                {language === 'en' ? 'Total Addressable Market (TAM)' : 'စုစုပေါင်း TAM'}
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                value={editMarketTam}
+                                                                onChange={(e) => setEditMarketTam(e.target.value)}
+                                                                className="input-text"
+                                                                style={{ width: '100%' }}
+                                                            />
+                                                        </div>
+                                                        <div className="perplexity-dashboard-glass-box-edit">
+                                                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>
+                                                                {language === 'en' ? 'Market Saturation Index (%)' : 'ဈေးကွက် ပြည့်နှက်မှု အညွှန်းကိန်း (%)'}
+                                                            </label>
+                                                            <input
+                                                                type="number"
+                                                                value={editMarketSaturation}
+                                                                onChange={(e) => setEditMarketSaturation(Number(e.target.value))}
+                                                                className="input-text"
+                                                                style={{ width: '100%' }}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Competitors List Table */}
+                                                    <div>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                                                            <h4 style={{ fontWeight: 900, margin: 0, color: '#ffffff' }}>{language === 'en' ? 'Competitor Analysis' : 'ပြိုင်ဘက်များ ဆန်းစစ်ချက်'}</h4>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setEditMarketCompetitors([...editMarketCompetitors, { name: '', url: '', weakness: '' }])}
+                                                                style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+                                                            >
+                                                                <Plus size={14} /> {language === 'en' ? 'Add' : 'ထည့်ရန်'}
+                                                            </button>
+                                                        </div>
+                                                        <div className="perplexity-dashboard-table-container">
+                                                            <table className="perplexity-dashboard-table">
+                                                                <thead>
+                                                                    <tr className="perplexity-dashboard-table-header-row">
+                                                                        <th className="perplexity-dashboard-table-header-cell">{language === 'en' ? 'Competitor' : 'ပြိုင်ဘက်'}</th>
+                                                                        <th className="perplexity-dashboard-table-header-cell">{language === 'en' ? 'Domain / URL' : 'ဝဘ်လိပ်စာ / URL'}</th>
+                                                                        <th className="perplexity-dashboard-table-header-cell">{language === 'en' ? 'Weak Spot' : 'အားနည်းချက်'}</th>
+                                                                        <th style={{ padding: '12px 16px', width: '60px' }}></th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {editMarketCompetitors.map((comp, idx) => (
+                                                                        <tr key={idx} className="perplexity-dashboard-table-row">
+                                                                            <td className="perplexity-dashboard-table-cell" style={{ padding: '8px 12px' }}>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={comp.name}
+                                                                                    onChange={(e) => {
+                                                                                        const updated = [...editMarketCompetitors];
+                                                                                        updated[idx].name = e.target.value;
+                                                                                        setEditMarketCompetitors(updated);
+                                                                                    }}
+                                                                                    className="input-text"
+                                                                                    style={{ width: '100%', padding: '8px 12px' }}
+                                                                                />
+                                                                            </td>
+                                                                            <td className="perplexity-dashboard-table-cell" style={{ padding: '8px 12px' }}>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={comp.url}
+                                                                                    onChange={(e) => {
+                                                                                        const updated = [...editMarketCompetitors];
+                                                                                        updated[idx].url = e.target.value;
+                                                                                        setEditMarketCompetitors(updated);
+                                                                                    }}
+                                                                                    className="input-text"
+                                                                                    style={{ width: '100%', padding: '8px 12px' }}
+                                                                                />
+                                                                            </td>
+                                                                            <td className="perplexity-dashboard-table-cell" style={{ padding: '8px 12px' }}>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={comp.weakness}
+                                                                                    onChange={(e) => {
+                                                                                        const updated = [...editMarketCompetitors];
+                                                                                        updated[idx].weakness = e.target.value;
+                                                                                        setEditMarketCompetitors(updated);
+                                                                                    }}
+                                                                                    className="input-text"
+                                                                                    style={{ width: '100%', padding: '8px 12px' }}
+                                                                                />
+                                                                            </td>
+                                                                            <td className="perplexity-dashboard-table-cell" style={{ padding: '8px 12px', textAlign: 'center' }}>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => setEditMarketCompetitors(editMarketCompetitors.filter((_, i) => i !== idx))}
+                                                                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                                                >
+                                                                                    <Trash2 size={16} />
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* ICP target personas */}
+                                                    <div>
+                                                        <h4 style={{ fontWeight: 900, marginBottom: '14px', color: '#ffffff' }}>{language === 'en' ? 'Target Customer Personas' : 'ပစ်မှတ် သုံးစွဲသူအမျိုးအစား'}</h4>
+                                                        <div className="perplexity-dashboard-persona-grid">
+                                                            {editMarketPersonas.map((pers, idx) => (
+                                                                <div key={idx} className="perplexity-dashboard-glass-box-edit" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                                                                     <input
                                                                         type="text"
-                                                                        value={pers.budget_limit}
+                                                                        placeholder="Persona Name"
+                                                                        value={pers.name}
                                                                         onChange={(e) => {
                                                                             const updated = [...editMarketPersonas];
-                                                                            updated[idx].budget_limit = e.target.value;
+                                                                            updated[idx].name = e.target.value;
                                                                             setEditMarketPersonas(updated);
                                                                         }}
-                                                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', fontSize: '12px', outline: 'none' }}
+                                                                        className="input-text"
+                                                                        style={{ width: '100%', padding: '8px 12px', fontSize: '14.5px', fontWeight: 800 }}
                                                                     />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)', textAlign: 'center' }}>
-                                                    <p style={{ margin: '0 0 6px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>{language === 'en' ? 'Total Addressable Market' : 'စုစုပေါင်း ဆွဲဆောင်နိုင်သည့် ဈေးကွက် TAM'}</p>
-                                                    <h4 style={{ margin: 0, fontSize: '28px', fontWeight: 900, color: 'var(--color-primary)' }}>{fallbackMarket.tam}</h4>
-                                                </div>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)', textAlign: 'center' }}>
-                                                    <p style={{ margin: '0 0 6px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>{language === 'en' ? 'Market Saturation Index' : 'ဈေးကွက် ပြည့်နှက်မှု အညွှန်းကိန်း'}</p>
-                                                    <h4 style={{ margin: 0, fontSize: '28px', fontWeight: 900, color: 'var(--color-primary)' }}>{fallbackMarket.saturation_level}%</h4>
-                                                </div>
-                                            </div>
-
-                                            {/* Competitors List Table */}
-                                            <div>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{language === 'en' ? 'Competitor Analysis' : 'ပြိုင်ဘက်များ ဆန်းစစ်ချက်'}</h4>
-                                                <div style={{ overflowX: 'auto', borderRadius: '16px', border: '1px solid var(--color-border-light)' }}>
-                                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', backgroundColor: 'var(--color-background)' }}>
-                                                        <thead>
-                                                            <tr style={{ backgroundColor: 'var(--color-surface-light)', borderBottom: '2px solid var(--color-border-light)' }}>
-                                                                <th style={{ padding: '12px 16px', fontWeight: 800, textAlign: 'left' }}>{language === 'en' ? 'Competitor' : 'ပြိုင်ဘက်'}</th>
-                                                                <th style={{ padding: '12px 16px', fontWeight: 800, textAlign: 'left' }}>{language === 'en' ? 'Domain / URL' : 'ဝဘ်လိပ်စာ / URL'}</th>
-                                                                <th style={{ padding: '12px 16px', fontWeight: 800, textAlign: 'left' }}>{language === 'en' ? 'Weak Spot' : 'အားနည်းချက်'}</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {fallbackMarket.competitors.map((comp, idx) => (
-                                                                <tr key={idx} style={{ borderBottom: idx === fallbackMarket.competitors.length - 1 ? 'none' : '1px solid var(--color-border-light)' }}>
-                                                                    <td style={{ padding: '12px 16px', fontWeight: 700 }}>{comp.name}</td>
-                                                                    <td style={{ padding: '12px 16px', color: 'var(--color-text-muted)' }}>
-                                                                        {comp.url.startsWith('http') ? (
-                                                                            <a href={comp.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--color-link)', textDecoration: 'underline' }}>
-                                                                                {comp.url} <ExternalLink size={12} />
-                                                                            </a>
-                                                                        ) : comp.url}
-                                                                    </td>
-                                                                    <td style={{ padding: '12px 16px', color: 'var(--color-text-secondary)' }}>{comp.weakness}</td>
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-
-                                            {/* ICP target personas */}
-                                            <div>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{language === 'en' ? 'Target Customer Personas' : 'ပစ်မှတ် သုံးစွဲသူအမျိုးအစား'}</h4>
-                                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                                    {fallbackMarket.target_personas.map((pers, idx) => (
-                                                        <div key={idx} style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                            <h5 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 900 }}>{pers.name}</h5>
-                                                            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>{pers.role}</span>
-                                                            <div style={{ marginTop: '12px' }}>
-                                                                <p style={{ margin: '0 0 6px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)' }}>{language === 'en' ? 'Key Pain Points:' : 'အဓิက အခက်အခဲများ -'}</p>
-                                                                <ul style={{ margin: 0, paddingLeft: '16px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                                                                    {pers.pain_points.map((p, i) => <li key={i}>{p}</li>)}
-                                                                </ul>
-                                                            </div>
-                                                            <p style={{ margin: '12px 0 0 0', fontSize: '12px', color: 'var(--color-text-secondary)' }}>
-                                                                <strong>{language === 'en' ? 'Price Sensitivity:' : 'စျေးနှုန်းအပေါ် တုံ့ပြန်လွယ်မှု -'}</strong> {pers.budget_limit}
-                                                            </p>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* 3. FINANCIAL MODEL TAB */}
-                            {activeTab === 'finance' && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                    {isEditing ? (
-                                        <>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '8px' }}>{t('dashboard.breakeven')} ({t('dashboard.months')})</label>
-                                                    <input
-                                                        type="number"
-                                                        value={editFinanceBreakeven}
-                                                        onChange={(e) => setEditFinanceBreakeven(Number(e.target.value))}
-                                                        style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', outline: 'none' }}
-                                                    />
-                                                </div>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', marginBottom: '8px' }}>{t('dashboard.monthlyRevenue')}</label>
-                                                    <input
-                                                        type="text"
-                                                        value={editFinanceForecast}
-                                                        onChange={(e) => setEditFinanceForecast(e.target.value)}
-                                                        style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', outline: 'none' }}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Cost table */}
-                                            <div>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                                    <h4 style={{ fontWeight: 900, margin: 0 }}>{t('dashboard.initialCost')}</h4>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setEditFinanceCosts([...editFinanceCosts, { item: '', cost: 0 }])}
-                                                        style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
-                                                    >
-                                                        <Plus size={14} /> {language === 'en' ? 'Add' : 'ထည့်ရန်'}
-                                                    </button>
-                                                </div>
-                                                <div style={{ overflowX: 'auto', borderRadius: '16px', border: '1px solid var(--color-border-light)' }}>
-                                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', backgroundColor: 'var(--color-background)' }}>
-                                                        <thead>
-                                                            <tr style={{ backgroundColor: 'var(--color-surface-light)', borderBottom: '2px solid var(--color-border-light)' }}>
-                                                                <th style={{ padding: '12px 16px', fontWeight: 800, textAlign: 'left' }}>{language === 'en' ? 'Expense Item' : 'အသုံးစရိတ် အမျိုးအစား'}</th>
-                                                                <th style={{ padding: '12px 16px', fontWeight: 800, textAlign: 'right', width: '180px' }}>{language === 'en' ? 'Cost' : 'ကုန်ကျစရိတ်'} (MMK)</th>
-                                                                <th style={{ padding: '12px 16px', width: '60px' }}></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {editFinanceCosts.map((item, idx) => (
-                                                                <tr key={idx} style={{ borderBottom: idx === editFinanceCosts.length - 1 ? 'none' : '1px solid var(--color-border-light)' }}>
-                                                                    <td style={{ padding: '8px 12px' }}>
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="Role/Job"
+                                                                        value={pers.role}
+                                                                        onChange={(e) => {
+                                                                            const updated = [...editMarketPersonas];
+                                                                            updated[idx].role = e.target.value;
+                                                                            setEditMarketPersonas(updated);
+                                                                        }}
+                                                                        className="input-text"
+                                                                        style={{ width: '100%', padding: '8px 12px', fontSize: '12.5px' }}
+                                                                    />
+                                                                    <div>
+                                                                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--color-text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>Pain Points (one per line):</label>
+                                                                        <textarea
+                                                                            value={pers.pain_points.join('\n')}
+                                                                            onChange={(e) => {
+                                                                                const updated = [...editMarketPersonas];
+                                                                                updated[idx].pain_points = e.target.value.split('\n').filter(Boolean);
+                                                                                setEditMarketPersonas(updated);
+                                                                            }}
+                                                                            className="input-text"
+                                                                            style={{ width: '100%', fontSize: '13px', minHeight: '68px', fontFamily: 'var(--font-inter)' }}
+                                                                        />
+                                                                    </div>
+                                                                    <div>
+                                                                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: 'var(--color-text-muted)', marginBottom: '4px', textTransform: 'uppercase' }}>Price Sensitivity / Limit:</label>
                                                                         <input
                                                                             type="text"
-                                                                            value={item.item}
+                                                                            value={pers.budget_limit}
                                                                             onChange={(e) => {
-                                                                                const updated = [...editFinanceCosts];
-                                                                                updated[idx].item = e.target.value;
-                                                                                setEditFinanceCosts(updated);
+                                                                                const updated = [...editMarketPersonas];
+                                                                                updated[idx].budget_limit = e.target.value;
+                                                                                setEditMarketPersonas(updated);
                                                                             }}
-                                                                            style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', outline: 'none' }}
+                                                                            className="input-text"
+                                                                            style={{ width: '100%', fontSize: '13px' }}
                                                                         />
-                                                                    </td>
-                                                                    <td style={{ padding: '8px 12px' }}>
-                                                                        <input
-                                                                            type="number"
-                                                                            value={item.cost}
-                                                                            onChange={(e) => {
-                                                                                const updated = [...editFinanceCosts];
-                                                                                updated[idx].cost = Number(e.target.value);
-                                                                                setEditFinanceCosts(updated);
-                                                                            }}
-                                                                            style={{ width: '100%', padding: '6px 10px', borderRadius: '6px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', textAlign: 'right', outline: 'none' }}
-                                                                        />
-                                                                    </td>
-                                                                    <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => setEditFinanceCosts(editFinanceCosts.filter((_, i) => i !== idx))}
-                                                                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                                                        >
-                                                                            <Trash2 size={16} />
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
+                                                                    </div>
+                                                                </div>
                                                             ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-
-                                            <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '8px' }}>{language === 'en' ? 'Pricing & Subscription Tiers' : 'စျေးနှုန်းနှင့် လစဉ်ကြေး သတ်မှတ်ချက်များ'}</h4>
-                                                <textarea
-                                                    value={editFinancePricing}
-                                                    onChange={(e) => setEditFinancePricing(e.target.value)}
-                                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', fontSize: '14px', lineHeight: '1.5', minHeight: '80px', outline: 'none', fontFamily: 'var(--font-inter)' }}
-                                                />
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                    <p style={{ margin: '0 0 4px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)' }}>{t('dashboard.breakeven')}</p>
-                                                    <h4 style={{ margin: 0, fontSize: '24px', fontWeight: 900 }}>{fallbackFinance.breakevenMonth} {t('dashboard.months')}</h4>
-                                                </div>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                    <p style={{ margin: '0 0 4px 0', fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)' }}>{t('dashboard.monthlyRevenue')}</p>
-                                                    <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>{fallbackFinance.revenueForecast}</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Cost table */}
-                                            <div>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{t('dashboard.initialCost')}</h4>
-                                                <div style={{ overflowX: 'auto', borderRadius: '16px', border: '1px solid var(--color-border-light)' }}>
-                                                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', backgroundColor: 'var(--color-background)' }}>
-                                                        <thead>
-                                                            <tr style={{ backgroundColor: 'var(--color-surface-light)', borderBottom: '2px solid var(--color-border-light)' }}>
-                                                                <th style={{ padding: '12px 16px', fontWeight: 800, textAlign: 'left' }}>{language === 'en' ? 'Expense Item' : 'အသုံးစရိတ် အမျိုးအစား'}</th>
-                                                                <th style={{ padding: '12px 16px', fontWeight: 800, textAlign: 'right' }}>{language === 'en' ? 'Cost' : 'ကုန်ကျစရိတ်'} ({getCurrencySymbol() === 'MMK' ? 'MMK' : '$'})</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {fallbackFinance.costBreakdown.map((item, idx) => (
-                                                                <tr key={idx} style={{ borderBottom: idx === fallbackFinance.costBreakdown.length - 1 ? 'none' : '1px solid var(--color-border-light)' }}>
-                                                                    <td style={{ padding: '12px 16px', color: 'var(--color-text-secondary)' }}>{item.item}</td>
-                                                                    <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 700 }}>{formatCost(item.cost)}</td>
-                                                                </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            </div>
-
-                                            <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '8px' }}>{language === 'en' ? 'Pricing & Subscription Tiers' : 'စျေးနှုန်းနှင့် လစဉ်ကြေး သတ်မှတ်ချက်များ'}</h4>
-                                                <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>{fallbackFinance.pricingStrategy}</p>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* 4. BRAND PACKAGE TAB */}
-                            {activeTab === 'brand' && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                    {isEditing ? (
-                                        <>
-                                            {/* Suggested Name badges */}
-                                            <div>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '8px' }}>{language === 'en' ? 'Brainstormed Brand Names' : 'အမှတ်တံဆိပ် အမည်များ'}</h4>
-                                                <input
-                                                    type="text"
-                                                    value={editBrandNames}
-                                                    onChange={(e) => setEditBrandNames(e.target.value)}
-                                                    placeholder="Name 1, Name 2, Name 3"
-                                                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', outline: 'none' }}
-                                                />
-                                            </div>
-
-                                            {/* Tagline & Voice */}
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                    <h4 style={{ fontWeight: 900, marginBottom: '8px', fontSize: '16px' }}>{language === 'en' ? 'Marketing Tagline' : 'ဆောင်ပုဒ် (Tagline)'}</h4>
-                                                    <input
-                                                        type="text"
-                                                        value={editBrandTagline}
-                                                        onChange={(e) => setEditBrandTagline(e.target.value)}
-                                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', outline: 'none' }}
-                                                    />
-                                                </div>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                    <h4 style={{ fontWeight: 900, marginBottom: '8px', fontSize: '16px' }}>{language === 'en' ? 'Brand Voice' : 'အမှတ်တံဆိပ် ပြောဆိုပုံ (Brand Voice)'}</h4>
-                                                    <input
-                                                        type="text"
-                                                        value={editBrandVoice}
-                                                        onChange={(e) => setEditBrandVoice(e.target.value)}
-                                                        style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', outline: 'none' }}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Logo Concept */}
-                                            <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '8px' }}>{language === 'en' ? 'Visual Logo Concept' : 'လိုဂို ပုံရိပ် Concept'}</h4>
-                                                <textarea
-                                                    value={editBrandVoice}
-                                                    onChange={(e) => setEditBrandVoice(e.target.value)}
-                                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', fontSize: '14px', lineHeight: '1.5', minHeight: '80px', outline: 'none', fontFamily: 'var(--font-inter)' }}
-                                                />
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            {/* Suggested Name badges */}
-                                            <div>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{language === 'en' ? 'Brainstormed Brand Names' : 'အမှတ်တံဆိပ် အမည်များ'}</h4>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                                                    {fallbackBrand.names.map((name, idx) => (
-                                                        <span key={idx} style={{
-                                                            fontSize: '16px',
-                                                            fontWeight: 900,
-                                                            padding: '10px 20px',
-                                                            borderRadius: '16px',
-                                                            backgroundColor: idx === 0 ? 'var(--color-primary)' : 'var(--color-background)',
-                                                            color: idx === 0 ? 'white' : 'var(--color-text-secondary)',
-                                                            border: '1px solid var(--color-border-light)',
-                                                            boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
-                                                        }}>
-                                                            {name} {idx === 0 && '✦'}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Tagline & Voice */}
-                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                    <h4 style={{ fontWeight: 900, marginBottom: '6px', fontSize: '16px' }}>{language === 'en' ? 'Marketing Tagline' : 'ဆောင်ပုဒ် (Tagline)'}</h4>
-                                                    <p style={{ margin: 0, fontStyle: 'italic', fontSize: '15px', color: 'var(--color-text-secondary)' }}>"{fallbackBrand.tagline}"</p>
-                                                </div>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                    <h4 style={{ fontWeight: 900, marginBottom: '6px', fontSize: '16px' }}>{language === 'en' ? 'Brand Voice' : 'အမှတ်တံဆိပ် ပြောဆိုပုံ (Brand Voice)'}</h4>
-                                                    <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-secondary)' }}>{fallbackBrand.voice}</p>
-                                                </div>
-                                            </div>
-
-                                            {/* Color palette */}
-                                            <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '16px' }}>{language === 'en' ? 'Hex Color Palette' : 'အရောင်အသွေး သတ်မှတ်ချက်'}</h4>
-                                                <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                                                    {[
-                                                        { label: language === 'en' ? 'Primary Brand Color' : 'အဓိက အရောင်', hex: fallbackBrand.palette.primary },
-                                                        { label: language === 'en' ? 'Secondary Accent' : 'တွဲဖက် အရောင်', hex: fallbackBrand.palette.secondary },
-                                                        { label: language === 'en' ? 'Canvas Background' : 'နောက်ခံ အရောင်', hex: fallbackBrand.palette.background }
-                                                    ].map((color, i) => (
-                                                        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                            <div style={{
-                                                                width: '42px', height: '42px',
-                                                                borderRadius: '12px',
-                                                                backgroundColor: color.hex,
-                                                                border: '1px solid var(--color-border-light)'
-                                                            }} />
-                                                            <div>
-                                                                <p style={{ margin: 0, fontSize: '13px', fontWeight: 700 }}>{color.label}</p>
-                                                                <code style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{color.hex}</code>
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                                                        <div className="perplexity-dashboard-stat-card">
+                                                            <p className="perplexity-dashboard-stat-label">{language === 'en' ? 'Total Addressable Market' : 'စုစုပေါင်း TAM'}</p>
+                                                            <h4 className="perplexity-dashboard-stat-value">{fallbackMarket.tam}</h4>
+                                                        </div>
+                                                        <div className="perplexity-dashboard-stat-card">
+                                                            <p className="perplexity-dashboard-stat-label">{language === 'en' ? 'Market Saturation Index' : 'ဈေးကွက် ပြည့်နှက်မှု အညွှန်းကိန်း'}</p>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                                                <h4 className="perplexity-dashboard-stat-value">{fallbackMarket.saturation_level}%</h4>
+                                                                <div className="perplexity-dashboard-progress-track">
+                                                                    <div className="perplexity-dashboard-progress-bar" style={{ width: `${fallbackMarket.saturation_level}%` }} />
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            </div>
+                                                    </div>
 
-                                            {/* Logo Concept */}
-                                            <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '8px' }}>{language === 'en' ? 'Visual Logo Concept' : 'လိုဂို ပုံရိပ် Concept'}</h4>
-                                                <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>{fallbackBrand.logoConcept}</p>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            )}
+                                                    {/* Competitors List Table */}
+                                                    <div>
+                                                        <h4 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '16px', color: '#ffffff' }}>{language === 'en' ? 'Competitor Analysis' : 'ပြိုင်ဘက်များ ဆန်းစစ်ချက်'}</h4>
+                                                        <div className="perplexity-dashboard-table-container">
+                                                            <table className="perplexity-dashboard-table">
+                                                                <thead>
+                                                                    <tr className="perplexity-dashboard-table-header-row">
+                                                                        <th className="perplexity-dashboard-table-header-cell">{language === 'en' ? 'Competitor' : 'ပြိုင်ဘက်'}</th>
+                                                                        <th className="perplexity-dashboard-table-header-cell">{language === 'en' ? 'Domain / URL' : 'ဝဘ်လိပ်စာ / URL'}</th>
+                                                                        <th className="perplexity-dashboard-table-header-cell">{language === 'en' ? 'Weak Spot' : 'အားနည်းချက်'}</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {fallbackMarket.competitors.map((comp, idx) => (
+                                                                        <tr key={idx} className="perplexity-dashboard-table-row">
+                                                                            <td className="perplexity-dashboard-table-cell" style={{ fontWeight: 700, color: '#ffffff' }}>{comp.name}</td>
+                                                                            <td className="perplexity-dashboard-table-cell">
+                                                                                {comp.url.startsWith('http') ? (
+                                                                                    <a href={comp.url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: 'var(--color-link)', textDecoration: 'underline' }}>
+                                                                                        {comp.url} <ExternalLink size={12} />
+                                                                                    </a>
+                                                                                ) : <span style={{ color: 'var(--color-text-muted)' }}>{comp.url}</span>}
+                                                                            </td>
+                                                                            <td className="perplexity-dashboard-table-cell" style={{ color: 'var(--color-text-secondary)' }}>{comp.weakness}</td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
 
-                            {/* 5. DIGITAL PRESENCE TAB */}
-                            {activeTab === 'digital' && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                    {isEditing ? (
-                                        <div style={{ backgroundColor: 'var(--color-background)', padding: '24px', borderRadius: '20px', border: '1px solid var(--color-border-light)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                            <div>
-                                                <label style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '8px' }}>Proposed Tech Stack (comma separated)</label>
-                                                <input
-                                                    type="text"
-                                                    value={editDigitalStack}
-                                                    onChange={(e) => setEditDigitalStack(e.target.value)}
-                                                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', outline: 'none' }}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '8px' }}>Core Capabilities (comma separated)</label>
-                                                <input
-                                                    type="text"
-                                                    value={editDigitalFeatures}
-                                                    onChange={(e) => setEditDigitalFeatures(e.target.value)}
-                                                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', outline: 'none' }}
-                                                />
-                                            </div>
+                                                    {/* ICP target personas */}
+                                                    <div>
+                                                        <h4 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '16px', color: '#ffffff' }}>{language === 'en' ? 'Target Customer Personas' : 'ပစ်မှတ် သုံးစွဲသူအမျိုးအစား'}</h4>
+                                                        <div className="perplexity-dashboard-persona-grid">
+                                                            {fallbackMarket.target_personas.map((pers, idx) => (
+                                                                <div key={idx} className="perplexity-dashboard-persona-card">
+                                                                    <div>
+                                                                        <h5 className="perplexity-dashboard-persona-name">{pers.name}</h5>
+                                                                        <span className="perplexity-dashboard-persona-role">{pers.role}</span>
+                                                                    </div>
+                                                                    <div className="perplexity-dashboard-persona-section">
+                                                                        <p className="perplexity-dashboard-persona-section-label">{language === 'en' ? 'Key Pain Points' : 'အဓိက အခက်အခဲများ'}</p>
+                                                                        <ul className="perplexity-dashboard-persona-list">
+                                                                            {pers.pain_points.map((p, i) => <li key={i}>{p}</li>)}
+                                                                        </ul>
+                                                                    </div>
+                                                                    <div className="perplexity-dashboard-persona-footer">
+                                                                        <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)' }}>{language === 'en' ? 'Price Sensitivity:' : 'စျေးနှုန်းအပေါ် တုံ့ပြန်မှု:'}</span>
+                                                                        <span className="perplexity-dashboard-persona-budget">{pers.budget_limit}</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
-                                    ) : (
-                                        <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px' }}>
+                                    )}
 
-                                            {/* Wireframe Outline */}
-                                            <div>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{language === 'en' ? 'Landing Page Wireframe Elements' : 'ဝဘ်ဆိုက် Layout Wireframe အစိတ်အပိုင်းများ'}</h4>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                                    {fallbackDigital.landingPageOutline.map((sec, idx) => (
-                                                        <div key={idx} style={{ backgroundColor: 'var(--color-background)', padding: '16px', borderRadius: '16px', border: '1px solid var(--color-border-light)' }}>
-                                                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                                                <strong style={{ textTransform: 'uppercase', fontSize: '11px', color: 'var(--color-text-muted)' }}>{sec.section_id} {language === 'en' ? 'section' : 'အပိုင်း'}</strong>
-                                                                {sec.cta_text && sec.cta_text !== 'None' && (
-                                                                    <span style={{ fontSize: '10px', fontWeight: 700, backgroundColor: 'var(--color-primary)', color: 'white', padding: '2px 8px', borderRadius: '4px' }}>
-                                                                        CTA: {sec.cta_text}
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                            <h5 style={{ margin: '0 0 6px 0', fontSize: '15px', fontWeight: 900 }}>{sec.title}</h5>
-                                                            <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.4' }}>{sec.body}</p>
+                                    {/* 3. FINANCIAL MODEL TAB */}
+                                    {activeTab === 'finance' && (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                                            {isEditing ? (
+                                                <>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                                                        <div className="perplexity-dashboard-glass-box-edit">
+                                                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 850, color: 'var(--color-text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>{t('dashboard.breakeven')} ({t('dashboard.months')})</label>
+                                                            <input
+                                                                type="number"
+                                                                value={editFinanceBreakeven}
+                                                                onChange={(e) => setEditFinanceBreakeven(Number(e.target.value))}
+                                                                className="input-text"
+                                                                style={{ width: '100%' }}
+                                                            />
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            </div>
+                                                        <div className="perplexity-dashboard-glass-box-edit">
+                                                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 850, color: 'var(--color-text-muted)', marginBottom: '8px', textTransform: 'uppercase' }}>{t('dashboard.monthlyRevenue')}</label>
+                                                            <input
+                                                                type="text"
+                                                                value={editFinanceForecast}
+                                                                onChange={(e) => setEditFinanceForecast(e.target.value)}
+                                                                className="input-text"
+                                                                style={{ width: '100%' }}
+                                                            />
+                                                        </div>
+                                                    </div>
 
-                                            {/* Capabilities & Stack */}
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                    <h4 style={{ fontWeight: 900, marginBottom: '12px', fontSize: '15px' }}>Core Capabilities</h4>
-                                                    <ul style={{ margin: 0, paddingLeft: '16px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                                                        {fallbackDigital.features.map((feat, i) => <li key={i}>{feat}</li>)}
-                                                    </ul>
-                                                </div>
-                                                <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                    <h4 style={{ fontWeight: 900, marginBottom: '12px', fontSize: '15px' }}>Proposed Tech Stack</h4>
-                                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                                                        {fallbackDigital.stack.map((tech, i) => (
-                                                            <span key={i} style={{ fontSize: '12px', fontWeight: 700, backgroundColor: 'var(--color-surface-light)', padding: '6px 12px', borderRadius: '8px', border: '1px solid var(--color-border-light)' }}>
-                                                                {tech}
-                                                            </span>
-                                                        ))}
+                                                    {/* Cost table */}
+                                                    <div>
+                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                                                            <h4 style={{ fontWeight: 900, margin: 0, color: '#ffffff' }}>{t('dashboard.initialCost')}</h4>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setEditFinanceCosts([...editFinanceCosts, { item: '', cost: 0 }])}
+                                                                style={{ padding: '8px 14px', fontSize: '13px', borderRadius: '8px', cursor: 'pointer', backgroundColor: 'var(--color-primary)', color: 'white', border: 'none', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
+                                                            >
+                                                                <Plus size={14} /> {language === 'en' ? 'Add' : 'ထည့်ရန်'}
+                                                            </button>
+                                                        </div>
+                                                        <div className="perplexity-dashboard-table-container">
+                                                            <table className="perplexity-dashboard-table">
+                                                                <thead>
+                                                                    <tr className="perplexity-dashboard-table-header-row">
+                                                                        <th className="perplexity-dashboard-table-header-cell">{language === 'en' ? 'Expense Item' : 'အသုံးစရိတ် အမျိုးအစား'}</th>
+                                                                        <th className="perplexity-dashboard-table-header-cell" style={{ textAlign: 'right', width: '180px' }}>{language === 'en' ? 'Cost' : 'ကုန်ကျစရိတ်'} (MMK)</th>
+                                                                        <th style={{ padding: '12px 16px', width: '60px' }}></th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {editFinanceCosts.map((item, idx) => (
+                                                                        <tr key={idx} className="perplexity-dashboard-table-row">
+                                                                            <td className="perplexity-dashboard-table-cell" style={{ padding: '8px 12px' }}>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={item.item}
+                                                                                    onChange={(e) => {
+                                                                                        const updated = [...editFinanceCosts];
+                                                                                        updated[idx].item = e.target.value;
+                                                                                        setEditFinanceCosts(updated);
+                                                                                    }}
+                                                                                    className="input-text"
+                                                                                    style={{ width: '100%' }}
+                                                                                />
+                                                                            </td>
+                                                                            <td className="perplexity-dashboard-table-cell" style={{ padding: '8px 12px' }}>
+                                                                                <input
+                                                                                    type="number"
+                                                                                    value={item.cost}
+                                                                                    onChange={(e) => {
+                                                                                        const updated = [...editFinanceCosts];
+                                                                                        updated[idx].cost = Number(e.target.value);
+                                                                                        setEditFinanceCosts(updated);
+                                                                                    }}
+                                                                                    className="input-text"
+                                                                                    style={{ width: '100%', textAlign: 'right' }}
+                                                                                />
+                                                                            </td>
+                                                                            <td className="perplexity-dashboard-table-cell" style={{ padding: '8px 12px', textAlign: 'center' }}>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => setEditFinanceCosts(editFinanceCosts.filter((_, i) => i !== idx))}
+                                                                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                                                                >
+                                                                                    <Trash2 size={16} />
+                                                                                </button>
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="perplexity-dashboard-glass-box-edit">
+                                                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>{language === 'en' ? 'Pricing & Subscription Tiers' : 'စျေးနှုန်းနှင့် လစဉ်ကြေး သတ်မှတ်ချက်များ'}</label>
+                                                        <textarea
+                                                            value={editFinancePricing}
+                                                            onChange={(e) => setEditFinancePricing(e.target.value)}
+                                                            className="input-text"
+                                                            style={{ width: '100%', minHeight: '90px', fontFamily: 'var(--font-inter)' }}
+                                                        />
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                                                        <div className="perplexity-dashboard-stat-card">
+                                                            <p className="perplexity-dashboard-stat-label">{t('dashboard.breakeven')}</p>
+                                                            <h4 className="perplexity-dashboard-stat-value">{fallbackFinance.breakevenMonth} {t('dashboard.months')}</h4>
+                                                        </div>
+                                                        <div className="perplexity-dashboard-stat-card">
+                                                            <p className="perplexity-dashboard-stat-label">{t('dashboard.monthlyRevenue')}</p>
+                                                            <p style={{ margin: 0, fontSize: '15px', color: '#ffffff', lineHeight: '1.4', fontWeight: 700 }}>{fallbackFinance.revenueForecast}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Cost table */}
+                                                    <div>
+                                                        <h4 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '16px', color: '#ffffff' }}>{t('dashboard.initialCost')}</h4>
+                                                        <div className="perplexity-dashboard-table-container">
+                                                            <table className="perplexity-dashboard-table">
+                                                                <thead>
+                                                                    <tr className="perplexity-dashboard-table-header-row">
+                                                                        <th className="perplexity-dashboard-table-header-cell">{language === 'en' ? 'Expense Item' : 'အသုံးစရိတ် အမျိုးအစား'}</th>
+                                                                        <th className="perplexity-dashboard-table-header-cell" style={{ textAlign: 'right' }}>{language === 'en' ? 'Cost' : 'ကုန်ကျစရိတ်'} ({getCurrencySymbol() === 'MMK' ? 'MMK' : '$'})</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {fallbackFinance.costBreakdown.map((item, idx) => (
+                                                                        <tr key={idx} className="perplexity-dashboard-table-row">
+                                                                            <td className="perplexity-dashboard-table-cell" style={{ color: 'var(--color-text-secondary)' }}>{item.item}</td>
+                                                                            <td className="perplexity-dashboard-table-cell" style={{ textAlign: 'right', fontWeight: 700, color: '#ffffff' }}>{formatCost(item.cost)}</td>
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="perplexity-dashboard-glass-box">
+                                                        <h4 style={{ fontSize: '16px', fontWeight: 900, marginBottom: '12px', color: '#ffffff' }}>{language === 'en' ? 'Pricing & Subscription Tiers' : 'စျေးနှုန်းနှင့် လစဉ်ကြေး သတ်မှတ်ချက်များ'}</h4>
+                                                        <p style={{ margin: 0, fontSize: '15px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>{fallbackFinance.pricingStrategy}</p>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* 4. BRAND PACKAGE TAB */}
+                                    {activeTab === 'brand' && (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                                            {isEditing ? (
+                                                <>
+                                                    {/* Suggested Name badges */}
+                                                    <div className="perplexity-dashboard-glass-box-edit">
+                                                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>{language === 'en' ? 'Brainstormed Brand Names' : 'အမှတ်တံဆိပ် အမည်များ'}</label>
+                                                        <input
+                                                            type="text"
+                                                            value={editBrandNames}
+                                                            onChange={(e) => setEditBrandNames(e.target.value)}
+                                                            placeholder="Name 1, Name 2, Name 3"
+                                                            className="input-text"
+                                                            style={{ width: '100%' }}
+                                                        />
+                                                    </div>
+
+                                                    {/* Tagline & Voice */}
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                                                        <div className="perplexity-dashboard-glass-box-edit">
+                                                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>{language === 'en' ? 'Marketing Tagline' : 'ဆောင်ပုဒ် (Tagline)'}</label>
+                                                            <input
+                                                                type="text"
+                                                                value={editBrandTagline}
+                                                                onChange={(e) => setEditBrandTagline(e.target.value)}
+                                                                className="input-text"
+                                                                style={{ width: '100%' }}
+                                                            />
+                                                        </div>
+                                                        <div className="perplexity-dashboard-glass-box-edit">
+                                                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>{language === 'en' ? 'Brand Voice' : 'အမှတ်တံဆိပ် ပြောဆိုပုံ (Brand Voice)'}</label>
+                                                            <input
+                                                                type="text"
+                                                                value={editBrandVoice}
+                                                                onChange={(e) => setEditBrandVoice(e.target.value)}
+                                                                className="input-text"
+                                                                style={{ width: '100%' }}
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Logo Concept */}
+                                                    <div className="perplexity-dashboard-glass-box-edit">
+                                                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>{language === 'en' ? 'Visual Logo Concept' : 'လိုဂို ပုံရိပ် Concept'}</label>
+                                                        <textarea
+                                                            value={editBrandVoice}
+                                                            onChange={(e) => setEditBrandVoice(e.target.value)}
+                                                            className="input-text"
+                                                            style={{ width: '100%', minHeight: '90px', fontFamily: 'var(--font-inter)' }}
+                                                        />
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {/* Suggested Name badges */}
+                                                    <div>
+                                                        <h4 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '16px', color: '#ffffff' }}>{language === 'en' ? 'Brainstormed Brand Names' : 'အမှတ်တံဆိပ် အမည်များ'}</h4>
+                                                        <div className="perplexity-dashboard-names-container">
+                                                            {fallbackBrand.names.map((name, idx) => (
+                                                                <span
+                                                                    key={idx}
+                                                                    className={`perplexity-dashboard-name-badge ${idx === 0 ? 'primary' : ''}`}
+                                                                >
+                                                                    {name} {idx === 0 && '✦'}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Tagline & Voice */}
+                                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                                                        <div className="perplexity-dashboard-glass-box">
+                                                            <h4 style={{ fontWeight: 900, marginBottom: '8px', fontSize: '15.5px', color: '#ffffff' }}>{language === 'en' ? 'Marketing Tagline' : 'ဆောင်ပုဒ် (Tagline)'}</h4>
+                                                            <p style={{ margin: 0, fontStyle: 'italic', fontSize: '15px', color: 'var(--color-text-secondary)' }}>"{fallbackBrand.tagline}"</p>
+                                                        </div>
+                                                        <div className="perplexity-dashboard-glass-box">
+                                                            <h4 style={{ fontWeight: 900, marginBottom: '8px', fontSize: '15.5px', color: '#ffffff' }}>{language === 'en' ? 'Brand Voice' : 'အမှတ်တံဆိပ် ပြောဆိုပုံ (Brand Voice)'}</h4>
+                                                            <p style={{ margin: 0, fontSize: '14.5px', color: 'var(--color-text-secondary)' }}>{fallbackBrand.voice}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Color palette */}
+                                                    <div className="perplexity-dashboard-glass-box">
+                                                        <h4 style={{ fontWeight: 900, marginBottom: '16px', color: '#ffffff' }}>{language === 'en' ? 'Hex Color Palette' : 'အရောင်အသွေး သတ်မှတ်ချက်'}</h4>
+                                                        <div className="perplexity-dashboard-color-palette">
+                                                            {[
+                                                                { label: language === 'en' ? 'Primary Brand Color' : 'အဓိက အရောင်', hex: fallbackBrand.palette.primary },
+                                                                { label: language === 'en' ? 'Secondary Accent' : 'တွဲဖက် အရောင်', hex: fallbackBrand.palette.secondary },
+                                                                { label: language === 'en' ? 'Canvas Background' : 'နောက်ခံ အရောင်', hex: fallbackBrand.palette.background }
+                                                            ].map((color, i) => (
+                                                                <div key={i} className="perplexity-dashboard-color-item">
+                                                                    <div
+                                                                        className="perplexity-dashboard-color-swatch"
+                                                                        style={{ backgroundColor: color.hex }}
+                                                                    />
+                                                                    <div>
+                                                                        <p className="perplexity-dashboard-color-label">{color.label}</p>
+                                                                        <code className="perplexity-dashboard-color-hex">{color.hex}</code>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Logo Concept */}
+                                                    <div className="perplexity-dashboard-glass-box">
+                                                        <h4 style={{ fontWeight: 900, marginBottom: '8px', color: '#ffffff', fontSize: '15.5px' }}>{language === 'en' ? 'Visual Logo Concept' : 'လိုဂို ပုံရိပ် Concept'}</h4>
+                                                        <p style={{ margin: 0, fontSize: '14.5px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>{fallbackBrand.logoConcept}</p>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* 5. DIGITAL PRESENCE TAB */}
+                                    {activeTab === 'digital' && (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                                            {isEditing ? (
+                                                <div className="perplexity-dashboard-glass-box-edit" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                                    <div>
+                                                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Proposed Tech Stack (comma separated)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={editDigitalStack}
+                                                            onChange={(e) => setEditDigitalStack(e.target.value)}
+                                                            className="input-text"
+                                                            style={{ width: '100%' }}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Core Capabilities (comma separated)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={editDigitalFeatures}
+                                                            onChange={(e) => setEditDigitalFeatures(e.target.value)}
+                                                            className="input-text"
+                                                            style={{ width: '100%' }}
+                                                        />
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                                            ) : (
+                                                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '32px' }}>
 
-                            {/* 6. GROWTH & MARKETING TAB */}
-                            {activeTab === 'growth' && (
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                    {isEditing ? (
-                                        <div style={{ backgroundColor: 'var(--color-background)', padding: '24px', borderRadius: '20px', border: '1px solid var(--color-border-light)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                                            <div>
-                                                <label style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '8px' }}>Acquisition Channels (comma separated)</label>
-                                                <input
-                                                    type="text"
-                                                    value={editGrowthChannels}
-                                                    onChange={(e) => setEditGrowthChannels(e.target.value)}
-                                                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', outline: 'none' }}
-                                                />
-                                            </div>
-                                            <div>
-                                                <label style={{ display: 'block', fontSize: '13px', fontWeight: 900, marginBottom: '8px' }}>Acquisition Plan</label>
-                                                <textarea
-                                                    value={editGrowthPlanText}
-                                                    onChange={(e) => setEditGrowthPlanText(e.target.value)}
-                                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border-light)', backgroundColor: 'rgba(255,255,255,0.03)', color: '#F8FAFC', fontSize: '14px', lineHeight: '1.5', minHeight: '120px', outline: 'none', fontFamily: 'var(--font-inter)' }}
-                                                />
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            {/* Channels list */}
-                                            <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>Acquisition Channels</h4>
-                                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                                                    {fallbackGrowth.channels.map((chan, idx) => (
-                                                        <span key={idx} style={{
-                                                            fontSize: '14px',
-                                                            fontWeight: 900,
-                                                            padding: '8px 16px',
-                                                            borderRadius: '12px',
-                                                            backgroundColor: 'rgba(27, 6, 36, 0.05)',
-                                                            color: 'var(--color-primary)',
-                                                            border: '1px solid rgba(27, 6, 36, 0.1)'
-                                                        }}>
-                                                            {chan}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                                <p style={{ margin: '16px 0 0 0', fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
-                                                    {fallbackGrowth.acquisitionPlan}
-                                                </p>
-                                            </div>
+                                                    {/* Wireframe Outline */}
+                                                    <div>
+                                                        <h4 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '16px', color: '#ffffff' }}>{language === 'en' ? 'Landing Page Wireframe Elements' : 'ဝဘ်ဆိုက် Layout Wireframe အစိတ်အပိုင်းများ'}</h4>
+                                                        <div className="perplexity-dashboard-wireframe-grid">
+                                                            {fallbackDigital.landingPageOutline.map((sec, idx) => (
+                                                                <div key={idx} className="perplexity-dashboard-wireframe-card">
+                                                                    <div className="perplexity-dashboard-wireframe-header">
+                                                                        <strong className="perplexity-dashboard-wireframe-section-id">{sec.section_id} {language === 'en' ? 'section' : 'အပိုင်း'}</strong>
+                                                                        {sec.cta_text && sec.cta_text !== 'None' && (
+                                                                            <span className="perplexity-dashboard-wireframe-cta">
+                                                                                CTA: {sec.cta_text}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    <h5 className="perplexity-dashboard-wireframe-title">{sec.title}</h5>
+                                                                    <p className="perplexity-dashboard-wireframe-body">{sec.body}</p>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
 
-                                            {/* 90-day Roadmap list */}
-                                            <div>
-                                                <h4 style={{ fontWeight: 900, marginBottom: '16px' }}>First 90-Day Execution Roadmap</h4>
-                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                                    {fallbackGrowth.roadmap90Day.map((step, idx) => {
-                                                        const phaseTitle = idx === 0 ? 'Month 1' : (idx === 1 ? 'Month 2' : 'Month 3');
-                                                        return (
-                                                            <div key={idx} style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
-                                                                <div style={{
-                                                                    fontSize: '11px',
-                                                                    fontWeight: 800,
-                                                                    padding: '6px 12px',
-                                                                    backgroundColor: 'var(--color-primary)',
-                                                                    color: 'white',
-                                                                    borderRadius: '8px',
-                                                                    minWidth: '70px',
-                                                                    textAlign: 'center',
-                                                                    textTransform: 'uppercase'
-                                                                }}>
-                                                                    {phaseTitle}
-                                                                </div>
-                                                                <div style={{ flex: 1, backgroundColor: 'var(--color-background)', padding: '16px', borderRadius: '16px', border: '1px solid var(--color-border-light)' }}>
-                                                                    <p style={{ margin: 0, fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.5' }}>
-                                                                        {step}
-                                                                    </p>
-                                                                </div>
+                                                    {/* Capabilities & Stack */}
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                                                        <div className="perplexity-dashboard-glass-box">
+                                                            <h4 style={{ fontWeight: 900, marginBottom: '14px', fontSize: '15.5px', color: '#ffffff' }}>Core Capabilities</h4>
+                                                            <ul style={{ margin: 0, paddingLeft: '16px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '14px', color: 'var(--color-text-secondary)', listStyleType: 'circle' }}>
+                                                                {fallbackDigital.features.map((feat, i) => <li key={i}>{feat}</li>)}
+                                                            </ul>
+                                                        </div>
+                                                        <div className="perplexity-dashboard-glass-box">
+                                                            <h4 style={{ fontWeight: 900, marginBottom: '14px', fontSize: '15.5px', color: '#ffffff' }}>Proposed Tech Stack</h4>
+                                                            <div className="perplexity-dashboard-tech-stack-container">
+                                                                {fallbackDigital.stack.map((tech, i) => (
+                                                                    <span key={i} className="perplexity-dashboard-tech-pill">
+                                                                        {tech}
+                                                                    </span>
+                                                                ))}
                                                             </div>
-                                                        );
-                                                    })}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </>
+                                            )}
+                                        </div>
                                     )}
+
+                                    {/* 6. GROWTH & MARKETING TAB */}
+                                    {activeTab === 'growth' && (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                                            {isEditing ? (
+                                                <div className="perplexity-dashboard-glass-box-edit" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                                    <div>
+                                                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Acquisition Channels (comma separated)</label>
+                                                        <input
+                                                            type="text"
+                                                            value={editGrowthChannels}
+                                                            onChange={(e) => setEditGrowthChannels(e.target.value)}
+                                                            className="input-text"
+                                                            style={{ width: '100%' }}
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label style={{ display: 'block', fontSize: '13px', fontWeight: 800, color: 'var(--color-accent)', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Acquisition Plan</label>
+                                                        <textarea
+                                                            value={editGrowthPlanText}
+                                                            onChange={(e) => setEditGrowthPlanText(e.target.value)}
+                                                            className="input-text"
+                                                            style={{ width: '100%', minHeight: '130px', fontFamily: 'var(--font-inter)' }}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    {/* Channels list */}
+                                                    <div className="perplexity-dashboard-glass-box">
+                                                        <h4 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '14px', color: '#ffffff' }}>Acquisition Channels</h4>
+                                                        <div className="perplexity-dashboard-growth-channels">
+                                                            {fallbackGrowth.channels.map((chan, idx) => (
+                                                                <span key={idx} className="perplexity-dashboard-channel-pill">
+                                                                    {chan}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                        <p style={{ margin: '20px 0 0 0', fontSize: '15px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>
+                                                            {fallbackGrowth.acquisitionPlan}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* 90-day Roadmap list */}
+                                                    <div>
+                                                        <h4 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '20px', color: '#ffffff' }}>First 90-Day Execution Roadmap</h4>
+                                                        <div className="perplexity-dashboard-timeline">
+                                                            {fallbackGrowth.roadmap90Day.map((step, idx) => {
+                                                                const phaseTitle = idx === 0 ? 'Month 1' : (idx === 1 ? 'Month 2' : 'Month 3');
+                                                                return (
+                                                                    <div key={idx} style={{ position: 'relative' }}>
+                                                                        {/* Timeline dot */}
+                                                                        <div className="perplexity-dashboard-timeline-dot" />
+                                                                        <div className="perplexity-dashboard-timeline-card">
+                                                                            <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--color-accent)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{phaseTitle}</span>
+                                                                            <p style={{ margin: '8px 0 0 0', fontSize: '14.5px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>
+                                                                                {step}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* 7. ROADMAP CALENDAR TAB */}
+                                    {activeTab === 'calendar' && (
+                                        <RoadmapCalendar
+                                            growthPlan={growthPlan || fallbackMarketing}
+                                            businessInfo={businessInfo}
+                                            refinedConcept={refinedConcept || fallbackConcept}
+                                            ideaId={ideaId || currentIdeaId}
+                                        />
+                                    )}
+
                                 </div>
                             )}
-
-                            {/* 7. ROADMAP CALENDAR TAB */}
-                            {activeTab === 'calendar' && (
-                                <RoadmapCalendar
-                                    growthPlan={growthPlan || fallbackGrowth}
-                                    businessInfo={businessInfo}
-                                    refinedConcept={refinedConcept || fallbackConcept}
-                                    ideaId={ideaId || currentIdeaId}
-                                />
-                            )}
-
-                        </div>
-                    )}
+                        </motion.div>
+                    </AnimatePresence>
                 </main>
             </div>
         </section>
