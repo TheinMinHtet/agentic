@@ -6,11 +6,9 @@ import { Check } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const STEPS = [
-    { id: 'idea', path: '/idea-prompt', label: '1. Idea Prompt' },
-    { id: 'business', path: '/business-info', label: '2. Business Info' },
-    { id: 'planning', path: '/planning', label: '3. Strategic Plan' },
-    { id: 'specialized', path: '/specialized-agents', label: '4. AI Orchestration' },
-    { id: 'dashboard', path: '/dashboard', label: '5. Dashboard' }
+    { id: 'onboarding', path: '/onboarding', label: '1. Onboarding' },
+    { id: 'specialized', path: '/specialized-agents', label: '2. AI Orchestration' },
+    { id: 'dashboard', path: '/dashboard', label: '3. Dashboard' }
 ];
 
 export default function GlobalStepper() {
