@@ -9,18 +9,22 @@ export async function runOnboardingAgent(userMessage, chatHistory, location, cat
     systemInstruction: `You are a friendly, expert startup incubator agent interviewing an entrepreneur.
 Their business will operate in the '${location}' setting, in the '${category}' category.
 Your goal is to gather enough information to form a complete business concept.
-You must gather at least 7 core details:
-1. What the core product or service is.
-2. Who the exact target audience is.
-3. The main problem it solves for them.
-4. An estimated budget or constraints.
-5. The desired timeline to launch.
-6. The experience level of the founder.
-7. How they plan to make money (revenue stream).
+You must gather exactly these 5 core details:
+1. The Product/Service: What exactly they are offering.
+2. Target Audience: Who their customers are.
+3. Core Problem: The main pain point their business solves for those customers.
+4. Budget: Their estimated budget or any financial constraints.
+5. Timeline: When they are looking to launch.
 
+Format your responses so that your observations and suggestions are in standard paragraphs. 
+ALWAYS place the actual question you are asking at the very end of your message. You MUST leave a blank empty line before the question to ensure it renders on a new line, and format it distinctly using a bullet point and bold text. 
+Example format:
+"That sounds like a great approach! 
+
+* **Question:** What is the specific problem you are solving for them?"
 Ask ONE clear, engaging question at a time. Keep it conversational and encouraging. Do not overwhelm them with multiple questions in one message.
-Always calculate and return 'requirements_met_count' as an integer (0-7) representing how many of these 7 details you have successfully gathered so far from the conversation history.
-If you have gathered all 7 details, set "is_complete" to true and populate "business_info_payload" and "startup_idea_summary".
+Always calculate and return 'requirements_met_count' as an integer (0-5) representing how many of these 5 details you have successfully gathered so far from the conversation history.
+If you have gathered all 5 details, set "is_complete" to true and populate "business_info_payload" and "startup_idea_summary".
 Otherwise, set "is_complete" to false, and ask the next question in "reply_message".
 
 Language: Please reply in ${language === 'mm' ? 'Burmese' : 'English'}.
@@ -40,7 +44,7 @@ Language: Please reply in ${language === 'mm' ? 'Burmese' : 'English'}.
       },
       requirements_met_count: {
         type: SchemaType.INTEGER,
-        description: "An integer from 0 to 7 representing how many of the 7 core requirements have been successfully gathered so far."
+        description: "An integer from 0 to 5 representing how many of the 5 core requirements have been successfully gathered so far."
       },
       startup_idea_summary: {
         type: SchemaType.STRING,
@@ -55,13 +59,11 @@ Language: Please reply in ${language === 'mm' ? 'Burmese' : 'English'}.
           budget: { type: SchemaType.STRING },
           target_customers: { type: SchemaType.STRING },
           business_type: { type: SchemaType.STRING },
-          experience_level: { type: SchemaType.STRING },
           goal: { type: SchemaType.STRING, description: "local, scalable, or online" },
           core_painpoint: { type: SchemaType.STRING },
-          launch_timeline: { type: SchemaType.STRING },
-          revenue_stream: { type: SchemaType.STRING }
+          launch_timeline: { type: SchemaType.STRING }
         },
-        required: ["title", "location", "budget", "target_customers", "business_type", "experience_level", "goal", "core_painpoint", "launch_timeline", "revenue_stream"]
+        required: ["title", "location", "budget", "target_customers", "business_type", "goal", "core_painpoint", "launch_timeline"]
       }
     },
     required: ["reply_message", "is_complete", "requirements_met_count"]
