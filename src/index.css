@@ -1,42 +1,43 @@
 :root {
-  --color-primary: #0f172a;
-  --color-primary-hover: #1e293b;
-  --color-accent: #6366f1;
-  --color-accent-strong: #4f46e5;
-  --color-accent-soft: #eef2ff;
+  --color-primary: #6366f1;
+  --color-primary-hover: #4f46e5;
+  --color-accent: #00f2fe;
+  --color-accent-strong: #00f2fe;
+  --color-accent-soft: rgba(0, 242, 254, 0.08);
   --color-success: #14b8a6;
   --color-warning: #f59e0b;
-  --color-background: #f8fafc;
-  --color-surface-light: #ffffff;
-  --color-surface-medium: rgba(255, 255, 255, 0.86);
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #334155;
+  --color-background: #080b11;
+  --color-surface-light: rgba(255, 255, 255, 0.08);
+  --color-surface-medium: rgba(20, 23, 31, 0.85);
+  --color-surface-card: rgba(18, 24, 38, 0.65);
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #94a3b8;
   --color-text-muted: #64748b;
-  --color-text-light-muted: #94a3b8;
-  --color-text-inverse: #ffffff;
-  --color-link: #4f46e5;
-  --color-link-footer: #0f766e;
-  --color-link-footer-hover: #115e59;
-  --color-border-light: #e2e8f0;
-  --color-border-dark: rgba(255, 255, 255, 0.08);
-  --gradient-ai: linear-gradient(135deg, #0f172a 0%, #312e81 48%, #6366f1 100%);
-  --gradient-accent: linear-gradient(135deg, #4f46e5 0%, #6366f1 52%, #14b8a6 100%);
+  --color-text-light-muted: #475569;
+  --color-text-inverse: #080b11;
+  --color-link: #818cf8;
+  --color-link-footer: #00f2fe;
+  --color-link-footer-hover: #818cf8;
+  --color-border-light: rgba(255, 255, 255, 0.08);
+  --color-border-dark: rgba(255, 255, 255, 0.22);
+  --gradient-ai: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
+  --gradient-accent: linear-gradient(135deg, #00f2fe 0%, #6366f1 100%);
 
-  --typography-display-family: 'GT America Regular', sans-serif;
-  --typography-heading-family: 'GT America Regular', sans-serif;
-  --typography-body-family: 'Inter', sans-serif;
-  --typography-caption-family: 'Inter', sans-serif;
+  --typography-display-family: var(--font-jakarta), 'Plus Jakarta Sans', sans-serif;
+  --typography-heading-family: var(--font-jakarta), 'Plus Jakarta Sans', sans-serif;
+  --typography-body-family: var(--font-inter), 'Inter', sans-serif;
+  --typography-caption-family: var(--font-inter), 'Inter', sans-serif;
 
-  --radius-sm: 10px;
-  --radius-md: 16px;
-  --radius-lg: 20px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 32px;
   --radius-full: 999px;
 
-  --elevation-card: 0 1px 2px rgba(15, 23, 42, 0.04), 0 14px 34px rgba(15, 23, 42, 0.08);
-  --elevation-hover: 0 8px 18px rgba(15, 23, 42, 0.08), 0 24px 58px rgba(79, 70, 229, 0.14);
-  --elevation-overlay: 0 18px 50px rgba(15, 23, 42, 0.22);
+  --elevation-card: 0 24px 60px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  --elevation-hover: 0 30px 70px rgba(0, 0, 0, 0.75), 0 0 40px rgba(56, 189, 248, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+  --elevation-overlay: 0 32px 64px rgba(0, 0, 0, 0.85);
 
-  --motion-duration-base: 0.24s;
+  --motion-duration-base: 0.35s;
   --motion-easing-standard: cubic-bezier(0.16, 1, 0.3, 1);
 
   --spacing-4: 4px;
@@ -57,8 +58,13 @@
 
 body {
   margin: 0;
-  background:
-    linear-gradient(180deg, #ffffff 0%, var(--color-background) 22%, #f1f5f9 100%);
+  background-color: #080b11;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, rgba(8, 11, 17, 0) 70%),
+    radial-gradient(circle at 85% 30%, rgba(0, 242, 254, 0.06) 0%, rgba(8, 11, 17, 0) 50%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 22px 22px, 22px 22px;
   color: var(--color-text-primary);
   font-family: var(--typography-body-family);
   font-size: 16px;
@@ -66,6 +72,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -154,24 +161,26 @@ a { text-decoration: none; }
 }
 
 .card {
-  background: var(--color-surface-medium);
+  background: var(--color-surface-card);
   color: var(--color-text-primary);
   padding: var(--spacing-32);
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(226, 232, 240, 0.92);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  border-top-color: var(--color-border-dark);
   box-shadow: var(--elevation-card);
-  backdrop-filter: blur(18px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   transition: border-color var(--motion-duration-base) var(--motion-easing-standard), box-shadow var(--motion-duration-base) var(--motion-easing-standard), transform var(--motion-duration-base) var(--motion-easing-standard);
 }
 
 .card:hover {
-  border-color: rgba(199, 210, 254, 0.9);
+  border-color: rgba(0, 242, 254, 0.3);
   box-shadow: var(--elevation-hover);
-  transform: translateY(-4px);
+  transform: translateY(-3px);
 }
 
 .input-text {
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.03);
   color: var(--color-text-primary);
   font-family: var(--typography-body-family);
   font-size: 16px;
@@ -180,17 +189,17 @@ a { text-decoration: none; }
   padding: 10px 14px;
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-md);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
   transition: background-color var(--motion-duration-base) var(--motion-easing-standard), border-color var(--motion-duration-base) var(--motion-easing-standard), box-shadow var(--motion-duration-base) var(--motion-easing-standard);
   width: 100%;
   box-sizing: border-box;
 }
 
 .input-text:focus {
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05);
   border-color: var(--color-accent);
   outline: none;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.14), 0 10px 20px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 0 0 4px rgba(0, 242, 254, 0.15), 0 10px 20px rgba(0, 0, 0, 0.4);
 }
 
 .badge-primary {
