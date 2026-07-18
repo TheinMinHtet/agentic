@@ -67,12 +67,12 @@ export default function LandingPage() {
 
     const handleSimulateClick = () => {
         if (isSimulating) {
-            router.push(isAuthenticated ? '/idea-prompt' : '/login');
+            router.push(isAuthenticated ? '/onboarding' : '/login');
             return;
         }
         setIsSimulating(true);
         setTimeout(() => {
-            router.push(isAuthenticated ? '/idea-prompt' : '/login');
+            router.push(isAuthenticated ? '/onboarding' : '/login');
         }, 2200);
     };
 
@@ -390,7 +390,7 @@ export default function LandingPage() {
                     <button
                         type="button"
                         className="warroom-secondary-link"
-                        onClick={() => router.push(isAuthenticated ? '/idea-prompt' : '/login')}
+                        onClick={() => router.push(isAuthenticated ? '/onboarding' : '/login')}
                     >
                         <span>{t('landing.buttonStart')}</span>
                     </button>
@@ -401,7 +401,7 @@ export default function LandingPage() {
                     <div className="split-left-panel">
                         <WarRoomNodeGraph
                             isSimulating={isSimulating}
-                            onNodeClick={() => router.push(isAuthenticated ? '/idea-prompt' : '/login')}
+                            onNodeClick={() => router.push(isAuthenticated ? '/onboarding' : '/login')}
                         />
                     </div>
 

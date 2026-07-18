@@ -7,6 +7,7 @@ import { runWebsiteAgent } from './websiteAgent';
 import { runMarketingAgent } from './marketingAgent';
 import { runBusinessAgent } from './businessAgent';
 import { runRefinementChatAgent } from './refinementChatAgent';
+import { runOnboardingAgent } from './onboardingAgent';
 
 export {
   evaluateIdeaAsync,
@@ -17,6 +18,7 @@ export {
   runWebsiteAgent,
   runMarketingAgent,
   runBusinessAgent,
-  runRefinementChatAgent
+  runRefinementChatAgent,
+  runOnboardingAgent
 };
 

@@ -1,0 +1,64 @@
+{
+  "Yangon Region": {
+    "East Yangon": [
+      "Botataung",
+      "City",
+      "Dagon Seikkan",
+      "Dawbon",
+      "East Dagon",
+      "Mingala Taungnyunt",
+      "North Dagon",
+      "North Okkalapa",
+      "Pazundaung",
+      "South Dagon",
+      "South Okkalapa",
+      "Tamwe",
+      "Thaketa",
+      "Thingangyun",
+      "Yankin"
+    ],
+    "North Yangon": [
+      "City",
+      "Hlaingthaya",
+      "Hlegu",
+      "Hmawbi",
+      "Htantabin",
+      "Insein",
+      "Mingaladon",
+      "Rural",
+      "Shwepyitha",
+      "Taikkyi"
+    ],
+    "South Yangon": [
+      "City",
+      "Cocokyun",
+      "Dala",
+      "Kawhmu",
+      "Kayan",
+      "Kungyangon",
+      "Kyauktan",
+      "Rural",
+      "Seikkyi Kanaungto",
+      "Tada",
+      "Thanlyin",
+      "Thongwa",
+      "Twante"
+    ],
+    "West Yangon(Downtown)": [
+      "Ahlon",
+      "Bahan",
+      "City",
+      "Dagon",
+      "Hlaing",
+      "Kamayut",
+      "Kyauktada",
+      "Kyimyindaing",
+      "Lanmadaw",
+      "Latha",
+      "Mayangon",
+      "Pabedan",
+      "Sanchaung",
+      "Seikkan"
+    ]
+  }
+}
