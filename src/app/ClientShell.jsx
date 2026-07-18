@@ -31,9 +31,13 @@ function Navbar() {
   if (!mounted) {
     return (
       <nav className="navbar navbar-dark-landing">
-        <Link href="/" className="brand-link" aria-label="Agentic Workflow home">
-          <span className="brand-mark"><Sparkles size={18} /></span>
-          <span>Agentic Workflow</span>
+        <Link href="/" className="brand-link" aria-label="LANN SA home" style={{ gap: '6px' }}>
+          <img
+            src="/lann-sa-final-logo.png"
+            alt="LANN SA logo"
+            style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'contain', flexShrink: 0, mixBlendMode: 'screen' }}
+          />
+          <span>LANN SA</span>
         </Link>
         <div className="nav-center-links">
           <span className="nav-link" style={{ opacity: 0 }}>{t('navbar.home')}</span>
@@ -105,7 +109,7 @@ export default function ClientShell({ children }) {
     <LanguageProvider>
       <AuthProvider>
         <WorkflowProvider>
-          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }} suppressHydrationWarning>
             <Navbar />
             <main className="app-main" style={{ position: 'relative', zIndex: 10 }}>
               <GlobalStepper />

@@ -47,7 +47,8 @@ CRITICAL GUARDRAILS:
 - Financial constraints: All costs, price points, and revenues must be strictly positive numbers.
 - Value Matching: Total cost estimates must be aligned with the user's declared budget (which is in MMK). For instance, if the budget is 5,000,000 MMK, do not propose 20,000,000 MMK in capital expenditures; propose lean items within the budget constraints.
 - Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Financial Model & Projections Report". Use headers (H2, H3), bullet points, and markdown tables.
-- Language Alignment: Generate all textual properties, cost item names, revenue forecast descriptions, pricing strategy copy, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).`;
+- Language Alignment: Generate all textual properties, cost item names, revenue forecast descriptions, pricing strategy copy, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).
+- Blueprint Alignment: You MUST strictly respect all constraints, exclusions, and requirements specified in the Refined Startup Concept. For example, if the concept contains "Please Don't Use AI" or "No AI", you must NOT suggest AI API fees or LLM token costs in the costBreakdown or markdown deliverable; propose standard database, templating, manual processing, developer, or hosting costs instead.`;
 
 export async function runFinanceAgent(refinedConcept, businessInfo, marketResearch, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
