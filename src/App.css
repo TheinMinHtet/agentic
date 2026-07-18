@@ -831,3 +831,177 @@
     row-gap: var(--spacing-16);
   }
 }
+
+/* -------------------------------------
+   AI-Native Dark Theme Auth Overrides
+-------------------------------------- */
+.landing-dark-theme-wrapper {
+  min-height: calc(100vh - 56px);
+  background-color: #080B11;
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.18) 0%, rgba(8, 11, 17, 0) 70%),
+    radial-gradient(circle at 85% 30%, rgba(0, 242, 254, 0.08) 0%, rgba(8, 11, 17, 0) 50%),
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 22px 22px, 22px 22px;
+  color: #F8FAFC;
+  font-family: var(--font-inter, 'Inter', system-ui, -apple-system, sans-serif);
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-panel {
+  background: rgba(18, 24, 38, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 40px;
+  width: 100%;
+  max-width: 440px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  text-align: center;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  margin: 0 auto;
+}
+
+.glass-panel:hover {
+  border-color: rgba(0, 242, 254, 0.4);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.75), 0 0 40px rgba(56, 189, 248, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+.dark-input {
+  background: rgba(8, 11, 17, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #F8FAFC;
+  border-radius: 8px;
+  padding: 12px 14px;
+  width: 100%;
+  font-family: var(--font-inter, 'Inter', system-ui, sans-serif);
+  font-size: 14px;
+  transition: all 0.3s ease;
+  margin-top: 6px;
+  box-sizing: border-box;
+}
+
+.dark-input:focus {
+  outline: none;
+  border-color: #00F2FE;
+  box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.2);
+  background: rgba(8, 11, 17, 0.8);
+}
+
+.dark-input::placeholder {
+  color: #475569;
+}
+
+.dark-label {
+  display: block;
+  text-align: left;
+  color: #94A3B8;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.glass-panel h2 {
+  font-family: var(--font-jakarta, 'Plus Jakarta Sans', system-ui, sans-serif);
+  font-size: 26px;
+  font-weight: 700;
+  color: #F8FAFC;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.glass-panel p.auth-copy-dark {
+  color: #94A3B8;
+  font-size: 14.5px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.glass-panel .button-primary-dark {
+  background: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  padding: 12px 24px;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.35);
+  font-weight: 600;
+  font-family: var(--font-inter, 'Inter', system-ui, sans-serif);
+  transition: all 0.35s ease;
+  width: 100%;
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.glass-panel .button-primary-dark:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+  filter: brightness(1.1);
+}
+
+.glass-panel .button-primary-dark:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.dark-switch-copy {
+  margin-top: 24px;
+  color: #64748B;
+  font-size: 13.5px;
+}
+
+.dark-switch-copy a {
+  color: #818CF8;
+  font-weight: 600;
+  transition: color 0.2s ease;
+  text-decoration: none;
+}
+
+.dark-switch-copy a:hover {
+  color: #C4B5FD;
+}
+
+.badge-neon {
+  background: rgba(0, 242, 254, 0.1);
+  color: #00F2FE;
+  border: 1px solid rgba(0, 242, 254, 0.25);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
+}
+
+.auth-form-dark {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dark-error {
+  margin: 0;
+  padding: 10px 12px;
+  color: #FDA4AF;
+  background: rgba(225, 29, 72, 0.15);
+  border: 1px solid rgba(225, 29, 72, 0.3);
+  border-radius: 8px;
+  font-size: 13.5px;
+  line-height: 1.4;
+  text-align: left;
+}
