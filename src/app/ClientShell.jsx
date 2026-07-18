@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogIn, LogOut, Sparkles } from 'lucide-react';
+import { LogIn, LogOut } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Footer from './components/Footer';
 import GlobalStepper from './components/GlobalStepper';
@@ -15,7 +15,6 @@ function Navbar() {
   const { language, toggleLanguage, t } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
-  const isLanding = pathname === '/';
 
   const handleLogout = async () => {
     await logout();
@@ -26,9 +25,13 @@ function Navbar() {
 
   return (
     <nav className="navbar navbar-dark-landing">
-      <Link href="/" className="brand-link" aria-label="Agentic Workflow home">
-        <span className="brand-mark"><Sparkles size={18} /></span>
-        <span>Agentic Workflow</span>
+      <Link href="/" className="brand-link" aria-label="LANN SA home" style={{ gap: '6px' }}>
+        <img
+          src="/lann-sa-final-logo.png"
+          alt="LANN SA logo"
+          style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'contain', flexShrink: 0, mixBlendMode: 'screen' }}
+        />
+        <span>LANN SA</span>
       </Link>
       <div className="nav-center-links">
         <Link href="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>{t('navbar.home')}</Link>
@@ -36,14 +39,25 @@ function Navbar() {
           <Link href="/dashboard" className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}>{t('navbar.dashboard')}</Link>
         )}
       </div>
-      <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <button
           type="button"
-          className="button-secondary language-toggle-btn"
           onClick={toggleLanguage}
-          style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', cursor: 'pointer', borderRadius: '8px', minWidth: '70px', textAlign: 'center' }}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            padding: '0.38rem 0.9rem', fontSize: '0.82rem', fontWeight: 600,
+            cursor: 'pointer', borderRadius: '8px',
+            background: 'rgba(255,255,255,0.06)',
+            border: '1px solid rgba(255,255,255,0.12)',
+            color: '#CBD5E1',
+            backdropFilter: 'blur(8px)',
+            transition: 'all 0.2s ease',
+            minWidth: '80px', textAlign: 'center'
+          }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.11)'; e.currentTarget.style.borderColor = 'rgba(129,140,248,0.4)'; e.currentTarget.style.color = '#fff'; }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#CBD5E1'; }}
         >
-          {language === 'en' ? 'မြန်မာ' : 'English'}
+          {language === 'en' ? '🇲🇲 မြန်မာ' : '🇬🇧 English'}
         </button>
         {!loading && isAuthenticated ? (
           <button type="button" className="button-secondary nav-auth-button" onClick={handleLogout}>
@@ -57,7 +71,7 @@ function Navbar() {
           </Link>
         ) : null}
       </div>
-    </nav>
+    </nav >
   );
 }
 
