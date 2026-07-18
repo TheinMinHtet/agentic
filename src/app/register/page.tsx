@@ -29,50 +29,74 @@ export default function RegisterPage() {
 
     setIsSubmitting(true);
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          username,
+    try {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            username,
+          },
         },
-      },
-    });
+      });
 
-    if (signUpError) {
+      if (signUpError) {
+        setIsSubmitting(false);
+        setErrorMessage(signUpError.message);
+        return;
+      }
+
+      if (!data.user) {
+        setIsSubmitting(false);
+        setErrorMessage(language === 'en' ? 'Registration succeeded, but no authenticated user was returned.' : 'အကောင့်ဖွင့်ခြင်း အောင်မြင်သော်လည်း user အချက်အလက် မတွေ့ရှိပါ။');
+        return;
+      }
+
+      const { error: profileError } = await supabase.from('users').insert({
+        user_id: data.user.id,
+        username,
+        email,
+      });
+
+      if (profileError) {
+        setIsSubmitting(false);
+        setErrorMessage(profileError.message);
+        return;
+      }
+
+      const { error: signOutError } = await supabase.auth.signOut();
+
       setIsSubmitting(false);
-      setErrorMessage(signUpError.message);
-      return;
-    }
 
-    if (!data.user) {
+      if (signOutError) {
+        setErrorMessage(signOutError.message);
+        return;
+      }
+
+      router.replace('/login');
+      router.refresh();
+    } catch (err: any) {
       setIsSubmitting(false);
-      setErrorMessage(language === 'en' ? 'Registration succeeded, but no authenticated user was returned.' : 'အကောင့်ဖွင့်ခြင်း အောင်မြင်သော်လည်း user အချက်အလက် မတွေ့ရှိပါ။');
-      return;
+      const isPlaceholder = !process.env.NEXT_PUBLIC_SUPABASE_URL || 
+        process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your_project_url') || 
+        process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder');
+
+      if (isPlaceholder) {
+        setErrorMessage(
+          language === 'en'
+            ? 'Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.'
+            : 'Supabase သတ်မှတ်ချက် မပြည့်စုံပါ။ env file တွင် NEXT_PUBLIC_SUPABASE_URL နှင့် NEXT_PUBLIC_SUPABASE_ANON_KEY ကို ဖြည့်စွက်ပေးပါ။'
+        );
+      } else if (err instanceof TypeError || (err?.message && err.message.includes('Failed to fetch'))) {
+        setErrorMessage(
+          language === 'en'
+            ? 'Network error: Failed to connect to Supabase. Please check your internet connection or ad blocker settings.'
+            : 'ကွန်ရက်ချိတ်ဆက်မှု ပြဿနာ- Supabase သို့ မချိတ်ဆက်နိုင်ပါ။ သင်၏ အင်တာနက်ချိတ်ဆက်မှု သို့မဟုတ် ad blocker setting ကို စစ်ဆေးပါ။'
+        );
+      } else {
+        setErrorMessage(err?.message || (language === 'en' ? 'An unexpected error occurred.' : 'မမျှော်လင့်ထားသော အမှားတစ်ခု ဖြစ်ပွားခဲ့သည်။'));
+      }
     }
-
-    const { error: profileError } = await supabase.from('users').insert({
-      user_id: data.user.id,
-      username,
-      email,
-    });
-
-    setIsSubmitting(false);
-
-    if (profileError) {
-      setErrorMessage(profileError.message);
-      return;
-    }
-
-    const { error: signOutError } = await supabase.auth.signOut();
-
-    if (signOutError) {
-      setErrorMessage(signOutError.message);
-      return;
-    }
-
-    router.replace('/login');
-    router.refresh();
   };
 
   return (

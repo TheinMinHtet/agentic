@@ -29,20 +29,43 @@ export default function LoginPage() {
     setErrorMessage('');
     setIsSubmitting(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    setIsSubmitting(false);
+      setIsSubmitting(false);
 
-    if (error) {
-      setErrorMessage(error.message);
-      return;
+      if (error) {
+        setErrorMessage(error.message);
+        return;
+      }
+
+      router.replace('/');
+      router.refresh();
+    } catch (err: any) {
+      setIsSubmitting(false);
+      const isPlaceholder = !process.env.NEXT_PUBLIC_SUPABASE_URL || 
+        process.env.NEXT_PUBLIC_SUPABASE_URL.includes('your_project_url') || 
+        process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder');
+
+      if (isPlaceholder) {
+        setErrorMessage(
+          language === 'en'
+            ? 'Supabase is not configured. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables.'
+            : 'Supabase သတ်မှတ်ချက် မပြည့်စုံပါ။ env file တွင် NEXT_PUBLIC_SUPABASE_URL နှင့် NEXT_PUBLIC_SUPABASE_ANON_KEY ကို ဖြည့်စွက်ပေးပါ။'
+        );
+      } else if (err instanceof TypeError || (err?.message && err.message.includes('Failed to fetch'))) {
+        setErrorMessage(
+          language === 'en'
+            ? 'Network error: Failed to connect to Supabase. Please check your internet connection or ad blocker settings.'
+            : 'ကွန်ရက်ချိတ်ဆက်မှု ပြဿနာ- Supabase သို့ မချိတ်ဆက်နိုင်ပါ။ သင်၏ အင်တာနက်ချိတ်ဆက်မှု သို့မဟုတ် ad blocker setting ကို စစ်ဆေးပါ။'
+        );
+      } else {
+        setErrorMessage(err?.message || (language === 'en' ? 'An unexpected error occurred.' : 'မမျှော်လင့်ထားသော အမှားတစ်ခု ဖြစ်ပွားခဲ့သည်။'));
+      }
     }
-
-    router.replace('/');
-    router.refresh();
   };
 
   return (
