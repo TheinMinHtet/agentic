@@ -46,23 +46,23 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="auth-section section-padding container">
-      <div className="auth-card card">
-        <span className="badge-accent auth-badge">
+    <section className="landing-dark-theme-wrapper">
+      <div className="glass-panel">
+        <span className="badge-neon">
           <ShieldCheck size={14} />
           {language === 'en' ? 'Secure workspace' : 'လုံခြုံစိတ်ချရသော လုပ်ငန်းခွင်'}
         </span>
-        <h2>{t('auth.welcome')}</h2>
-        <p className="text-muted auth-copy">
-          {t('auth.welcomeDesc')}
+        <h2>Welcome back</h2>
+        <p className="auth-copy-dark">
+          Sign in to continue shaping your startup blueprint with the agent workflow.
         </p>
-        <form onSubmit={handleLogin} className="auth-form">
+        <form onSubmit={handleLogin} className="auth-form-dark">
           <div className="form-field">
-            <label htmlFor="email">{t('auth.email')}</label>
+            <label htmlFor="email" className="dark-label">Email</label>
             <input
               id="email"
               type="email"
-              className="input-text"
+              className="dark-input"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
@@ -70,25 +70,25 @@ export default function LoginPage() {
             />
           </div>
           <div className="form-field">
-            <label htmlFor="password">{t('auth.password')}</label>
+            <label htmlFor="password" className="dark-label">Password</label>
             <input
               id="password"
               type="password"
-              className="input-text"
+              className="dark-input"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder={language === 'en' ? "Enter your password" : "စကားဝှက်ထည့်ပါ"}
               required
             />
           </div>
-          {errorMessage && <p className="auth-error">{errorMessage}</p>}
-          <button type="submit" className="button-primary button-full" disabled={isSubmitting}>
-            {isSubmitting ? (language === 'en' ? 'Signing in...' : 'လော့ဂ်အင်ဝင်နေသည်...') : t('auth.buttonLogin')}
+          {errorMessage && <p className="dark-error">{errorMessage}</p>}
+          <button type="submit" className="button-primary-dark" disabled={isSubmitting}>
+            {isSubmitting ? 'Signing in...' : 'Continue to home'}
             <ArrowRight size={18} />
           </button>
         </form>
-        <p className="auth-switch text-muted">
-          {t('auth.noAccount')} <Link href="/register">{t('auth.signUp')}</Link>
+        <p className="dark-switch-copy">
+          New here? <Link href="/register">Create an account</Link>
         </p>
       </div>
     </section>

@@ -76,23 +76,23 @@ export default function RegisterPage() {
   };
 
   return (
-    <section className="auth-section section-padding container">
-      <div className="auth-card card">
-        <span className="badge-accent auth-badge">
+    <section className="landing-dark-theme-wrapper">
+      <div className="glass-panel">
+        <span className="badge-neon">
           <UserPlus size={14} />
           {language === 'en' ? 'Create account' : 'အကောင့်သစ်ဖွင့်ရန်'}
         </span>
-        <h2>{t('auth.createAccount')}</h2>
-        <p className="text-muted auth-copy">
-          {t('auth.signUpDesc')}
+        <h2>Start your workspace</h2>
+        <p className="auth-copy-dark">
+          Register with email and password to save your startup blueprint.
         </p>
-        <form onSubmit={handleRegister} className="auth-form">
+        <form onSubmit={handleRegister} className="auth-form-dark">
           <div className="form-field">
-            <label htmlFor="username">{language === 'en' ? 'Username' : 'အသုံးပြုသူအမည်'}</label>
+            <label htmlFor="username" className="dark-label">Username</label>
             <input
               id="username"
               type="text"
-              className="input-text"
+              className="dark-input"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               placeholder={language === 'en' ? "Your username" : "သင့်အသုံးပြုသူအမည်"}
@@ -100,11 +100,11 @@ export default function RegisterPage() {
             />
           </div>
           <div className="form-field">
-            <label htmlFor="email">{t('auth.email')}</label>
+            <label htmlFor="email" className="dark-label">Email</label>
             <input
               id="email"
               type="email"
-              className="input-text"
+              className="dark-input"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               placeholder="you@example.com"
@@ -112,11 +112,11 @@ export default function RegisterPage() {
             />
           </div>
           <div className="form-field">
-            <label htmlFor="password">{t('auth.password')}</label>
+            <label htmlFor="password" className="dark-label">Password</label>
             <input
               id="password"
               type="password"
-              className="input-text"
+              className="dark-input"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder={language === 'en' ? "Create a password" : "စကားဝှက်အသစ်သတ်မှတ်ပါ"}
@@ -125,11 +125,11 @@ export default function RegisterPage() {
             />
           </div>
           <div className="form-field">
-            <label htmlFor="confirm-password">{language === 'en' ? 'Confirm Password' : 'စကားဝှက်ကို အတည်ပြုပါ'}</label>
+            <label htmlFor="confirm-password" className="dark-label">Confirm Password</label>
             <input
               id="confirm-password"
               type="password"
-              className="input-text"
+              className="dark-input"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
               placeholder={language === 'en' ? "Repeat your password" : "စကားဝှက်ကို ထပ်မံရိုက်ထည့်ပါ"}
@@ -137,14 +137,14 @@ export default function RegisterPage() {
               minLength={6}
             />
           </div>
-          {errorMessage && <p className="auth-error">{errorMessage}</p>}
-          <button type="submit" className="button-primary button-full" disabled={isSubmitting}>
-            {isSubmitting ? (language === 'en' ? 'Creating account...' : 'အကောင့်ဖွင့်နေသည်...') : t('auth.signUp')}
+          {errorMessage && <p className="dark-error">{errorMessage}</p>}
+          <button type="submit" className="button-primary-dark" disabled={isSubmitting}>
+            {isSubmitting ? 'Creating account...' : 'Create account'}
             <ArrowRight size={18} />
           </button>
         </form>
-        <p className="auth-switch text-muted">
-          {t('auth.haveAccount')} <Link href="/login">{t('auth.signIn')}</Link>
+        <p className="dark-switch-copy">
+          Already have an account? <Link href="/login">Log in</Link>
         </p>
       </div>
     </section>
