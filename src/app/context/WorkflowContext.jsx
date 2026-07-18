@@ -13,7 +13,8 @@ import {
   runMarketingAgent,
   runBusinessAgent,
   runRefinementChatAgent,
-  runOnboardingAgent
+  runOnboardingAgent,
+  runAgenticUpdateAgent
 } from '../../agents/orchestrator';
 
 const WorkflowContext = createContext();
@@ -510,6 +511,17 @@ export function WorkflowProvider({ children }) {
     setBusinessInfo(info);
   };
 
+  const updateRefinedConceptDirect = async (updatedConcept) => {
+    setRefinedConcept(updatedConcept);
+    await persistAgentOutput('agent_refinements', updatedConcept, (output) => ({
+      thinking: output.thinking || '',
+      concept: output.concept || '',
+      improved_summary: output.improved_summary || '',
+      key_differentiators: output.key_differentiators || [],
+      target_audience_refined: output.target_audience_refined || ''
+    }));
+  };
+
   const updateFinanceModelDirect = async (updatedFinance) => {
     setFinanceModel(updatedFinance);
     await persistAgentOutput('agent_finance_models', updatedFinance, (output) => ({
@@ -570,7 +582,7 @@ export function WorkflowProvider({ children }) {
     }));
   };
 
-  const triggerRediscovery = async (changedModelName) => {
+  const triggerRediscovery = async (changedModelName, updatedModelDirect = null) => {
     const key = getApiKey();
     
     let currentRefined = refinedConcept || DEFAULT_CONCEPT_FALLBACK;
@@ -580,26 +592,159 @@ export function WorkflowProvider({ children }) {
     let currentDigital = digitalPresence || DEFAULT_DIGITAL_FALLBACK;
     let currentGrowth = growthPlan || DEFAULT_MARKETING_FALLBACK;
 
-    addThinkingLog('business', `Triggering rediscovery cascade from updated ${changedModelName} model...`);
+    if (updatedModelDirect) {
+      if (changedModelName === 'overview') currentRefined = updatedModelDirect;
+      if (changedModelName === 'market') currentMarket = updatedModelDirect;
+      if (changedModelName === 'finance') currentFinance = updatedModelDirect;
+      if (changedModelName === 'brand') currentBrand = updatedModelDirect;
+      if (changedModelName === 'digital') currentDigital = updatedModelDirect;
+      if (changedModelName === 'growth') currentGrowth = updatedModelDirect;
+    }
+
+    const currentBlueprint = {
+      refinedConcept: currentRefined,
+      marketResearch: currentMarket,
+      financeModel: currentFinance,
+      brandPackage: currentBrand,
+      digitalPresence: currentDigital,
+      growthPlan: currentGrowth
+    };
+
+    addThinkingLog('business', `Triggering agentic rediscovery cascade for updated ${changedModelName} model...`);
 
     try {
-      if (changedModelName === 'market') {
-        addThinkingLog('finance', 'Market demographics updated. Re-running financial estimates...');
-        const newFinance = await runFinanceAgent(currentRefined, businessInfo, currentMarket, key, language);
-        setFinanceModel(newFinance);
-        currentFinance = newFinance;
+      const updateResponse = await runAgenticUpdateAgent(
+        changedModelName,
+        updatedModelDirect,
+        currentBlueprint,
+        businessInfo,
+        key,
+        language
+      );
 
-        addThinkingLog('marketing', 'Market opportunities updated. Re-evaluating customer acquisition channels...');
-        const newGrowth = await runMarketingAgent(currentRefined, businessInfo, currentMarket, key, language);
-        setGrowthPlan(newGrowth);
-        currentGrowth = newGrowth;
+      addThinkingLog('business', `Agentic Analysis: ${updateResponse.thinking}`);
+      
+      const affected = updateResponse.affected_tabs || [];
+      addThinkingLog('business', `Affected downstream modules identified: ${affected.join(', ') || 'none'}`);
+
+      if (changedModelName === 'overview' && updateResponse.updated_concept) {
+        addThinkingLog('business', 'Persisting updated Refined Concept...');
+        await updateRefinedConceptDirect(updateResponse.updated_concept);
+        currentRefined = updateResponse.updated_concept;
+      }
+      if (changedModelName === 'market' && updateResponse.updated_marketResearch) {
+        addThinkingLog('market', 'Persisting updated Market Intelligence...');
+        await updateMarketResearchDirect(updateResponse.updated_marketResearch);
+        currentMarket = updateResponse.updated_marketResearch;
+      }
+      if (changedModelName === 'finance' && updateResponse.updated_financeModel) {
+        addThinkingLog('finance', 'Persisting updated Finance Model...');
+        await updateFinanceModelDirect(updateResponse.updated_financeModel);
+        currentFinance = updateResponse.updated_financeModel;
+      }
+      if (changedModelName === 'brand' && updateResponse.updated_brandPackage) {
+        addThinkingLog('brand', 'Persisting updated Brand Package...');
+        await updateBrandPackageDirect(updateResponse.updated_brandPackage);
+        currentBrand = updateResponse.updated_brandPackage;
+      }
+      if (changedModelName === 'digital' && updateResponse.updated_digitalPresence) {
+        addThinkingLog('website', 'Persisting updated Digital Presence...');
+        await updateDigitalPresenceDirect(updateResponse.updated_digitalPresence);
+        currentDigital = updateResponse.updated_digitalPresence;
+      }
+      if (changedModelName === 'growth' && updateResponse.updated_growthPlan) {
+        addThinkingLog('marketing', 'Persisting updated Growth Plan...');
+        await updateGrowthPlanDirect(updateResponse.updated_growthPlan);
+        currentGrowth = updateResponse.updated_growthPlan;
       }
 
-      if (changedModelName === 'brand') {
-        addThinkingLog('website', 'Brand name or colors changed. Re-running landing page architecture...');
+      if (affected.includes('overview')) {
+        addThinkingLog('refinement', 'Refined concept affected. Re-running Refinement Agent...');
+        const newRefined = await runRefinementAgent(rawUserIdea, businessInfo, key, language);
+        setRefinedConcept(newRefined);
+        await persistAgentOutput('agent_refinements', newRefined, (output) => ({
+          thinking: output.thinking || '',
+          concept: output.concept || '',
+          improved_summary: output.improved_summary || '',
+          key_differentiators: output.key_differentiators || [],
+          target_audience_refined: output.target_audience_refined || ''
+        }));
+        currentRefined = newRefined;
+      }
+
+      if (affected.includes('market')) {
+        addThinkingLog('market', 'Market research affected. Re-running Market Research Agent...');
+        const newMarket = await runMarketResearchAgent(currentRefined, businessInfo, key, language);
+        setMarketResearch(newMarket);
+        await persistAgentOutput('agent_market_research', newMarket, (output) => ({
+          thinking: output.thinking || '',
+          markdown_deliverable: output.markdown_deliverable || '',
+          tam: output.tam || '',
+          competitors: output.competitors || [],
+          opportunities: output.opportunities || [],
+          saturation_level: output.saturation_level || 0,
+          target_personas: output.target_personas || []
+        }));
+        currentMarket = newMarket;
+      }
+
+      if (affected.includes('finance')) {
+        addThinkingLog('finance', 'Financial model affected. Re-running Finance Agent...');
+        const newFinance = await runFinanceAgent(currentRefined, businessInfo, currentMarket, key, language);
+        setFinanceModel(newFinance);
+        await persistAgentOutput('agent_finance_models', newFinance, (output) => ({
+          thinking: output.thinking || '',
+          markdown_deliverable: output.markdown_deliverable || '',
+          cost_breakdown: output.costBreakdown || [],
+          revenue_forecast: output.revenueForecast || '',
+          pricing_strategy: output.pricingStrategy || '',
+          breakeven_month: output.breakevenMonth || 0
+        }));
+        currentFinance = newFinance;
+      }
+
+      if (affected.includes('brand')) {
+        addThinkingLog('brand', 'Brand identity affected. Re-running Brand Agent...');
+        const newBrand = await runBrandAgent(currentRefined, businessInfo, key, language);
+        setBrandPackage(newBrand);
+        await persistAgentOutput('agent_brand_packages', newBrand, (output) => ({
+          thinking: output.thinking || '',
+          markdown_deliverable: output.markdown_deliverable || '',
+          names: output.names || [],
+          tagline: output.tagline || '',
+          voice: output.voice || '',
+          palette: output.palette || {},
+          logo_concept: output.logoConcept || ''
+        }));
+        currentBrand = newBrand;
+      }
+
+      if (affected.includes('digital')) {
+        addThinkingLog('website', 'Digital presence affected. Re-running Website/Product Agent...');
         const newDigital = await runWebsiteAgent(currentRefined, businessInfo, currentBrand, key, language);
         setDigitalPresence(newDigital);
+        await persistAgentOutput('agent_digital_presence', newDigital, (output) => ({
+          thinking: output.thinking || '',
+          markdown_deliverable: output.markdown_deliverable || '',
+          landing_page_outline: output.landingPageOutline || [],
+          features: output.features || [],
+          stack: output.stack || []
+        }));
         currentDigital = newDigital;
+      }
+
+      if (affected.includes('growth')) {
+        addThinkingLog('marketing', 'Growth roadmap affected. Re-running Marketing Agent...');
+        const newGrowth = await runMarketingAgent(currentRefined, businessInfo, currentMarket, key, language);
+        setGrowthPlan(newGrowth);
+        await persistAgentOutput('agent_growth_plans', newGrowth, (output) => ({
+          thinking: output.thinking || '',
+          markdown_deliverable: output.markdown_deliverable || '',
+          channels: output.channels || [],
+          acquisition_plan: output.acquisitionPlan || '',
+          roadmap_90_day: output.roadmap90Day || []
+        }));
+        currentGrowth = newGrowth;
       }
 
       addThinkingLog('business', 'Integrating all modified properties into updated Lean Canvas...');
@@ -784,6 +929,7 @@ export function WorkflowProvider({ children }) {
       updateBrandPackageDirect,
       updateDigitalPresenceDirect,
       updateGrowthPlanDirect,
+      updateRefinedConceptDirect,
       triggerRediscovery
     }}>
       {children}
