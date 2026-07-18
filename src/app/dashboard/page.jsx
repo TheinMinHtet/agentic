@@ -7,21 +7,21 @@ import { createClient } from '@/lib/supabase/client';
 import MarkdownPreviewer from '../components/MarkdownPreviewer';
 import { useLanguage } from '../context/LanguageContext';
 import RoadmapCalendar from '../components/RoadmapCalendar';
-import { 
-  ArrowLeft, 
-  FileText, 
-  Briefcase, 
-  TrendingUp, 
-  DollarSign, 
-  Sparkles, 
-  Globe, 
-  Megaphone,
-  CheckCircle,
-  ExternalLink,
-  Calendar as CalendarIcon,
-  RefreshCw,
-  Plus,
-  Trash2
+import {
+    ArrowLeft,
+    FileText,
+    Briefcase,
+    TrendingUp,
+    DollarSign,
+    Sparkles,
+    Globe,
+    Megaphone,
+    CheckCircle,
+    ExternalLink,
+    Calendar as CalendarIcon,
+    RefreshCw,
+    Plus,
+    Trash2
 } from 'lucide-react';
 import AgentRediscoveryOverlay from '../components/AgentRediscoveryOverlay';
 
@@ -325,7 +325,7 @@ export default function DashboardPage() {
 
     const handleRestart = () => {
         resetWorkflow();
-        router.push('/idea-prompt');
+        router.push('/onboarding');
     };
 
     const handleStartEdit = () => {
@@ -541,12 +541,12 @@ export default function DashboardPage() {
                     flexDirection: 'column'
                 }}>
                     {/* Glowing Scan and Loading Overlay */}
-                    <AgentRediscoveryOverlay 
-                        isVisible={isSaving} 
-                        statusMessage={statusMessage} 
-                        steps={steps} 
+                    <AgentRediscoveryOverlay
+                        isVisible={isSaving}
+                        statusMessage={statusMessage}
+                        steps={steps}
                     />
-                    
+
                     {/* Tab Header Controls */}
                     <div style={{
                         display: 'flex',
@@ -559,13 +559,13 @@ export default function DashboardPage() {
                         <h3 style={{ fontSize: '24px', fontWeight: 900, fontFamily: 'var(--typography-heading-family)' }}>
                             {currentTabInfo.label}
                         </h3>
-                        
+
                         <div style={{ display: 'flex', gap: '12px' }}>
                             {!previewDoc && activeTab !== 'calendar' && (
                                 isEditing ? (
                                     <>
-                                        <button 
-                                            className="button-secondary" 
+                                        <button
+                                            className="button-secondary"
                                             onClick={() => setIsEditing(false)}
                                             style={{
                                                 borderRadius: '12px',
@@ -577,8 +577,8 @@ export default function DashboardPage() {
                                         >
                                             {language === 'en' ? 'Cancel' : 'မလုပ်တော့ပါ'}
                                         </button>
-                                        <button 
-                                            className="button-primary" 
+                                        <button
+                                            className="button-primary"
                                             onClick={handleSaveAndRediscover}
                                             style={{
                                                 borderRadius: '12px',
@@ -594,8 +594,8 @@ export default function DashboardPage() {
                                         </button>
                                     </>
                                 ) : (
-                                    <button 
-                                        className="button-secondary" 
+                                    <button
+                                        className="button-secondary"
                                         onClick={handleStartEdit}
                                         style={{
                                             borderRadius: '12px',
@@ -609,8 +609,8 @@ export default function DashboardPage() {
                                     </button>
                                 )
                             )}
-                            <button 
-                                className="button-primary" 
+                            <button
+                                className="button-primary"
                                 onClick={() => {
                                     setPreviewDoc(!previewDoc);
                                     setIsEditing(false);
@@ -1210,7 +1210,7 @@ export default function DashboardPage() {
                                         </div>
                                     ) : (
                                         <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px' }}>
-                                            
+
                                             {/* Wireframe Outline */}
                                             <div>
                                                 <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{language === 'en' ? 'Landing Page Wireframe Elements' : 'ဝဘ်ဆိုက် Layout Wireframe အစိတ်အပိုင်းများ'}</h4>
