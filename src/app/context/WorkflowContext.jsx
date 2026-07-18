@@ -210,22 +210,26 @@ export function WorkflowProvider({ children }) {
       return;
     }
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user?.id) {
-      console.warn(`Skipping ${table} save because no authenticated user was found.`);
-      return;
-    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.id) {
+        console.warn(`Skipping ${table} save because no authenticated user was found.`);
+        return;
+      }
 
-    const payload = {
-      idea_id: ideaId,
-      user_id: user.id,
-      ...mapOutput(output),
-      raw_output: output
-    };
+      const payload = {
+        idea_id: ideaId,
+        user_id: user.id,
+        ...mapOutput(output),
+        raw_output: output
+      };
 
-    const { error } = await supabase.from(table).insert(payload);
-    if (error) {
-      console.error(`Failed to save ${table}:`, error);
+      const { error } = await supabase.from(table).insert(payload);
+      if (error) {
+        console.error(`Failed to save ${table}:`, error);
+      }
+    } catch (err) {
+      console.error(`Failed to persist agent output for ${table}:`, err);
     }
   };
 
