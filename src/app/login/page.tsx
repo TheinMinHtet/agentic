@@ -6,10 +6,12 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { ArrowRight, ShieldCheck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function LoginPage() {
   const router = useRouter();
   const { isAuthenticated, loading } = useAuth();
+  const { language, t } = useLanguage();
   const supabase = useMemo(() => createClient(), []);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -48,7 +50,7 @@ export default function LoginPage() {
       <div className="glass-panel">
         <span className="badge-neon">
           <ShieldCheck size={14} />
-          Secure workspace
+          {language === 'en' ? 'Secure workspace' : 'လုံခြုံစိတ်ချရသော လုပ်ငန်းခွင်'}
         </span>
         <h2>Welcome back</h2>
         <p className="auth-copy-dark">
@@ -75,7 +77,7 @@ export default function LoginPage() {
               className="dark-input"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Enter your password"
+              placeholder={language === 'en' ? "Enter your password" : "စကားဝှက်ထည့်ပါ"}
               required
             />
           </div>

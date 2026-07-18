@@ -46,10 +46,11 @@ const SYSTEM_PROMPT = `You are the Brand Agent. Your job is to generate brand id
 
 CRITICAL GUARDRAILS:
 - Design guidelines: You must output actual hex codes (e.g. #1b0624) rather than descriptive colors (e.g. "soft blue").
-- Naming constraints: Suggested brand names must consist of single or dual-word names (excluding complex phrases).
-- Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Brand Identity & Style Guide". Use headers (H2, H3), lists, and visual code blocks showing hex colors.`;
+- Naming constraints: Suggested brand names must consist of single or dual-word names (excluding complex phrases). Brand names can be in either English or Burmese as appropriate for the market, but other brand components must align with the input language.
+- Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Brand Identity & Style Guide". Use headers (H2, H3), lists, and visual code blocks showing hex colors.
+- Language Alignment: Generate all textual properties, descriptions, tagline, tone of voice guidelines, logo concept, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).`;
 
-export async function runBrandAgent(refinedConcept, businessInfo, apiKey) {
+export async function runBrandAgent(refinedConcept, businessInfo, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
     apiKey: apiKey,
     model: 'gemini-3.1-flash-lite',
@@ -57,6 +58,9 @@ export async function runBrandAgent(refinedConcept, businessInfo, apiKey) {
   });
 
   const structuredModel = model.withStructuredOutput(BrandPackageSchema);
+
+  const isBurmese = language === 'my' || /[\u1000-\u109F]/.test(refinedConcept.concept);
+  const targetLanguage = isBurmese ? "Burmese (မြန်မာဘာသာ) language (using Myanmar script)" : "English language";
 
   const promptContent = `
 Refined Startup Concept:
@@ -69,7 +73,7 @@ Refined Startup Concept:
 
   const response = await structuredModel.invoke([
     { role: 'system', content: SYSTEM_PROMPT },
-    { role: 'user', content: `Generate branding assets for this concept:\n\n${promptContent}` }
+    { role: 'user', content: `Generate branding assets for this concept. IMPORTANT: You MUST write/generate all output fields (thinking, markdown_deliverable, tagline, voice, logoConcept, etc.) in the ${targetLanguage}. Do NOT write them in English:\n\n${promptContent}` }
   ]);
 
   if (!response) {

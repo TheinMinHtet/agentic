@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useMemo, useState } from 'react';
 import { ArrowRight, UserPlus } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { language, t } = useLanguage();
   const supabase = useMemo(() => createClient(), []);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -21,7 +23,7 @@ export default function RegisterPage() {
     setErrorMessage('');
 
     if (password !== confirmPassword) {
-      setErrorMessage('Password and confirm password must match.');
+      setErrorMessage(language === 'en' ? 'Password and confirm password must match.' : 'စကားဝှက်နှစ်ခု ကိုက်ညီမှုမရှိပါ။');
       return;
     }
 
@@ -45,7 +47,7 @@ export default function RegisterPage() {
 
     if (!data.user) {
       setIsSubmitting(false);
-      setErrorMessage('Registration succeeded, but no authenticated user was returned.');
+      setErrorMessage(language === 'en' ? 'Registration succeeded, but no authenticated user was returned.' : 'အကောင့်ဖွင့်ခြင်း အောင်မြင်သော်လည်း user အချက်အလက် မတွေ့ရှိပါ။');
       return;
     }
 
@@ -78,7 +80,7 @@ export default function RegisterPage() {
       <div className="glass-panel">
         <span className="badge-neon">
           <UserPlus size={14} />
-          Create account
+          {language === 'en' ? 'Create account' : 'အကောင့်သစ်ဖွင့်ရန်'}
         </span>
         <h2>Start your workspace</h2>
         <p className="auth-copy-dark">
@@ -93,7 +95,7 @@ export default function RegisterPage() {
               className="dark-input"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
-              placeholder="Your username"
+              placeholder={language === 'en' ? "Your username" : "သင့်အသုံးပြုသူအမည်"}
               required
             />
           </div>
@@ -117,7 +119,7 @@ export default function RegisterPage() {
               className="dark-input"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Create a password"
+              placeholder={language === 'en' ? "Create a password" : "စကားဝှက်အသစ်သတ်မှတ်ပါ"}
               required
               minLength={6}
             />
@@ -130,7 +132,7 @@ export default function RegisterPage() {
               className="dark-input"
               value={confirmPassword}
               onChange={(event) => setConfirmPassword(event.target.value)}
-              placeholder="Repeat your password"
+              placeholder={language === 'en' ? "Repeat your password" : "စကားဝှက်ကို ထပ်မံရိုက်ထည့်ပါ"}
               required
               minLength={6}
             />
