@@ -403,7 +403,7 @@ export default function Footer({ isLanding = true }) {
                             <button
                                 type="button"
                                 className="cta-primary-btn"
-                                onClick={() => router.push(isAuthenticated ? '/idea-prompt' : '/login')}
+                                onClick={() => router.push(isAuthenticated ? '/onboarding' : '/login')}
                             >
                                 <Sparkles size={16} />
                                 <span>Launch Studio</span>

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogIn, LogOut } from 'lucide-react';
+import { LogIn, LogOut, Sparkles } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Footer from './components/Footer';
 import GlobalStepper from './components/GlobalStepper';

@@ -7,18 +7,18 @@ import { createClient } from '@/lib/supabase/client';
 import MarkdownPreviewer from '../components/MarkdownPreviewer';
 import { useLanguage } from '../context/LanguageContext';
 import RoadmapCalendar from '../components/RoadmapCalendar';
-import { 
-  ArrowLeft, 
-  FileText, 
-  Briefcase, 
-  TrendingUp, 
-  DollarSign, 
-  Sparkles, 
-  Globe, 
-  Megaphone,
-  CheckCircle,
-  ExternalLink,
-  Calendar as CalendarIcon
+import {
+    ArrowLeft,
+    FileText,
+    Briefcase,
+    TrendingUp,
+    DollarSign,
+    Sparkles,
+    Globe,
+    Megaphone,
+    CheckCircle,
+    ExternalLink,
+    Calendar as CalendarIcon
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -290,7 +290,7 @@ export default function DashboardPage() {
 
     const handleRestart = () => {
         resetWorkflow();
-        router.push('/idea-prompt');
+        router.push('/onboarding');
     };
 
     const tabsList = [
@@ -307,7 +307,7 @@ export default function DashboardPage() {
 
     return (
         <section className="dashboard-section container" style={{ minHeight: 'calc(100vh - 56px)' }}>
-            
+
             {/* Dashboard Header */}
             <div className="dashboard-header" style={{
                 borderBottom: '1px solid var(--color-border-light)',
@@ -323,7 +323,7 @@ export default function DashboardPage() {
                         {fallbackConcept.improved_summary}
                     </p>
                 </div>
-                
+
                 <div style={{ display: 'flex', gap: '16px' }}>
                     <button className="button-secondary" onClick={handleRestart} style={{ borderRadius: '12px' }}>
                         <ArrowLeft size={16} />
@@ -339,7 +339,7 @@ export default function DashboardPage() {
                 gap: '40px',
                 alignItems: 'start'
             }}>
-                
+
                 {/* Left Sidebar Navigation */}
                 <aside style={{
                     display: 'flex',
@@ -388,7 +388,7 @@ export default function DashboardPage() {
                     display: 'flex',
                     flexDirection: 'column'
                 }}>
-                    
+
                     {/* Tab Header Controls */}
                     <div style={{
                         display: 'flex',
@@ -401,9 +401,9 @@ export default function DashboardPage() {
                         <h3 style={{ fontSize: '24px', fontWeight: 900, fontFamily: 'var(--typography-heading-family)' }}>
                             {currentTabInfo.label}
                         </h3>
-                        
-                        <button 
-                            className="button-primary" 
+
+                        <button
+                            className="button-primary"
                             onClick={() => setPreviewDoc(!previewDoc)}
                             style={{
                                 borderRadius: '12px',
@@ -419,13 +419,13 @@ export default function DashboardPage() {
 
                     {/* Content Section: Markdown Document Preview vs Styled UI Layout */}
                     {previewDoc ? (
-                        <MarkdownPreviewer 
-                            markdown={currentTabInfo.deliverable} 
-                            filename={currentTabInfo.filename} 
+                        <MarkdownPreviewer
+                            markdown={currentTabInfo.deliverable}
+                            filename={currentTabInfo.filename}
                         />
                     ) : (
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-                            
+
                             {/* 1. BUSINESS OVERVIEW TAB */}
                             {activeTab === 'overview' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -564,7 +564,7 @@ export default function DashboardPage() {
                             {/* 4. BRAND PACKAGE TAB */}
                             {activeTab === 'brand' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                    
+
                                     {/* Suggested Name badges */}
                                     <div>
                                         <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{language === 'en' ? 'Brainstormed Brand Names' : 'အမှတ်တံဆိပ် အမည်များ'}</h4>
@@ -635,7 +635,7 @@ export default function DashboardPage() {
                             {activeTab === 'digital' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                                     <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '24px' }}>
-                                        
+
                                         {/* Wireframe Outline */}
                                         <div>
                                             <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>{language === 'en' ? 'Landing Page Wireframe Elements' : 'ဝဘ်ဆိုက် Layout Wireframe အစိတ်အပိုင်းများ'}</h4>
@@ -683,7 +683,7 @@ export default function DashboardPage() {
                             {/* 6. GROWTH & MARKETING TAB */}
                             {activeTab === 'growth' && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                                    
+
                                     {/* Channels list */}
                                     <div style={{ backgroundColor: 'var(--color-background)', padding: '20px', borderRadius: '20px', border: '1px solid var(--color-border-light)' }}>
                                         <h4 style={{ fontWeight: 900, marginBottom: '12px' }}>Acquisition Channels</h4>
@@ -743,8 +743,8 @@ export default function DashboardPage() {
 
                             {/* 7. ROADMAP CALENDAR TAB */}
                             {activeTab === 'calendar' && (
-                                <RoadmapCalendar 
-                                    growthPlan={growthPlan || fallbackMarketing} 
+                                <RoadmapCalendar
+                                    growthPlan={growthPlan || fallbackMarketing}
                                     businessInfo={businessInfo}
                                     refinedConcept={refinedConcept || fallbackConcept}
                                     ideaId={ideaId || currentIdeaId}
