@@ -214,6 +214,10 @@ export default function Footer({ isLanding = true }) {
                     margin-bottom: 56px;
                 }
 
+                .footer-divider-top {
+                    margin-top: 56px;
+                }
+
                 /* ─────────── LINK GRID ─────────── */
                 .footer-columns {
                     display: grid;
@@ -387,31 +391,33 @@ export default function Footer({ isLanding = true }) {
             `}</style>
 
             <div className="footer-inner">
-                {/* ── CTA Banner ── */}
-                <div className="footer-cta">
-                    <div className="footer-cta-text">
-                        <h3 className="footer-cta-title">
-                            Ready to build your <span>AI venture blueprint</span>?
-                        </h3>
-                        <p className="footer-cta-desc">
-                            Deploy 5 specialized agents to stress-test assumptions, audit financial risks, and generate an investor-ready consensus model.
-                        </p>
+                {/* ── CTA Banner (Landing page only) ── */}
+                {isLanding && (
+                    <div className="footer-cta">
+                        <div className="footer-cta-text">
+                            <h3 className="footer-cta-title">
+                                Ready to build your <span>AI venture blueprint</span>?
+                            </h3>
+                            <p className="footer-cta-desc">
+                                Deploy 5 specialized agents to stress-test assumptions, audit financial risks, and generate an investor-ready consensus model.
+                            </p>
+                        </div>
+                        <div className="footer-cta-actions">
+                            <button
+                                type="button"
+                                className="cta-primary-btn"
+                                onClick={() => router.push(isAuthenticated ? '/idea-prompt' : '/login')}
+                            >
+                                <Sparkles size={16} />
+                                <span>Launch Studio</span>
+                                <ArrowRight size={16} />
+                            </button>
+                        </div>
                     </div>
-                    <div className="footer-cta-actions">
-                        <button
-                            type="button"
-                            className="cta-primary-btn"
-                            onClick={() => router.push(isAuthenticated ? '/idea-prompt' : '/login')}
-                        >
-                            <Sparkles size={16} />
-                            <span>Launch Studio</span>
-                            <ArrowRight size={16} />
-                        </button>
-                    </div>
-                </div>
+                )}
 
                 {/* ── Gradient divider ── */}
-                <div className="footer-divider" />
+                <div className={`footer-divider ${!isLanding ? 'footer-divider-top' : ''}`} />
 
                 {/* ── Link columns ── */}
                 <div className="footer-columns">
