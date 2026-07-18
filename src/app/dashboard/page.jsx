@@ -25,6 +25,7 @@ import {
     Trash2
 } from 'lucide-react';
 import AgentRediscoveryOverlay from '../components/AgentRediscoveryOverlay';
+import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -905,14 +906,30 @@ export default function DashboardPage() {
                                                             <p className="perplexity-dashboard-stat-label">{language === 'en' ? 'Total Addressable Market' : 'စုစုပေါင်း TAM'}</p>
                                                             <h4 className="perplexity-dashboard-stat-value">{fallbackMarket.tam}</h4>
                                                         </div>
-                                                        <div className="perplexity-dashboard-stat-card">
-                                                            <p className="perplexity-dashboard-stat-label">{language === 'en' ? 'Market Saturation Index' : 'ဈေးကွက် ပြည့်နှက်မှု အညွှန်းကိန်း'}</p>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                                                <h4 className="perplexity-dashboard-stat-value">{fallbackMarket.saturation_level}%</h4>
-                                                                <div className="perplexity-dashboard-progress-track">
-                                                                    <div className="perplexity-dashboard-progress-bar" style={{ width: `${fallbackMarket.saturation_level}%` }} />
-                                                                </div>
+                                                        <div className="perplexity-dashboard-stat-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                            <p className="perplexity-dashboard-stat-label" style={{ marginBottom: 0 }}>{language === 'en' ? 'Market Saturation Index' : 'ဈေးကွက် ပြည့်နှက်မှု အညွှန်းကိန်း'}</p>
+                                                            <div style={{ height: '140px', width: '100%', marginTop: '10px' }}>
+                                                                <ResponsiveContainer width="100%" height="100%">
+                                                                    <PieChart>
+                                                                        <Pie
+                                                                            data={[
+                                                                                { name: 'Saturated', value: fallbackMarket.saturation_level },
+                                                                                { name: 'Available', value: 100 - fallbackMarket.saturation_level }
+                                                                            ]}
+                                                                            cx="50%" cy="100%"
+                                                                            startAngle={180} endAngle={0}
+                                                                            innerRadius={70} outerRadius={90}
+                                                                            paddingAngle={2}
+                                                                            dataKey="value"
+                                                                            stroke="none"
+                                                                        >
+                                                                            <Cell fill="var(--color-primary)" />
+                                                                            <Cell fill="rgba(255,255,255,0.05)" />
+                                                                        </Pie>
+                                                                    </PieChart>
+                                                                </ResponsiveContainer>
                                                             </div>
+                                                            <h4 className="perplexity-dashboard-stat-value" style={{ marginTop: '-40px' }}>{fallbackMarket.saturation_level}%</h4>
                                                         </div>
                                                     </div>
 
@@ -1083,21 +1100,65 @@ export default function DashboardPage() {
                                             ) : (
                                                 <>
                                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                                                        <div className="perplexity-dashboard-stat-card">
-                                                            <p className="perplexity-dashboard-stat-label">{t('dashboard.breakeven')}</p>
-                                                            <h4 className="perplexity-dashboard-stat-value">{fallbackFinance.breakevenMonth} {t('dashboard.months')}</h4>
-                                                        </div>
-                                                        <div className="perplexity-dashboard-stat-card">
-                                                            <p className="perplexity-dashboard-stat-label">{t('dashboard.monthlyRevenue')}</p>
-                                                            <p style={{ margin: 0, fontSize: '15px', color: '#ffffff', lineHeight: '1.4', fontWeight: 700 }}>{fallbackFinance.revenueForecast}</p>
+                                                        <div className="perplexity-dashboard-stat-card" style={{ gridColumn: 'span 2' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                                <div>
+                                                                    <p className="perplexity-dashboard-stat-label">{t('dashboard.breakeven')} Timeline</p>
+                                                                    <h4 className="perplexity-dashboard-stat-value" style={{ fontSize: '20px' }}>{fallbackFinance.breakevenMonth} {t('dashboard.months')}</h4>
+                                                                </div>
+                                                                <div style={{ textAlign: 'right' }}>
+                                                                    <p className="perplexity-dashboard-stat-label">{t('dashboard.monthlyRevenue')}</p>
+                                                                    <p style={{ margin: 0, fontSize: '14px', color: '#ffffff', fontWeight: 700 }}>{fallbackFinance.revenueForecast}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div style={{ height: '200px', width: '100%', marginTop: '20px' }}>
+                                                                <ResponsiveContainer width="100%" height="100%">
+                                                                    <AreaChart data={Array.from({ length: (Number(fallbackFinance.breakevenMonth) || 12) + 4 }, (_, i) => ({ month: i===0?'Start':`M${i}`, cash: i < (Number(fallbackFinance.breakevenMonth) || 12) ? -2500*((Number(fallbackFinance.breakevenMonth) || 12)-i) : 2500*(i-(Number(fallbackFinance.breakevenMonth) || 12)) }))}>
+                                                                        <defs>
+                                                                            <linearGradient id="colorCash" x1="0" y1="0" x2="0" y2="1">
+                                                                                <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.6}/>
+                                                                                <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                                                                            </linearGradient>
+                                                                        </defs>
+                                                                        <XAxis dataKey="month" stroke="rgba(255,255,255,0.2)" fontSize={11} tickLine={false} axisLine={false} />
+                                                                        <YAxis stroke="rgba(255,255,255,0.2)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => val === 0 ? '0' : val > 0 ? `+${val}` : val} />
+                                                                        <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border-light)', borderRadius: '12px', color: '#fff' }} />
+                                                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                                                        <Area type="monotone" dataKey="cash" stroke="var(--color-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorCash)" />
+                                                                    </AreaChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
                                                         </div>
                                                     </div>
 
                                                     {/* Cost table */}
                                                     <div>
                                                         <h4 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '16px', color: '#ffffff' }}>{t('dashboard.initialCost')}</h4>
-                                                        <div className="perplexity-dashboard-table-container">
-                                                            <table className="perplexity-dashboard-table">
+                                                        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                                                            <div style={{ flex: '1 1 300px', height: '300px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '20px', padding: '20px', border: '1px solid var(--color-border-light)' }}>
+                                                                <ResponsiveContainer width="100%" height="100%">
+                                                                    <PieChart>
+                                                                        <Pie
+                                                                            data={fallbackFinance.costBreakdown.map(i => ({ name: i.item, value: Number(i.cost) || 0 }))}
+                                                                            cx="50%" cy="50%"
+                                                                            innerRadius={70} outerRadius={95}
+                                                                            paddingAngle={4}
+                                                                            dataKey="value"
+                                                                            stroke="none"
+                                                                        >
+                                                                            {fallbackFinance.costBreakdown.map((_, index) => (
+                                                                                <Cell key={`cell-${index}`} fill={['#6366F1', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B', '#3B82F6'][index % 6]} />
+                                                                            ))}
+                                                                        </Pie>
+                                                                        <RechartsTooltip 
+                                                                            contentStyle={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border-light)', borderRadius: '12px', color: '#fff' }}
+                                                                            itemStyle={{ color: '#fff' }}
+                                                                        />
+                                                                    </PieChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
+                                                            <div className="perplexity-dashboard-table-container" style={{ flex: '2 1 400px' }}>
+                                                                <table className="perplexity-dashboard-table">
                                                                 <thead>
                                                                     <tr className="perplexity-dashboard-table-header-row">
                                                                         <th className="perplexity-dashboard-table-header-cell">{language === 'en' ? 'Expense Item' : 'အသုံးစရိတ် အမျိုးအစား'}</th>
@@ -1115,8 +1176,9 @@ export default function DashboardPage() {
                                                             </table>
                                                         </div>
                                                     </div>
+                                                </div>
 
-                                                    <div className="perplexity-dashboard-glass-box">
+                                                <div className="perplexity-dashboard-glass-box">
                                                         <h4 style={{ fontSize: '16px', fontWeight: 900, marginBottom: '12px', color: '#ffffff' }}>{language === 'en' ? 'Pricing & Subscription Tiers' : 'စျေးနှုန်းနှင့် လစဉ်ကြေး သတ်မှတ်ချက်များ'}</h4>
                                                         <p style={{ margin: 0, fontSize: '15px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>{fallbackFinance.pricingStrategy}</p>
                                                     </div>
@@ -1385,7 +1447,7 @@ export default function DashboardPage() {
                                     {/* 7. ROADMAP CALENDAR TAB */}
                                     {activeTab === 'calendar' && (
                                         <RoadmapCalendar
-                                            growthPlan={growthPlan || fallbackMarketing}
+                                            growthPlan={growthPlan || fallbackGrowth}
                                             businessInfo={businessInfo}
                                             refinedConcept={refinedConcept || fallbackConcept}
                                             ideaId={ideaId || currentIdeaId}

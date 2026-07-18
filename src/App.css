@@ -1546,3 +1546,21 @@
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+/* Global justification for paragraphs inside the dashboard */
+.perplexity-dashboard-container p,
+.perplexity-dashboard-container li {
+  text-align: justify;
+}
+
+/* Exclude specific labels and small text elements from being justified */
+.perplexity-dashboard-stat-label,
+.perplexity-dashboard-persona-section-label,
+.perplexity-dashboard-persona-name,
+.perplexity-dashboard-persona-role,
+.perplexity-dashboard-persona-budget,
+.perplexity-dashboard-color-label,
+.perplexity-dashboard-wireframe-badge,
+.perplexity-dashboard-header-subtitle {
+  text-align: left;
+}
