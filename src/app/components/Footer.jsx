@@ -3,12 +3,9 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { 
-    Layers, 
-    ArrowRight, 
-    ShieldCheck, 
+import {
+    ArrowRight,
     ExternalLink,
-    Zap,
     Sparkles
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -423,20 +420,17 @@ export default function Footer({ isLanding = true }) {
                 <div className="footer-columns">
                     {/* Brand column */}
                     <div>
-                        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '12px', textDecoration: 'none', marginBottom: '18px' }}>
-                            <div style={{
-                                width: 38, height: 38, borderRadius: 12,
-                                background: 'linear-gradient(135deg, #6366F1, #00F2FE)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                color: '#000', boxShadow: '0 0 18px rgba(99,102,241,0.3)'
-                            }}>
-                                <Layers size={20} strokeWidth={2.5} />
-                            </div>
+                        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', textDecoration: 'none', marginBottom: '18px' }}>
+                            <img
+                                src="/lann-sa-final-logo.png"
+                                alt="LANN SA logo"
+                                style={{ width: 48, height: 48, borderRadius: 10, objectFit: 'contain', mixBlendMode: 'screen' }}
+                            />
                             <span style={{
                                 fontFamily: "var(--font-jakarta, 'Plus Jakarta Sans', system-ui, sans-serif)",
                                 fontSize: 19, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.02em'
                             }}>
-                                Agentic<span style={{ color: '#818CF8' }}>.ai</span>
+                                LANN SA
                             </span>
                         </Link>
                         <p className="footer-brand-desc">
@@ -455,13 +449,7 @@ export default function Footer({ isLanding = true }) {
                             <li><Link href="/" className="footer-link" style={{ color: '#64748B' }}>WarRoom Studio</Link></li>
                             <li><Link href="/dashboard" className="footer-link" style={{ color: '#64748B' }}>Dashboard</Link></li>
                             <li><Link href="/" className="footer-link" style={{ color: '#64748B' }}>Consensus Engine</Link></li>
-                            <li><Link href="/" className="footer-link" style={{ color: '#64748B' }}>Monte Carlo Sims</Link></li>
-                            <li>
-                                <Link href="/" className="footer-link" style={{ color: '#64748B' }}>
-                                    API Reference
-                                    <ExternalLink size={12} className="footer-link-ext" />
-                                </Link>
-                            </li>
+                            <li><Link href="/" className="footer-link" style={{ color: '#64748B' }}>API Reference<ExternalLink size={12} className="footer-link-ext" /></Link></li>
                         </ul>
                     </div>
 
@@ -473,7 +461,6 @@ export default function Footer({ isLanding = true }) {
                             <li><Link href="/" className="footer-link" style={{ color: '#64748B' }}>Technical Architect</Link></li>
                             <li><Link href="/" className="footer-link" style={{ color: '#64748B' }}>Brand Identity</Link></li>
                             <li><Link href="/" className="footer-link" style={{ color: '#64748B' }}>Financial Modeling</Link></li>
-                            <li><Link href="/" className="footer-link" style={{ color: '#64748B' }}>Growth Strategy</Link></li>
                         </ul>
                     </div>
 
@@ -483,12 +470,6 @@ export default function Footer({ isLanding = true }) {
                         <ul className="footer-links">
                             <li><Link href="/" className="footer-link" style={{ color: '#64748B' }}>About</Link></li>
                             <li><Link href="/" className="footer-link" style={{ color: '#64748B' }}>Research</Link></li>
-                            <li>
-                                <Link href="/" className="footer-link-badge" style={{ color: '#34D399' }}>
-                                    <ShieldCheck size={14} />
-                                    SOC-2 Type II
-                                </Link>
-                            </li>
                             <li><Link href="/" className="footer-link" style={{ color: '#64748B' }}>Privacy</Link></li>
                             <li><Link href="/" className="footer-link" style={{ color: '#64748B' }}>Terms</Link></li>
                         </ul>
@@ -497,7 +478,7 @@ export default function Footer({ isLanding = true }) {
 
                 {/* ── Bottom bar ── */}
                 <div className="footer-bottom">
-                    <p className="footer-copy">{t('footer.rights')}</p>
+                    <p className="footer-copy">© 2026 LANN SA. All rights reserved.</p>
                     <div className="footer-socials">
                         <a href="https://github.com" target="_blank" rel="noreferrer" className="footer-social-btn" aria-label="GitHub">
                             <GitHubIcon size={17} />
