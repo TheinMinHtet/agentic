@@ -48,7 +48,8 @@ CRITICAL GUARDRAILS:
 - Design guidelines: You must output actual hex codes (e.g. #1b0624) rather than descriptive colors (e.g. "soft blue").
 - Naming constraints: Suggested brand names must consist of single or dual-word names (excluding complex phrases). Brand names can be in either English or Burmese as appropriate for the market, but other brand components must align with the input language.
 - Markdown Deliverable: Ensure that the 'markdown_deliverable' contains a rich, complete document titled "Brand Identity & Style Guide". Use headers (H2, H3), lists, and visual code blocks showing hex colors.
-- Language Alignment: Generate all textual properties, descriptions, tagline, tone of voice guidelines, logo concept, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).`;
+- Language Alignment: Generate all textual properties, descriptions, tagline, tone of voice guidelines, logo concept, and markdown_deliverable in the same language as the user's input/concept (e.g. if the raw startup idea is in Burmese, write all these properties in Burmese; if in English, write in English).
+- Blueprint Alignment: You MUST strictly respect all constraints, exclusions, and requirements specified in the Refined Startup Concept. For example, if the concept contains "Please Don't Use AI" or "No AI", you must NOT suggest brand names that contain "AI" or "Bot" (e.g. do NOT suggest "GrantFlow AI" or "ProposalAI"; suggest names like "GrantFlow", "ProposalLift", "FundForge", "BidDraft", "NarrateGrant" instead).`;
 
 export async function runBrandAgent(refinedConcept, businessInfo, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
