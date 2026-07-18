@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogIn, LogOut } from 'lucide-react';
+import { LogIn, LogOut, Sparkles } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Footer from './components/Footer';
 import GlobalStepper from './components/GlobalStepper';
@@ -31,9 +31,13 @@ function Navbar() {
   if (!mounted) {
     return (
       <nav className="navbar navbar-dark-landing">
-        <Link href="/" className="brand-link" aria-label="Agentic Workflow home">
-          <span className="brand-mark"><Sparkles size={18} /></span>
-          <span>Agentic Workflow</span>
+        <Link href="/" className="brand-link" aria-label="LANN SA home" style={{ gap: '6px' }}>
+          <img
+            src="/lann-sa-final-logo.png"
+            alt="LANN SA logo"
+            style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'contain', flexShrink: 0, mixBlendMode: 'screen' }}
+          />
+          <span>LANN SA</span>
         </Link>
         <div className="nav-center-links">
           <span className="nav-link" style={{ opacity: 0 }}>{t('navbar.home')}</span>
