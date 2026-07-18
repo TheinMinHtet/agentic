@@ -825,7 +825,7 @@
     padding: var(--spacing-24);
     border-radius: var(--radius-md);
   }
-  
+
   .business-form-grid {
     grid-template-columns: 1fr;
     row-gap: var(--spacing-16);
@@ -838,7 +838,7 @@
 .landing-dark-theme-wrapper {
   min-height: calc(100vh - 56px);
   background-color: #080B11;
-  background-image: 
+  background-image:
     radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.18) 0%, rgba(8, 11, 17, 0) 70%),
     radial-gradient(circle at 85% 30%, rgba(0, 242, 254, 0.08) 0%, rgba(8, 11, 17, 0) 50%),
     linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
@@ -846,7 +846,7 @@
   background-size: 100% 100%, 100% 100%, 22px 22px, 22px 22px;
   color: #F8FAFC;
   font-family: var(--font-inter, 'Inter', system-ui, -apple-system, sans-serif);
-  padding: 40px 24px;
+  padding: 110px 24px 80px;
   display: flex;
   flex-direction: column;
   align-items: center;

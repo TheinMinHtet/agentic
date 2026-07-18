@@ -15,6 +15,7 @@ function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const isLanding = pathname === '/';
+  const isDarkTheme = isLanding || pathname === '/login' || pathname === '/register';
 
   const handleLogout = async () => {
     await logout();
@@ -24,7 +25,7 @@ function Navbar() {
   const isActive = (path) => pathname === path;
 
   return (
-    <nav className={`navbar ${isLanding ? 'navbar-dark-landing' : ''}`}>
+    <nav className={`navbar ${isDarkTheme ? 'navbar-dark-landing' : ''}`}>
       <Link href="/" className="brand-link" aria-label="Agentic Workflow home">
         <span className="brand-mark"><Sparkles size={18} /></span>
         <span>Agentic Workflow</span>
@@ -36,9 +37,9 @@ function Navbar() {
         )}
       </div>
       <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-        <button 
-          type="button" 
-          className="button-secondary language-toggle-btn" 
+        <button
+          type="button"
+          className="button-secondary language-toggle-btn"
           onClick={toggleLanguage}
           style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', cursor: 'pointer', borderRadius: '8px', minWidth: '70px', textAlign: 'center' }}
         >
@@ -63,12 +64,13 @@ function Navbar() {
 export default function ClientShell({ children }) {
   const pathname = usePathname();
   const isLanding = pathname === '/';
+  const isDarkTheme = isLanding || pathname === '/login' || pathname === '/register';
 
   return (
     <LanguageProvider>
       <AuthProvider>
         <WorkflowProvider>
-          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: isLanding ? '#080B11' : 'var(--color-background)' }}>
+          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: isDarkTheme ? '#080B11' : 'var(--color-background)' }}>
             <Navbar />
             <main className="app-main">
               {children}
