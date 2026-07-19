@@ -176,12 +176,17 @@ export default function DashboardPage() {
         outreach_campaign: null
     });
 
+    const handleRestart = () => {
+        resetWorkflow();
+        router.push('/onboarding');
+    };
+
     const handleExecuteAll = async () => {
         setExecutingActions(true);
         try {
             const { executeAllDeliverables } = await import('../../agents/executionAgent');
-            const res = await executeAllDeliverables(verifiedBlueprint || {
-                company_name: refinedConcept?.companyName || refinedConcept?.concept?.split(' ')[0] || "GrantFlow AI",
+            const res = await executeAllDeliverables((verifiedBlueprint && verifiedBlueprint.company_name !== "GrantFlow AI") ? verifiedBlueprint : {
+                company_name: refinedConcept?.companyName || businessInfo?.company_name || businessInfo?.title || (startupIdea ? startupIdea.split(' ').slice(0, 3).join(' ').replace(/[^a-zA-Z0-9 ]/g, '') : "EduBot Myanmar"),
                 verified_unit_economics: {
                     initial_capital_mmk: 3000000,
                     monthly_burn_rate_mmk: 1500000,
@@ -192,7 +197,7 @@ export default function DashboardPage() {
                     gross_margin_percent: 82
                 },
                 consensus_strategic_narrative: {
-                    improved_summary: refinedConcept?.improved_summary || "Automated compliance grant drafting.",
+                    improved_summary: refinedConcept?.improved_summary || startupIdea || "AI-powered platform providing localized solutions across Myanmar.",
                     verified_tam: marketResearch?.tam || "$4.2B TAM",
                     key_differentiators: refinedConcept?.key_differentiators || []
                 },
@@ -202,9 +207,9 @@ export default function DashboardPage() {
                     title: `Roadmap Step ${idx + 1}`,
                     desc: item
                 })) : [
-                    { phase: "Phase 1", date: "2026-09-01", title: "Alpha MVP Launch", desc: "Alpha testers & case studies" },
-                    { phase: "Phase 2", date: "2026-10-01", title: "Growth & SEO Push", desc: "Index blog posts & foundation outreach" },
-                    { phase: "Phase 3", date: "2026-11-01", title: "Public Beta & Scale", desc: "Scale premium subscription pricing" }
+                    { phase: "Phase 1", date: "Month 1", title: "Alpha MVP Launch", desc: "Alpha testers & validation" },
+                    { phase: "Phase 2", date: "Month 2", title: "Growth & Marketing Push", desc: "Targeted campaigns and local outreach" },
+                    { phase: "Phase 3", date: "Month 3", title: "Public Beta & Scale", desc: "Scale revenue tiers and partnerships" }
                 ],
                 verified_target_personas: marketResearch?.target_personas || []
             });
@@ -221,8 +226,8 @@ export default function DashboardPage() {
         try {
             const { executeAllDeliverables } = await import('../../agents/executionAgent');
             const options = { excel: false, docx: false, calendar: false, email: false, [type]: true };
-            const res = await executeAllDeliverables(verifiedBlueprint || {
-                company_name: refinedConcept?.companyName || refinedConcept?.concept?.split(' ')[0] || "GrantFlow AI",
+            const res = await executeAllDeliverables((verifiedBlueprint && verifiedBlueprint.company_name !== "GrantFlow AI") ? verifiedBlueprint : {
+                company_name: refinedConcept?.companyName || businessInfo?.company_name || businessInfo?.title || (startupIdea ? startupIdea.split(' ').slice(0, 3).join(' ').replace(/[^a-zA-Z0-9 ]/g, '') : "EduBot Myanmar"),
                 verified_unit_economics: {
                     initial_capital_mmk: 3000000,
                     monthly_burn_rate_mmk: 1500000,
@@ -233,7 +238,7 @@ export default function DashboardPage() {
                     gross_margin_percent: 82
                 },
                 consensus_strategic_narrative: {
-                    improved_summary: refinedConcept?.improved_summary || "Automated compliance grant drafting.",
+                    improved_summary: refinedConcept?.improved_summary || startupIdea || "AI-powered platform providing localized solutions across Myanmar.",
                     verified_tam: marketResearch?.tam || "$4.2B TAM",
                     key_differentiators: refinedConcept?.key_differentiators || []
                 },
@@ -243,9 +248,9 @@ export default function DashboardPage() {
                     title: `Roadmap Step ${idx + 1}`,
                     desc: item
                 })) : [
-                    { phase: "Phase 1", date: "2026-09-01", title: "Alpha MVP Launch", desc: "Alpha testers & case studies" },
-                    { phase: "Phase 2", date: "2026-10-01", title: "Growth & SEO Push", desc: "Index blog posts & foundation outreach" },
-                    { phase: "Phase 3", date: "2026-11-01", title: "Public Beta & Scale", desc: "Scale premium subscription pricing" }
+                    { phase: "Phase 1", date: "Month 1", title: "Alpha MVP Launch", desc: "Alpha testers & validation" },
+                    { phase: "Phase 2", date: "Month 2", title: "Growth & Marketing Push", desc: "Targeted campaigns and local outreach" },
+                    { phase: "Phase 3", date: "Month 3", title: "Public Beta & Scale", desc: "Scale revenue tiers and partnerships" }
                 ],
                 verified_target_personas: marketResearch?.target_personas || []
             }, options);
@@ -713,25 +718,32 @@ export default function DashboardPage() {
     ]);
 
     // Dynamic base info derived from live user workflow, Onboarding, or Meeting Room output
-        const activeIdea = verifiedBlueprint?.consensus_strategic_narrative?.improved_summary || startupIdea || "AI-powered digital platform solving local user pain points.";
-        const activeName = verifiedBlueprint?.company_name || (startupIdea ? startupIdea.split(' ').slice(0, 3).join(' ').replace(/[^a-zA-Z0-9 ]/g, '') : "EduBot Myanmar");
-        const activeAudience = Array.isArray(verifiedBlueprint?.verified_target_personas) && verifiedBlueprint.verified_target_personas.length > 0
-            ? verifiedBlueprint.verified_target_personas.map(p => `${p.name || 'Persona'} (${p.role || 'Segment'})`).join(', ')
-            : (businessInfo?.target_customers || "Students, Professionals & Businesses across Myanmar");
-        const activePain = businessInfo?.core_painpoint || "High operational costs and lack of modern automated tools in the local market.";
-        const activeBudget = businessInfo?.budget || "8,000,000 MMK";
-        const activeCAC = verifiedBlueprint?.verified_unit_economics?.verified_cac_usd || 12;
         const activeType = businessInfo?.business_type || "SaaS / Digital App";
         const activeCountry = businessInfo?.target_country || "Myanmar";
 
         const isPhysicalProduct = (() => {
-            const text = `${activeType || ''} ${businessInfo?.business_type || ''} ${activeIdea || ''} ${businessInfo?.core_painpoint || ''}`.toLowerCase();
+            const text = `${activeType || ''} ${businessInfo?.business_type || ''} ${verifiedBlueprint?.consensus_strategic_narrative?.improved_summary || ''} ${startupIdea || ''} ${businessInfo?.core_painpoint || ''}`.toLowerCase();
             const physicalKeywords = ['physical', 'food', 'beverage', 'retail', 'hardware', 'clothing', 'fashion', 'cosmetics', 'snack', 'drink', 'manufacturing', 'cogs', 'packaging', 'factory', 'goods', 'product', 'restaurant', 'cafe', 'store'];
             const digitalKeywords = ['saas', 'software', 'app', 'edtech', 'platform', 'ai', 'cloud', 'portal', 'token', 'website'];
             const hasPhysical = physicalKeywords.some(kw => text.includes(kw));
             const hasDigital = digitalKeywords.some(kw => text.includes(kw));
             return hasPhysical && !hasDigital;
         })();
+
+        const activeIdea = (verifiedBlueprint?.consensus_strategic_narrative?.improved_summary && !verifiedBlueprint.consensus_strategic_narrative.improved_summary.toLowerCase().includes('grant')) 
+            ? verifiedBlueprint.consensus_strategic_narrative.improved_summary 
+            : (refinedConcept?.improved_summary || startupIdea || businessInfo?.core_painpoint || (isPhysicalProduct ? "Locally sourced quality physical products with robust supply chain distribution across Myanmar." : "AI-powered digital platform solving local user pain points across Myanmar."));
+
+        const activeName = (verifiedBlueprint?.company_name && verifiedBlueprint.company_name !== "GrantFlow AI") 
+            ? verifiedBlueprint.company_name 
+            : (refinedConcept?.companyName || businessInfo?.company_name || businessInfo?.title || (startupIdea ? startupIdea.split(' ').slice(0, 3).join(' ').replace(/[^a-zA-Z0-9 ]/g, '') : (isPhysicalProduct ? "Myanmar Craft Consumer Goods" : "EduBot Myanmar")));
+
+        const activeAudience = Array.isArray(verifiedBlueprint?.verified_target_personas) && verifiedBlueprint.verified_target_personas.length > 0
+            ? verifiedBlueprint.verified_target_personas.map(p => `${p.name || 'Persona'} (${p.role || 'Segment'})`).join(', ')
+            : (businessInfo?.target_customers || "Students, Professionals & Businesses across Myanmar");
+        const activePain = businessInfo?.core_painpoint || "High operational costs and lack of modern automated tools in the local market.";
+        const activeBudget = businessInfo?.budget || "8,000,000 MMK";
+        const activeCAC = verifiedBlueprint?.verified_unit_economics?.verified_cac_usd || 12;
 
         // Fallback and dynamic override data when connected to verifiedBlueprint or Onboarding data
         const fallbackConcept = {
