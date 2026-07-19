@@ -23,18 +23,18 @@ export default function GlobalStepper() {
     if (currentIndex === -1) return null;
 
     return (
-        <div className="container" style={{ paddingTop: '32px', paddingBottom: '0' }}>
-            <div className="card-glass" style={{ padding: '24px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="container stepper-container" style={{ paddingTop: '32px', paddingBottom: '0' }}>
+            <div className="card-glass stepper-card" style={{ padding: '24px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 {STEPS.map((step, index) => {
                     const isActive = index === currentIndex;
                     const isCompleted = index < currentIndex;
 
                     return (
-                        <div key={step.id} style={{ display: 'flex', alignItems: 'center', flex: index < STEPS.length - 1 ? 1 : 0 }}>
-                            <div style={{
+                        <div key={step.id} className="stepper-item" style={{ display: 'flex', alignItems: 'center', flex: index < STEPS.length - 1 ? 1 : 0 }}>
+                            <div className="stepper-step-container" style={{
                                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', zIndex: 2
                             }}>
-                                <div style={{
+                                <div className="stepper-circle" style={{
                                     width: '36px', height: '36px', borderRadius: '50%',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     background: isActive ? 'var(--gradient-ai)' : isCompleted ? 'var(--color-success)' : 'rgba(255, 255, 255, 0.05)',
@@ -46,7 +46,7 @@ export default function GlobalStepper() {
                                 }}>
                                     {isCompleted ? <Check size={18} strokeWidth={3} /> : (index + 1)}
                                 </div>
-                                <span style={{
+                                <span className="stepper-label" style={{
                                     fontSize: '13px', fontWeight: isActive ? 800 : 600,
                                     color: isActive ? '#00F2FE' : isCompleted ? '#F8FAFC' : 'var(--color-text-muted)',
                                     textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap'
@@ -55,7 +55,7 @@ export default function GlobalStepper() {
                                 </span>
                             </div>
                             {index < STEPS.length - 1 && (
-                                <div style={{
+                                <div className="stepper-line" style={{
                                     flex: 1, height: '3px', margin: '0 24px', marginTop: '-30px',
                                     background: isCompleted ? 'var(--color-success)' : 'rgba(255, 255, 255, 0.08)',
                                     borderRadius: '2px'

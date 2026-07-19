@@ -1077,11 +1077,11 @@ export default function DashboardPage() {
             {/* Dashboard Header */}
             <div className="perplexity-dashboard-header">
                 <div>
-                    <div className="perplexity-dashboard-header-badge" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <div className="perplexity-dashboard-header-badge" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                         <Sparkles size={12} style={{ color: 'var(--color-accent)' }} />
                         <span>{language === 'en' ? 'SYSTEM BLUEPRINT GENERATED' : 'လုပ်ငန်းစီမံချက် ဖန်တီးပြီးပါပြီ'}</span>
                         {verifiedBlueprint?.consensus_score && (
-                            <span style={{ backgroundColor: 'rgba(174, 236, 29, 0.15)', color: '#aeec1d', padding: '2px 8px', borderRadius: '6px', fontWeight: 800, fontSize: '11px', border: '1px solid rgba(174, 236, 29, 0.3)' }}>
+                            <span style={{ backgroundColor: 'rgba(174, 236, 29, 0.15)', color: '#aeec1d', padding: '4px 10px', borderRadius: '6px', fontWeight: 800, fontSize: '11px', border: '1px solid rgba(174, 236, 29, 0.3)' }}>
                                 {language === 'en' ? `VERIFIED CONSENSUS: ${verifiedBlueprint.consensus_score}%` : `အတည်ပြုပြီး သဘောတူညီမှု: ${verifiedBlueprint.consensus_score}%`}
                             </span>
                         )}

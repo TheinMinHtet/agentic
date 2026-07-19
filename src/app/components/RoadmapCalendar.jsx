@@ -348,14 +348,14 @@ export default function RoadmapCalendar({ growthPlan, businessInfo, refinedConce
                 </div>
 
                 {/* Days of Week headers */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', textAlign: 'center', fontWeight: 700, fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '12px', paddingBottom: '8px' }}>
+                <div className="calendar-week-headers" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '1px', textAlign: 'center', fontWeight: 700, fontSize: '12px', color: 'var(--color-text-secondary)', marginBottom: '12px', paddingBottom: '8px' }}>
                     {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, idx) => (
                         <div key={idx}>{day}</div>
                     ))}
                 </div>
 
                 {/* Calendar Days cells grid (uniform cell heights like Google Calendar) */}
-                <div style={{ 
+                <div className="calendar-days-grid" style={{ 
                     display: 'grid', 
                     gridTemplateColumns: 'repeat(7, 1fr)', 
                     gridAutoRows: '110px', 
@@ -377,6 +377,7 @@ export default function RoadmapCalendar({ growthPlan, businessInfo, refinedConce
                             <div
                                 key={idx}
                                 onClick={() => setSelectedDate(cell.date)}
+                                className="calendar-day-cell"
                                 style={{
                                     height: '110px',
                                     padding: '10px',
@@ -423,7 +424,7 @@ export default function RoadmapCalendar({ growthPlan, businessInfo, refinedConce
 
                                 {/* Task badges inside cell */}
                                 {hasTask && (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', overflow: 'hidden', flex: 1 }}>
+                                    <div className="calendar-task-badge-list" style={{ display: 'flex', flexDirection: 'column', gap: '4px', overflow: 'hidden', flex: 1 }}>
                                         {cellTasks.slice(0, 2).map((t, index) => {
                                             const colors = getTaskTypeStyles(t.type);
                                             const isDone = completedTasks[t.id];

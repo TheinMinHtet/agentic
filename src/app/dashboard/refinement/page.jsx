@@ -76,7 +76,7 @@ export default function RefinementPage() {
             <div className="refinement-grid" style={{ height: 'calc(100vh - 104px)' }}>
                 
                 {/* Left Side: Live Blueprint Preview */}
-                <div className="card" style={{ 
+                <div className="card refinement-preview-card" style={{ 
                     display: 'flex', 
                     flexDirection: 'column', 
                     gap: '20px', 
@@ -147,7 +147,7 @@ export default function RefinementPage() {
                 </div>
 
                 {/* Right Side: Chat Interface */}
-                <div className="card" style={{ 
+                <div className="card refinement-chat-card" style={{ 
                     display: 'flex', 
                     flexDirection: 'column', 
                     backgroundColor: 'var(--color-surface-light)',

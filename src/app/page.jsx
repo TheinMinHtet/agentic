@@ -155,6 +155,7 @@ export default function LandingPage() {
                     line-height: 1.12;
                     margin: 0 0 18px 0;
                     color: #FFFFFF;
+                    min-height: 120px;
                 }
 
                 .title-gradient-highlight {
@@ -343,6 +344,7 @@ export default function LandingPage() {
                 @media (max-width: 768px) {
                     .landing-title {
                         font-size: 36px;
+                        min-height: 85px;
                     }
                     .landing-copy {
                         font-size: 16px;

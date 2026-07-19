@@ -4,7 +4,22 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useWorkflow } from '../context/WorkflowContext';
 import { useLanguage } from '../context/LanguageContext';
-import { debateGraph } from '../../agents/debateOrchestrator';
+
+// Helper to invoke debateGraph on the server side to prevent Webpack runtime crashes in the browser
+const invokeDebateServer = async (state, threadConfig) => {
+    const res = await fetch('/api/debate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ state, threadConfig })
+    });
+    if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Server debate invocation failed');
+    }
+    return await res.json();
+};
 
 export default function SpecializedAgentsPage() {
     const router = useRouter();
@@ -87,7 +102,7 @@ export default function SpecializedAgentsPage() {
                 setActiveSpeaker('market');
                 await new Promise(r => setTimeout(r, 1200));
                 
-                const res1 = await debateGraph.invoke({
+                const res1 = await invokeDebateServer({
                     business_concept: conceptData,
                     messages: [],
                     consensus_score: 38,
@@ -102,7 +117,7 @@ export default function SpecializedAgentsPage() {
                 setActiveSpeaker('finance');
                 await new Promise(r => setTimeout(r, 1800));
 
-                const res2 = await debateGraph.invoke(null, threadConfig);
+                const res2 = await invokeDebateServer(null, threadConfig);
                 if (!isCurrent) return;
 
                 setMessages(prev => [...prev, ...(res2.messages || [])]);
@@ -155,7 +170,7 @@ export default function SpecializedAgentsPage() {
             await new Promise(r => setTimeout(r, 1400));
 
             // Resume graph execution passing selected option
-            const res3 = await debateGraph.invoke({
+            const res3 = await invokeDebateServer({
                 user_selected_option: optionId,
                 needs_human_decision: false
             }, threadConfig);
@@ -167,7 +182,7 @@ export default function SpecializedAgentsPage() {
             await new Promise(r => setTimeout(r, 1600));
 
             // Final convergence check
-            const res4 = await debateGraph.invoke(null, threadConfig);
+            const res4 = await invokeDebateServer(null, threadConfig);
             if (res4.messages && res4.messages.length > 0) {
                 setMessages(prev => [...prev, ...res4.messages]);
             }
