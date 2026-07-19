@@ -199,11 +199,97 @@ export function WorkflowProvider({ children }) {
     // Force auth active for this agentic workflow
     localStorage.setItem(AUTH_KEY, 'true');
 
+    // Hydrate states from localStorage on mount
+    const savedRefined = localStorage.getItem('agentic:refinedConcept');
+    if (savedRefined) {
+      try { setRefinedConcept(JSON.parse(savedRefined)); } catch (e) { console.error("Error parsing stored refinedConcept:", e); }
+    }
+    const savedMarket = localStorage.getItem('agentic:marketResearch');
+    if (savedMarket) {
+      try { setMarketResearch(JSON.parse(savedMarket)); } catch (e) { console.error("Error parsing stored marketResearch:", e); }
+    }
+    const savedFinance = localStorage.getItem('agentic:financeModel');
+    if (savedFinance) {
+      try { setFinanceModel(JSON.parse(savedFinance)); } catch (e) { console.error("Error parsing stored financeModel:", e); }
+    }
+    const savedBrand = localStorage.getItem('agentic:brandPackage');
+    if (savedBrand) {
+      try { setBrandPackage(JSON.parse(savedBrand)); } catch (e) { console.error("Error parsing stored brandPackage:", e); }
+    }
+    const savedDigital = localStorage.getItem('agentic:digitalPresence');
+    if (savedDigital) {
+      try { setDigitalPresence(JSON.parse(savedDigital)); } catch (e) { console.error("Error parsing stored digitalPresence:", e); }
+    }
+    const savedGrowth = localStorage.getItem('agentic:growthPlan');
+    if (savedGrowth) {
+      try { setGrowthPlan(JSON.parse(savedGrowth)); } catch (e) { console.error("Error parsing stored growthPlan:", e); }
+    }
+    const savedBusiness = localStorage.getItem('agentic:businessPlan');
+    if (savedBusiness) {
+      try { setBusinessPlan(JSON.parse(savedBusiness)); } catch (e) { console.error("Error parsing stored businessPlan:", e); }
+    }
+
     const savedIdeaId = localStorage.getItem(CURRENT_IDEA_ID_KEY);
     if (savedIdeaId) {
       setCurrentIdeaId(savedIdeaId);
     }
   }, []);
+
+  useEffect(() => {
+    if (refinedConcept) {
+      localStorage.setItem('agentic:refinedConcept', JSON.stringify(refinedConcept));
+    } else {
+      localStorage.removeItem('agentic:refinedConcept');
+    }
+  }, [refinedConcept]);
+
+  useEffect(() => {
+    if (marketResearch) {
+      localStorage.setItem('agentic:marketResearch', JSON.stringify(marketResearch));
+    } else {
+      localStorage.removeItem('agentic:marketResearch');
+    }
+  }, [marketResearch]);
+
+  useEffect(() => {
+    if (financeModel) {
+      localStorage.setItem('agentic:financeModel', JSON.stringify(financeModel));
+    } else {
+      localStorage.removeItem('agentic:financeModel');
+    }
+  }, [financeModel]);
+
+  useEffect(() => {
+    if (brandPackage) {
+      localStorage.setItem('agentic:brandPackage', JSON.stringify(brandPackage));
+    } else {
+      localStorage.removeItem('agentic:brandPackage');
+    }
+  }, [brandPackage]);
+
+  useEffect(() => {
+    if (digitalPresence) {
+      localStorage.setItem('agentic:digitalPresence', JSON.stringify(digitalPresence));
+    } else {
+      localStorage.removeItem('agentic:digitalPresence');
+    }
+  }, [digitalPresence]);
+
+  useEffect(() => {
+    if (growthPlan) {
+      localStorage.setItem('agentic:growthPlan', JSON.stringify(growthPlan));
+    } else {
+      localStorage.removeItem('agentic:growthPlan');
+    }
+  }, [growthPlan]);
+
+  useEffect(() => {
+    if (businessPlan) {
+      localStorage.setItem('agentic:businessPlan', JSON.stringify(businessPlan));
+    } else {
+      localStorage.removeItem('agentic:businessPlan');
+    }
+  }, [businessPlan]);
 
   const updateVerifiedBlueprint = (data) => {
     if (data) {
@@ -645,38 +731,54 @@ export function WorkflowProvider({ children }) {
 
       addThinkingLog('business', `Agentic Analysis: ${updateResponse.thinking}`);
       
-      const affected = updateResponse.affected_tabs || [];
-      addThinkingLog('business', `Affected downstream modules identified: ${affected.join(', ') || 'none'}`);
+      const affectedSet = new Set(updateResponse.affected_tabs || []);
+      if (changedModelName === 'overview') {
+        ['market', 'finance', 'brand', 'digital', 'growth'].forEach(t => affectedSet.add(t));
+      } else if (changedModelName === 'market') {
+        ['finance', 'growth'].forEach(t => affectedSet.add(t));
+      } else if (changedModelName === 'finance') {
+        ['growth'].forEach(t => affectedSet.add(t));
+      } else if (changedModelName === 'brand') {
+        ['digital'].forEach(t => affectedSet.add(t));
+      } else if (changedModelName === 'digital') {
+        ['finance', 'growth'].forEach(t => affectedSet.add(t));
+      } else if (changedModelName === 'growth') {
+        ['finance'].forEach(t => affectedSet.add(t));
+      }
+      affectedSet.delete(changedModelName);
+      const affected = Array.from(affectedSet);
 
-      if (changedModelName === 'overview' && updateResponse.updated_concept) {
+      addThinkingLog('business', `Affected downstream modules identified (including strategist dependencies): ${affected.join(', ') || 'none'}`);
+
+      if (changedModelName === 'overview' && updatedModelDirect) {
         addThinkingLog('business', 'Persisting updated Refined Concept...');
-        await updateRefinedConceptDirect(updateResponse.updated_concept);
-        currentRefined = updateResponse.updated_concept;
+        await updateRefinedConceptDirect(updatedModelDirect);
+        currentRefined = updatedModelDirect;
       }
-      if (changedModelName === 'market' && updateResponse.updated_marketResearch) {
+      if (changedModelName === 'market' && updatedModelDirect) {
         addThinkingLog('market', 'Persisting updated Market Intelligence...');
-        await updateMarketResearchDirect(updateResponse.updated_marketResearch);
-        currentMarket = updateResponse.updated_marketResearch;
+        await updateMarketResearchDirect(updatedModelDirect);
+        currentMarket = updatedModelDirect;
       }
-      if (changedModelName === 'finance' && updateResponse.updated_financeModel) {
+      if (changedModelName === 'finance' && updatedModelDirect) {
         addThinkingLog('finance', 'Persisting updated Finance Model...');
-        await updateFinanceModelDirect(updateResponse.updated_financeModel);
-        currentFinance = updateResponse.updated_financeModel;
+        await updateFinanceModelDirect(updatedModelDirect);
+        currentFinance = updatedModelDirect;
       }
-      if (changedModelName === 'brand' && updateResponse.updated_brandPackage) {
+      if (changedModelName === 'brand' && updatedModelDirect) {
         addThinkingLog('brand', 'Persisting updated Brand Package...');
-        await updateBrandPackageDirect(updateResponse.updated_brandPackage);
-        currentBrand = updateResponse.updated_brandPackage;
+        await updateBrandPackageDirect(updatedModelDirect);
+        currentBrand = updatedModelDirect;
       }
-      if (changedModelName === 'digital' && updateResponse.updated_digitalPresence) {
+      if (changedModelName === 'digital' && updatedModelDirect) {
         addThinkingLog('website', 'Persisting updated Digital Presence...');
-        await updateDigitalPresenceDirect(updateResponse.updated_digitalPresence);
-        currentDigital = updateResponse.updated_digitalPresence;
+        await updateDigitalPresenceDirect(updatedModelDirect);
+        currentDigital = updatedModelDirect;
       }
-      if (changedModelName === 'growth' && updateResponse.updated_growthPlan) {
+      if (changedModelName === 'growth' && updatedModelDirect) {
         addThinkingLog('marketing', 'Persisting updated Growth Plan...');
-        await updateGrowthPlanDirect(updateResponse.updated_growthPlan);
-        currentGrowth = updateResponse.updated_growthPlan;
+        await updateGrowthPlanDirect(updatedModelDirect);
+        currentGrowth = updatedModelDirect;
       }
 
       if (affected.includes('overview')) {

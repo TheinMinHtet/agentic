@@ -138,7 +138,7 @@ export default function DashboardPage() {
     const supabase = useMemo(() => createClient(), []);
     const { user } = useAuth();
     const [pastIdeas, setPastIdeas] = useState([]);
-    const [historyExpanded, setHistoryExpanded] = useState(true);
+    const [historyExpanded, setHistoryExpanded] = useState(false);
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -764,12 +764,12 @@ export default function DashboardPage() {
 
     // Fallback and dynamic override data when connected to verifiedBlueprint or Onboarding data
     const fallbackConcept = {
-        concept: verifiedBlueprint?.consensus_strategic_narrative?.improved_summary || refinedConcept?.concept || activeIdea,
-        improved_summary: verifiedBlueprint?.consensus_strategic_narrative?.improved_summary || refinedConcept?.improved_summary || activeIdea,
-        key_differentiators: Array.isArray(verifiedBlueprint?.consensus_strategic_narrative?.key_differentiators) && verifiedBlueprint.consensus_strategic_narrative.key_differentiators.length > 0
-            ? verifiedBlueprint.consensus_strategic_narrative.key_differentiators
-            : (Array.isArray(refinedConcept?.key_differentiators) && refinedConcept.key_differentiators.length > 0
-                ? refinedConcept.key_differentiators
+        concept: refinedConcept?.concept || verifiedBlueprint?.consensus_strategic_narrative?.improved_summary || activeIdea,
+        improved_summary: refinedConcept?.improved_summary || verifiedBlueprint?.consensus_strategic_narrative?.improved_summary || activeIdea,
+        key_differentiators: Array.isArray(refinedConcept?.key_differentiators) && refinedConcept.key_differentiators.length > 0
+            ? refinedConcept.key_differentiators
+            : (Array.isArray(verifiedBlueprint?.consensus_strategic_narrative?.key_differentiators) && verifiedBlueprint.consensus_strategic_narrative.key_differentiators.length > 0
+                ? verifiedBlueprint.consensus_strategic_narrative.key_differentiators
                 : (isPhysicalProduct ? [
                     `High-grade locally sourced raw materials and rigorous quality control checks across ${activeCountry}.`,
                     `Eco-friendly retail packaging box design optimized for store shelf appeal and unboxing.`,
@@ -779,16 +779,18 @@ export default function DashboardPage() {
                     `Automated workflow resolution addressing: ${activePain.substring(0, 80)}...`,
                     `Built specifically for ${activeCountry} market requirements and local behavior.`
                 ])),
-        target_audience_refined: activeAudience
+        target_audience_refined: refinedConcept?.target_audience_refined || activeAudience
     };
 
     const fallbackMarket = {
-        tam: verifiedBlueprint?.consensus_strategic_narrative?.verified_tam || marketResearch?.tam || (isPhysicalProduct ? "65,000,000,000 MMK TAM" : "45,000,000,000 MMK TAM"),
-        saturation_level: verifiedBlueprint?.consensus_strategic_narrative?.verified_saturation || marketResearch?.saturation_level || (isPhysicalProduct ? 34 : 28),
-        competitors: Array.isArray(verifiedBlueprint?.verified_competitors) && verifiedBlueprint.verified_competitors.length > 0
-            ? verifiedBlueprint.verified_competitors
-            : (Array.isArray(marketResearch?.competitors) && marketResearch.competitors.length > 0
-                ? marketResearch.competitors
+        tam: marketResearch?.tam || verifiedBlueprint?.consensus_strategic_narrative?.verified_tam || (isPhysicalProduct ? "65,000,000,000 MMK TAM" : "45,000,000,000 MMK TAM"),
+        saturation_level: marketResearch?.saturation_level !== undefined && marketResearch?.saturation_level !== null
+            ? marketResearch.saturation_level
+            : (verifiedBlueprint?.consensus_strategic_narrative?.verified_saturation || (isPhysicalProduct ? 34 : 28)),
+        competitors: Array.isArray(marketResearch?.competitors) && marketResearch.competitors.length > 0
+            ? marketResearch.competitors
+            : (Array.isArray(verifiedBlueprint?.verified_competitors) && verifiedBlueprint.verified_competitors.length > 0
+                ? verifiedBlueprint.verified_competitors
                 : (isPhysicalProduct ? [
                     { name: "Imported Overseas Brands", url: "Thailand / China Imports", weakness: "High currency import tariffs and inconsistent supply stock." },
                     { name: "Traditional Local Producers", url: "Offline Market", weakness: "Lacks modern packaging appeal and quality consistency." },
@@ -809,16 +811,16 @@ export default function DashboardPage() {
                 `Expanding mobile internet and digital wallet adoption across ${activeCountry}.`,
                 `Cost reduction potential compared to traditional manual solutions.`
             ]),
-        target_personas: Array.isArray(verifiedBlueprint?.verified_target_personas) && verifiedBlueprint.verified_target_personas.length > 0
-            ? verifiedBlueprint.verified_target_personas.map(p => ({
-                name: p.name || "Target Persona",
+        target_personas: Array.isArray(marketResearch?.target_personas) && marketResearch.target_personas.length > 0
+            ? marketResearch.target_personas.map(p => ({
+                name: p.name || "Persona",
                 role: p.role || "Customer Segment",
                 pain_points: Array.isArray(p.pain_points) ? p.pain_points : (p.painPoint ? [p.painPoint] : [activePain]),
                 budget_limit: p.budget_limit || p.customPitchAngle || (isPhysicalProduct ? "15,000 MMK/purchase" : "30,000 MMK/mo subscription")
             }))
-            : (Array.isArray(marketResearch?.target_personas) && marketResearch.target_personas.length > 0
-                ? marketResearch.target_personas.map(p => ({
-                    name: p.name || "Persona",
+            : (Array.isArray(verifiedBlueprint?.verified_target_personas) && verifiedBlueprint.verified_target_personas.length > 0
+                ? verifiedBlueprint.verified_target_personas.map(p => ({
+                    name: p.name || "Target Persona",
                     role: p.role || "Customer Segment",
                     pain_points: Array.isArray(p.pain_points) ? p.pain_points : (p.painPoint ? [p.painPoint] : [activePain]),
                     budget_limit: p.budget_limit || p.customPitchAngle || (isPhysicalProduct ? "15,000 MMK/purchase" : "30,000 MMK/mo subscription")
@@ -830,10 +832,12 @@ export default function DashboardPage() {
                     { name: "Primary Persona A", role: activeAudience.split(',')[0] || "Target Customer", pain_points: [activePain, "Time-consuming daily operations"], budget_limit: "25,000 MMK/mo max" },
                     { name: "Secondary Persona B", role: "Decision Maker / Manager", pain_points: ["High expense overhead", "Lack of real-time insights"], budget_limit: "50,000 MMK/mo budget" }
                 ])),
-        markdown_deliverable: marketResearch?.markdown_deliverable || `# Market Intelligence Report: ${activeName}\n\n## Target Market & Personas\n${activeName} targets ${activeAudience}.\n\n### Ideal Customer Personas (ICPs)\n${Array.isArray(verifiedBlueprint?.verified_target_personas) && verifiedBlueprint.verified_target_personas.length > 0
-            ? verifiedBlueprint.verified_target_personas.map(p => `- **${p.name || 'Persona'}** (${p.role || 'Segment'}): ${p.painPoint || (Array.isArray(p.pain_points) ? p.pain_points.join(', ') : activePain)}`).join('\n')
-            : `- **Primary Persona**: ${activeAudience}. Pain point: ${activePain}\n- **Decision Maker**: Seeking reliable localized solutions in ${activeCountry}.`
-            }\n\n## Competitor Mapping\n| Competitor | Weakness |\n|---|---|\n| Traditional Offline Services / Imports | High cost & rigid delivery |\n| Generic Alternatives | Lacks ${activeCountry} localization |\n\n## Market Trends & Opportunities\n- Verified TAM: **${verifiedBlueprint?.consensus_strategic_narrative?.verified_tam || marketResearch?.tam || (isPhysicalProduct ? '65,000,000,000 MMK TAM' : '45,000,000,000 MMK TAM')}**\n- High opportunity for localized ${activeType} solutions.`
+        markdown_deliverable: marketResearch?.markdown_deliverable || `# Market Intelligence Report: ${activeName}\n\n## Target Market & Personas\n${activeName} targets ${activeAudience}.\n\n### Ideal Customer Personas (ICPs)\n${Array.isArray(marketResearch?.target_personas) && marketResearch.target_personas.length > 0
+            ? marketResearch.target_personas.map(p => `- **${p.name || 'Persona'}** (${p.role || 'Segment'}): ${Array.isArray(p.pain_points) ? p.pain_points.join(', ') : (p.painPoint || activePain)}`).join('\n')
+            : (Array.isArray(verifiedBlueprint?.verified_target_personas) && verifiedBlueprint.verified_target_personas.length > 0
+                ? verifiedBlueprint.verified_target_personas.map(p => `- **${p.name || 'Persona'}** (${p.role || 'Segment'}): ${p.painPoint || (Array.isArray(p.pain_points) ? p.pain_points.join(', ') : activePain)}`).join('\n')
+                : `- **Primary Persona**: ${activeAudience}. Pain point: ${activePain}\n- **Decision Maker**: Seeking reliable localized solutions in ${activeCountry}.`)
+            }\n\n## Competitor Mapping\n| Competitor | Weakness |\n|---|---|\n| Traditional Offline Services / Imports | High cost & rigid delivery |\n| Generic Alternatives | Lacks ${activeCountry} localization |\n\n## Market Trends & Opportunities\n- Verified TAM: **${marketResearch?.tam || verifiedBlueprint?.consensus_strategic_narrative?.verified_tam || (isPhysicalProduct ? '65,000,000,000 MMK TAM' : '45,000,000,000 MMK TAM')}**\n- High opportunity for localized ${activeType} solutions.`
     };
 
     const fallbackFinance = {
@@ -852,21 +856,21 @@ export default function DashboardPage() {
                 { item: "Customer Support & Operations", cost: verifiedBlueprint?.verified_unit_economics ? Math.round(verifiedBlueprint.verified_unit_economics.monthly_burn_rate_mmk * 0.10) : 150000 },
                 { item: "Domain, SSL & Local Compliance", cost: verifiedBlueprint?.verified_unit_economics ? Math.round(verifiedBlueprint.verified_unit_economics.monthly_burn_rate_mmk * 0.05) : 75000 }
             ]),
-        revenueForecast: verifiedBlueprint?.verified_unit_economics
+        revenueForecast: financeModel?.revenueForecast || financeModel?.revenue_forecast || (verifiedBlueprint?.verified_unit_economics
             ? `Breakeven projected in Month ${verifiedBlueprint.verified_unit_economics.projected_breakeven_month} with verified runway of ${verifiedBlueprint.verified_unit_economics.verified_runway_months} months (${verifiedBlueprint.verified_unit_economics.gross_margin_percent}% Gross Margin).`
-            : (financeModel?.revenueForecast || financeModel?.revenue_forecast || (isPhysicalProduct ? "18,500,000 MMK monthly wholesale & retail sales projected by Month 6 via distributor networks." : "12,000,000 MMK monthly recurring revenue (MRR) projected by Month 6 via active subscribers.")),
-        pricingStrategy: verifiedBlueprint?.verified_unit_economics
+            : (isPhysicalProduct ? "18,500,000 MMK monthly wholesale & retail sales projected by Month 6 via distributor networks." : "12,000,000 MMK monthly recurring revenue (MRR) projected by Month 6 via active subscribers.")),
+        pricingStrategy: financeModel?.pricingStrategy || financeModel?.pricing_strategy || (verifiedBlueprint?.verified_unit_economics
             ? `Verified Target Price Plan: ${(verifiedBlueprint.verified_unit_economics.target_pricing_standard_mmk || (isPhysicalProduct ? 8500 : 15000)).toLocaleString()} MMK (${verifiedBlueprint.verified_unit_economics.gross_margin_percent}% Gross Margin).`
-            : (financeModel?.pricingStrategy || financeModel?.pricing_strategy || (isPhysicalProduct ? "Retail Price: 8,500 MMK per unit (Wholesale carton discounts at 6,800 MMK/unit for distributors)." : "Freemium access tier + Pro Subscription at 15,000 MMK/month for unlimited advanced features.")),
-        breakevenMonth: verifiedBlueprint?.verified_unit_economics?.projected_breakeven_month || financeModel?.breakevenMonth || financeModel?.breakeven_month || 4,
-        markdown_deliverable: financeModel?.markdown_deliverable || `# Financial Model & Projections: ${activeName}\n\n## Startup Capital & Runway\n- **Initial Capital Allocation**: ${activeBudget}\n- **Monthly Burn Rate**: ${(verifiedBlueprint?.verified_unit_economics?.monthly_burn_rate_mmk || (isPhysicalProduct ? 2500000 : 1500000)).toLocaleString()} MMK/mo\n- **Verified Runway**: ${verifiedBlueprint?.verified_unit_economics?.verified_runway_months || (isPhysicalProduct ? 18.5 : 24.2)} months\n- **Verified CAC**: $${activeCAC}/user\n- **Gross Margin**: ${verifiedBlueprint?.verified_unit_economics?.gross_margin_percent || (isPhysicalProduct ? 68 : 82)}%\n\n## Revenue Forecast\n- Projecting **Month ${verifiedBlueprint?.verified_unit_economics?.projected_breakeven_month || financeModel?.breakevenMonth || 4} Breakeven**.`
+            : (isPhysicalProduct ? "Retail Price: 8,500 MMK per unit (Wholesale carton discounts at 6,800 MMK/unit for distributors)." : "Freemium access tier + Pro Subscription at 15,000 MMK/month for unlimited advanced features.")),
+        breakevenMonth: financeModel?.breakevenMonth || financeModel?.breakeven_month || verifiedBlueprint?.verified_unit_economics?.projected_breakeven_month || 4,
+        markdown_deliverable: financeModel?.markdown_deliverable || `# Financial Model & Projections: ${activeName}\n\n## Startup Capital & Runway\n- **Initial Capital Allocation**: ${activeBudget}\n- **Monthly Burn Rate**: ${(verifiedBlueprint?.verified_unit_economics?.monthly_burn_rate_mmk || (isPhysicalProduct ? 2500000 : 1500000)).toLocaleString()} MMK/mo\n- **Verified Runway**: ${verifiedBlueprint?.verified_unit_economics?.verified_runway_months || (isPhysicalProduct ? 18.5 : 24.2)} months\n- **Verified CAC**: $${activeCAC}/user\n- **Gross Margin**: ${verifiedBlueprint?.verified_unit_economics?.gross_margin_percent || (isPhysicalProduct ? 68 : 82)}%\n\n## Revenue Forecast\n- Projecting **Month ${financeModel?.breakevenMonth || financeModel?.breakeven_month || verifiedBlueprint?.verified_unit_economics?.projected_breakeven_month || 4} Breakeven**.`
     };
 
     const fallbackBrand = {
         names: Array.isArray(brandPackage?.names) && brandPackage.names.length > 0
             ? brandPackage.names
             : (verifiedBlueprint?.company_name ? [verifiedBlueprint.company_name, `${activeName} Pro`, `${activeName} Hub`, `${activeName} AI`, `Smart${activeName}`] : [activeName, `${activeName} Pro`, `${activeName} Hub`, `${activeName} AI`, `Smart${activeName}`]),
-        tagline: verifiedBlueprint?.consensus_strategic_narrative?.improved_summary || brandPackage?.tagline || `${activeName}: Smarter localized solutions for ${activeAudience.split(',')[0] || 'your daily lifestyle'}.`,
+        tagline: brandPackage?.tagline || verifiedBlueprint?.consensus_strategic_narrative?.improved_summary || `${activeName}: Smarter localized solutions for ${activeAudience.split(',')[0] || 'your daily lifestyle'}.`,
         voice: brandPackage?.voice || "Empathetic, clear, structured, engaging, and trustworthy across Myanmar.",
         palette: {
             primary: brandPackage?.palette?.primary || "#1e1b4b",
@@ -874,7 +878,7 @@ export default function DashboardPage() {
             background: brandPackage?.palette?.background || "#0f172a"
         },
         logoConcept: brandPackage?.logoConcept || brandPackage?.logo_concept || `A sleek, modern emblem combining quality assurance with ${activeName}, symbolizing growth and trust across ${activeCountry}.`,
-        markdown_deliverable: brandPackage?.markdown_deliverable || `# Brand Identity & Style Guide: ${activeName}\n\n## Brand Naming Suggestions\n1. **${activeName}** (Primary suggestion)\n2. **${activeName} Pro**\n3. **${activeName} Hub**\n\n## Brand Voice Guidelines\n- **Localized & Clear**: Easy to understand across all customer segments.\n- **Trustworthy**: Emphasizing reliability and high quality in ${activeCountry}.`
+        markdown_deliverable: brandPackage?.markdown_deliverable || `# Brand Identity & Style Guide: ${activeName}\n\n## Brand Naming Suggestions\n1. **${brandPackage?.names?.[0] || activeName}** (Primary suggestion)\n2. **${brandPackage?.names?.[1] || (activeName + ' Pro')}**\n3. **${brandPackage?.names?.[2] || (activeName + ' Hub')}**\n\n## Brand Voice Guidelines\n- **Localized & Clear**: Easy to understand across all customer segments.\n- **Trustworthy**: Emphasizing reliability and high quality in ${activeCountry}.`
     };
 
     const fallbackDigital = {
@@ -907,10 +911,10 @@ export default function DashboardPage() {
             ? growthPlan.channels
             : (isPhysicalProduct ? ["TikTok Shop Live Selling & Facebook Commerce", "Influencer Unboxing & Product Reviews", "Supermarket & Retail Store Placement"] : ["TikTok & Facebook Short Video Ads", "Direct B2B/Community Partnerships", "Viral Referral Invite Codes"]),
         acquisitionPlan: growthPlan?.acquisitionPlan || growthPlan?.acquisition_plan || `Target ${activeAudience} via verified CAC ($${activeCAC}) across ${isPhysicalProduct ? 'social commerce live selling and physical store placement' : 'digital social channels and community partnerships'}.`,
-        roadmap90Day: Array.isArray(verifiedBlueprint?.actionable_roadmap_milestones) && verifiedBlueprint.actionable_roadmap_milestones.length > 0
-            ? verifiedBlueprint.actionable_roadmap_milestones.map(m => `${m.phase || ''} (${m.date || ''}): ${m.title || ''} - ${m.desc || ''}`)
-            : (Array.isArray(growthPlan?.roadmap90Day || growthPlan?.roadmap_90_day) && (growthPlan.roadmap90Day || growthPlan.roadmap_90_day).length > 0
-                ? (growthPlan.roadmap90Day || growthPlan.roadmap_90_day)
+        roadmap90Day: Array.isArray(growthPlan?.roadmap90Day || growthPlan?.roadmap_90_day) && (growthPlan.roadmap90Day || growthPlan.roadmap_90_day).length > 0
+            ? (growthPlan.roadmap90Day || growthPlan.roadmap_90_day)
+            : (Array.isArray(verifiedBlueprint?.actionable_roadmap_milestones) && verifiedBlueprint.actionable_roadmap_milestones.length > 0
+                ? verifiedBlueprint.actionable_roadmap_milestones.map(m => `${m.phase || ''} (${m.date || ''}): ${m.title || ''} - ${m.desc || ''}`)
                 : (isPhysicalProduct ? [
                     "Days 1-30: Prototype batch sampling (200 units), supplier quality inspection and final packaging box design.",
                     "Days 31-60: Initial production run of 1,000 units, influencer unboxing gifting and social commerce pre-orders.",
@@ -920,9 +924,11 @@ export default function DashboardPage() {
                     "Days 31-60: Run targeted social media video campaigns and activate community referral programs.",
                     "Days 61-90: Scale paid subscription tiers and establish local institutional partnerships across " + activeCountry + "."
                 ])),
-        markdown_deliverable: growthPlan?.markdown_deliverable || `# Growth & Marketing Plan: ${activeName}\n\n## Acquisition Channels\n1. **${isPhysicalProduct ? 'TikTok Shop Live Selling' : 'TikTok & Facebook Video Ads'}**\n2. **${isPhysicalProduct ? 'Influencer Unboxing Reviews' : 'Community Partnerships'}**\n3. **${isPhysicalProduct ? 'Offline Retail Placement' : 'Referral Invite Codes'}**\n\n## Launch Roadmap (Verified Milestones)\n${Array.isArray(verifiedBlueprint?.actionable_roadmap_milestones) && verifiedBlueprint.actionable_roadmap_milestones.length > 0
-            ? verifiedBlueprint.actionable_roadmap_milestones.map(m => `- **${m.phase} (${m.date})**: ${m.title} - ${m.desc}`).join('\n')
-            : `- **Phase 1 (Days 1-30)**: ${isPhysicalProduct ? 'Prototype sampling & packaging design.' : 'Alpha launch with 200 active users.'}\n- **Phase 2 (Days 31-60)**: ${isPhysicalProduct ? 'Small batch 1,000 units & social commerce.' : 'Push social video content & referrals.'}\n- **Phase 3 (Days 61-90)**: ${isPhysicalProduct ? 'Supermarket retail placement.' : 'Open paid tiers.'}`
+        markdown_deliverable: growthPlan?.markdown_deliverable || `# Growth & Marketing Plan: ${activeName}\n\n## Acquisition Channels\n1. **${isPhysicalProduct ? 'TikTok Shop Live Selling' : 'TikTok & Facebook Video Ads'}**\n2. **${isPhysicalProduct ? 'Influencer Unboxing Reviews' : 'Community Partnerships'}**\n3. **${isPhysicalProduct ? 'Offline Retail Placement' : 'Referral Invite Codes'}**\n\n## Launch Roadmap (Verified Milestones)\n${Array.isArray(growthPlan?.roadmap90Day || growthPlan?.roadmap_90_day) && (growthPlan.roadmap90Day || growthPlan.roadmap_90_day).length > 0
+            ? (growthPlan.roadmap90Day || growthPlan.roadmap_90_day).map(m => `- ${m}`).join('\n')
+            : (Array.isArray(verifiedBlueprint?.actionable_roadmap_milestones) && verifiedBlueprint.actionable_roadmap_milestones.length > 0
+                ? verifiedBlueprint.actionable_roadmap_milestones.map(m => `- **${m.phase} (${m.date})**: ${m.title} - ${m.desc}`).join('\n')
+                : `- **Phase 1 (Days 1-30)**: ${isPhysicalProduct ? 'Prototype sampling & packaging design.' : 'Alpha launch with 200 active users.'}\n- **Phase 2 (Days 31-60)**: ${isPhysicalProduct ? 'Small batch 1,000 units & social commerce.' : 'Push social video content & referrals.'}\n- **Phase 3 (Days 61-90)**: ${isPhysicalProduct ? 'Supermarket retail placement.' : 'Open paid tiers.'}`)
             }`
     };
     const fallbackMarketing = fallbackGrowth;
@@ -1074,18 +1080,8 @@ export default function DashboardPage() {
             <div className="perplexity-dashboard-glow-1" />
             <div className="perplexity-dashboard-glow-2" />
 
-            {/* Dashboard Header */}
             <div className="perplexity-dashboard-header">
                 <div>
-                    <div className="perplexity-dashboard-header-badge" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                        <Sparkles size={12} style={{ color: 'var(--color-accent)' }} />
-                        <span>{language === 'en' ? 'SYSTEM BLUEPRINT GENERATED' : 'လုပ်ငန်းစီမံချက် ဖန်တီးပြီးပါပြီ'}</span>
-                        {verifiedBlueprint?.consensus_score && (
-                            <span style={{ backgroundColor: 'rgba(174, 236, 29, 0.15)', color: '#aeec1d', padding: '4px 10px', borderRadius: '6px', fontWeight: 800, fontSize: '11px', border: '1px solid rgba(174, 236, 29, 0.3)' }}>
-                                {language === 'en' ? `VERIFIED CONSENSUS: ${verifiedBlueprint.consensus_score}%` : `အတည်ပြုပြီး သဘောတူညီမှု: ${verifiedBlueprint.consensus_score}%`}
-                            </span>
-                        )}
-                    </div>
                     <h2 className="perplexity-dashboard-header-title">
                         {fallbackBrand.names[0] || (language === 'en' ? 'Startup Blueprint' : 'လုပ်ငန်းစီမံချက်')}
                     </h2>
