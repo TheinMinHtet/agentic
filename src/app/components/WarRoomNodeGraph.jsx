@@ -288,10 +288,10 @@ export default function WarRoomNodeGraph({ isSimulating, onNodeClick }) {
                                         textAlign: 'left',
                                         pointerEvents: 'none'
                                     }}>
-                                        <span style={{ fontSize: '11px', fontWeight: '700', color: node.color, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '2px' }}>
+                                        <span className="node-role" style={{ fontSize: '11px', fontWeight: '700', color: node.color, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '2px' }}>
                                             {node.role}
                                         </span>
-                                        <span style={{ fontFamily: 'var(--font-jakarta)', fontSize: '13.5px', fontWeight: '600', color: isHovered ? '#FFFFFF' : '#CBD5E1', textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>
+                                        <span className="node-title" style={{ fontFamily: 'var(--font-jakarta)', fontSize: '13.5px', fontWeight: '600', color: isHovered ? '#FFFFFF' : '#CBD5E1', textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>
                                             {node.title}
                                         </span>
                                     </div>
@@ -311,10 +311,10 @@ export default function WarRoomNodeGraph({ isSimulating, onNodeClick }) {
                                         textAlign: 'center',
                                         pointerEvents: 'none'
                                     }}>
-                                        <span style={{ fontSize: '11px', fontWeight: '700', color: node.color, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '2px' }}>
+                                        <span className="node-role" style={{ fontSize: '11px', fontWeight: '700', color: node.color, letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '2px' }}>
                                             {node.role}
                                         </span>
-                                        <span style={{ fontFamily: 'var(--font-jakarta)', fontSize: '13.5px', fontWeight: '600', color: isHovered ? '#FFFFFF' : '#CBD5E1', textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>
+                                        <span className="node-title" style={{ fontFamily: 'var(--font-jakarta)', fontSize: '13.5px', fontWeight: '600', color: isHovered ? '#FFFFFF' : '#CBD5E1', textShadow: '0 2px 6px rgba(0,0,0,0.9)' }}>
                                             {node.title}
                                         </span>
                                     </div>
@@ -399,10 +399,10 @@ export default function WarRoomNodeGraph({ isSimulating, onNodeClick }) {
                             textAlign: 'center',
                             pointerEvents: 'none'
                         }}>
-                            <span style={{ fontSize: '11px', fontWeight: '700', color: '#00F2FE', background: 'rgba(0, 242, 254, 0.12)', border: '1px solid rgba(0, 242, 254, 0.35)', padding: '3px 14px', borderRadius: '999px', marginBottom: '4px', whiteSpace: 'nowrap', boxShadow: '0 0 12px rgba(0, 242, 254, 0.2)', letterSpacing: '0.04em' }}>
+                            <span className="node-core-badge" style={{ fontSize: '11px', fontWeight: '700', color: '#00F2FE', background: 'rgba(0, 242, 254, 0.12)', border: '1px solid rgba(0, 242, 254, 0.35)', padding: '3px 14px', borderRadius: '999px', marginBottom: '4px', whiteSpace: 'nowrap', boxShadow: '0 0 12px rgba(0, 242, 254, 0.2)', letterSpacing: '0.04em' }}>
                                 Orchestrator
                             </span>
-                            <h4 style={{ fontFamily: 'var(--font-jakarta)', fontSize: '16px', fontWeight: '700', color: '#FFFFFF', margin: 0, textShadow: '0 2px 10px rgba(0, 0, 0, 0.9)' }}>
+                            <h4 className="node-core-title" style={{ fontFamily: 'var(--font-jakarta)', fontSize: '16px', fontWeight: '700', color: '#FFFFFF', margin: 0, textShadow: '0 2px 10px rgba(0, 0, 0, 0.9)' }}>
                                 WarRoom Core
                             </h4>
                         </div>
@@ -416,7 +416,7 @@ export default function WarRoomNodeGraph({ isSimulating, onNodeClick }) {
                     width: 100%;
                     max-width: 100%;
                     margin: 0 auto;
-                    height: 610px;
+                    aspect-ratio: 800 / 610;
                     background: transparent;
                     backdrop-filter: blur(20px);
                     -webkit-backdrop-filter: blur(20px);
@@ -452,15 +452,19 @@ export default function WarRoomNodeGraph({ isSimulating, onNodeClick }) {
                     z-index: 1;
                 }
 
-                @media (max-width: 1024px) {
-                    .warroom-canvas-container {
-                        height: 500px;
+                @media (max-width: 480px) {
+                    .node-role {
+                        font-size: 8px !important;
                     }
-                }
-
-                @media (max-width: 768px) {
-                    .warroom-canvas-container {
-                        height: 440px;
+                    .node-title {
+                        font-size: 10px !important;
+                    }
+                    .node-core-badge {
+                        font-size: 8px !important;
+                        padding: 2px 8px !important;
+                    }
+                    .node-core-title {
+                        font-size: 12px !important;
                     }
                 }
             `}</style>

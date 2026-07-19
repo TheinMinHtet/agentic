@@ -97,6 +97,8 @@
   font-size: 17px !important;
   font-weight: 700 !important;
   letter-spacing: -0.02em !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
 }
 
 .navbar.navbar-dark-landing .brand-mark {
@@ -1680,5 +1682,266 @@
   .perplexity-investor-banner-actions button {
     flex: 1;
     justify-content: center;
+  }
+}
+
+/* Mobile Toggle Button & Menu styling */
+.mobile-menu-toggle {
+  display: none !important;
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  padding: 4px;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .desktop-only {
+    display: none !important;
+  }
+
+  .navbar.navbar-dark-landing .nav-center-links.desktop-only,
+  .navbar.navbar-dark-landing .nav-actions.desktop-only {
+    display: none !important;
+  }
+
+  .mobile-menu-toggle {
+    display: flex !important;
+  }
+
+  .navbar.navbar-dark-landing {
+    padding: 12px 18px !important;
+  }
+
+  .mobile-menu-panel {
+    position: fixed;
+    top: 66px;
+    left: 18px;
+    right: 18px;
+    z-index: 49;
+    padding: 24px !important;
+    border-radius: 20px !important;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: rgba(12, 17, 29, 0.92) !important;
+    backdrop-filter: blur(25px) !important;
+    -webkit-backdrop-filter: blur(25px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.75) !important;
+  }
+
+  .mobile-menu-links {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .mobile-nav-link {
+    color: var(--color-text-secondary);
+    font-family: var(--typography-body-family);
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: color 0.2s ease;
+  }
+
+  .mobile-nav-link.active {
+    color: var(--color-accent) !important;
+  }
+
+  .mobile-menu-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .mobile-lang-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #CBD5E1;
+    transition: all 0.2s ease;
+  }
+
+  .mobile-auth-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px !important;
+  }
+}
+
+/* Responsive Stepper overrides */
+@media (max-width: 600px) {
+  .stepper-card {
+    padding: 16px 20px !important;
+  }
+
+  .stepper-label {
+    display: none !important;
+  }
+
+  .stepper-line {
+    margin-top: 0px !important;
+    margin-left: 12px !important;
+    margin-right: 12px !important;
+  }
+}
+
+/* Onboarding & Specialized Agents Responsiveness overrides */
+@media (max-width: 768px) {
+  .past-idea-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  .past-idea-row button {
+    align-self: flex-end;
+    width: auto;
+  }
+
+  .onboarding-phase-title {
+    font-size: 24px !important;
+    padding: 0 40px !important;
+    line-height: 1.3 !important;
+  }
+
+  .onboarding-chat-card {
+    height: 500px !important;
+    max-height: 500px !important;
+    margin-top: 16px !important;
+  }
+
+  .onboarding-chat-card div[ref="chatContainerRef"] {
+    padding: 16px !important;
+  }
+
+  .onboarding-chat-card input {
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+  }
+
+  .agent-running-card {
+    min-height: 320px !important;
+    padding: 20px !important;
+    border-radius: 20px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .onboarding-phase-title {
+    font-size: 20px !important;
+    padding: 0 20px !important;
+  }
+
+  .onboarding-chat-card {
+    height: 440px !important;
+    max-height: 440px !important;
+  }
+
+  .agent-running-card {
+    min-height: 280px !important;
+  }
+}
+
+/* Dashboard & Refinement Studio Mobile Responsiveness overrides */
+@media (max-width: 900px) {
+  .perplexity-dashboard-grid-layout {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  .perplexity-dashboard-sidebar {
+    flex-direction: row !important;
+    position: static !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    padding-bottom: 8px !important;
+    gap: 8px !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .perplexity-dashboard-sidebar::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .perplexity-dashboard-tab-btn {
+    flex-shrink: 0 !important;
+    padding: 10px 16px !important;
+    border-radius: 12px !important;
+    font-size: 13.5px !important;
+  }
+
+  .perplexity-dashboard-main-card {
+    padding: 24px !important;
+    border-radius: 24px !important;
+    min-height: auto !important;
+  }
+
+  /* Target all inline grid-template-columns divs inside main panel and force stack them */
+  .perplexity-dashboard-main-card div[style*="grid-template-columns"],
+  .perplexity-dashboard-main-card div[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .perplexity-dashboard-persona-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .perplexity-dashboard-table-container {
+    overflow-x: auto !important;
+  }
+
+  /* Calendar tweaks */
+  .calendar-days-grid {
+    grid-auto-rows: 60px !important;
+  }
+
+  .calendar-day-cell {
+    height: 60px !important;
+    padding: 6px !important;
+  }
+
+  .calendar-task-badge-list {
+    display: none !important; /* Hide long task descriptions in grid day box */
+  }
+
+  /* Refinement Studio */
+  .refinement-section {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .refinement-grid {
+    height: auto !important;
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+
+  .refinement-preview-card {
+    max-height: 400px !important;
+    padding: 24px !important;
+  }
+
+  .refinement-chat-card {
+    height: 550px !important;
+    padding: 24px !important;
   }
 }

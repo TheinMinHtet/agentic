@@ -196,6 +196,7 @@ export default function OnboardingPage() {
                                     {pastIdeas.map((idea) => (
                                         <div
                                             key={idea.idea_id}
+                                            className="past-idea-row"
                                             style={{ padding: '16px 18px', borderRadius: '12px', border: '1px solid var(--color-border-light)', background: 'rgba(255,255,255,0.02)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}
                                         >
                                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', minWidth: 0 }}>
@@ -273,7 +274,7 @@ export default function OnboardingPage() {
                                         &larr; {language === 'en' ? 'Back' : 'နောက်သို့'}
                                     </button>
                                 </div>
-                                <h2 style={{ margin: 0, fontWeight: 900, fontSize: '32px', fontFamily: 'var(--typography-heading-family)', textAlign: 'center', padding: '0 80px' }}>
+                                <h2 className="onboarding-phase-title" style={{ margin: 0, fontWeight: 900, fontSize: '32px', fontFamily: 'var(--typography-heading-family)', textAlign: 'center', padding: '0 80px' }}>
                                     {language === 'en' ? 'Select your industry' : 'သင်၏လုပ်ငန်းအမျိုးအစားကို ရွေးချယ်ပါ'}
                                 </h2>
                             </div>
@@ -303,7 +304,7 @@ export default function OnboardingPage() {
 
                     {/* Phase 3: Chat Wizard */}
                     {phase === 3 && (
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--color-surface-card)', borderRadius: '24px', border: '1px solid var(--color-border-light)', overflow: 'hidden', marginTop: '24px', height: '600px', maxHeight: '600px', flexShrink: 0 }}>
+                        <div className="onboarding-chat-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--color-surface-card)', borderRadius: '24px', border: '1px solid var(--color-border-light)', overflow: 'hidden', marginTop: '24px', height: '600px', maxHeight: '600px', flexShrink: 0 }}>
 
                             {/* Header */}
                             <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--color-border-light)', background: 'rgba(255,255,255,0.02)', display: 'flex', flexDirection: 'column', gap: '16px' }}>

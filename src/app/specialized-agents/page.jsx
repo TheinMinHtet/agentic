@@ -87,7 +87,7 @@ export default function SpecializedAgentsPage() {
                 {agentsList.map(({ key, title, desc }) => {
                     const status = getStatusStyles(agentProgress[key]);
                     return (
-                        <div className="card" key={key} style={{
+                        <div className="card agent-running-card" key={key} style={{
                             borderRadius: '32px',
                             padding: '24px',
                             display: 'flex',

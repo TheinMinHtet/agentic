@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogIn, LogOut, Sparkles } from 'lucide-react';
+import { LogIn, LogOut, Sparkles, Menu, X } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Footer from './components/Footer';
 import GlobalStepper from './components/GlobalStepper';
@@ -16,6 +16,7 @@ function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -23,10 +24,15 @@ function Navbar() {
 
   const handleLogout = async () => {
     await logout();
+    setMenuOpen(false);
     router.push('/');
   };
 
   const isActive = (path) => pathname === path;
+
+  const handleNavLinkClick = () => {
+    setMenuOpen(false);
+  };
 
   if (!mounted) {
     return (
@@ -39,10 +45,10 @@ function Navbar() {
           />
           <span>LANN SA</span>
         </Link>
-        <div className="nav-center-links">
+        <div className="nav-center-links desktop-only">
           <span className="nav-link" style={{ opacity: 0 }}>{t('navbar.home')}</span>
         </div>
-        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', opacity: 0 }}>
+        <div className="nav-actions desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', opacity: 0 }}>
           <button type="button" className="button-secondary">{language === 'en' ? 'မြန်မာ' : 'English'}</button>
         </div>
       </nav>
@@ -50,54 +56,106 @@ function Navbar() {
   }
 
   return (
-    <nav className="navbar navbar-dark-landing">
-      <Link href="/" className="brand-link" aria-label="LANN SA home" style={{ gap: '6px' }}>
-        <img
-          src="/lann-sa-final-logo.png"
-          alt="LANN SA logo"
-          style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'contain', flexShrink: 0, mixBlendMode: 'screen' }}
-        />
-        <span>LANN SA</span>
-      </Link>
-      <div className="nav-center-links">
-        <Link href="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>{t('navbar.home')}</Link>
-        {!loading && isAuthenticated && (
-          <Link href="/dashboard" className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}>{t('navbar.dashboard')}</Link>
-        )}
-      </div>
-      <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+    <>
+      <nav className="navbar navbar-dark-landing">
+        <Link href="/" className="brand-link" aria-label="LANN SA home" style={{ gap: '6px' }} onClick={handleNavLinkClick}>
+          <img
+            src="/lann-sa-final-logo.png"
+            alt="LANN SA logo"
+            style={{ width: 44, height: 44, borderRadius: 8, objectFit: 'contain', flexShrink: 0, mixBlendMode: 'screen' }}
+          />
+          <span>LANN SA</span>
+        </Link>
+        
+        {/* Desktop navigation links */}
+        <div className="nav-center-links desktop-only">
+          <Link href="/" className={`nav-link ${isActive('/') ? 'active' : ''}`}>{t('navbar.home')}</Link>
+          {!loading && isAuthenticated && (
+            <Link href="/dashboard" className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}>{t('navbar.dashboard')}</Link>
+          )}
+        </div>
+
+        {/* Desktop actions */}
+        <div className="nav-actions desktop-only">
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              padding: '0.38rem 0.9rem', fontSize: '0.82rem', fontWeight: 600,
+              cursor: 'pointer', borderRadius: '8px',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: '#CBD5E1',
+              backdropFilter: 'blur(8px)',
+              transition: 'all 0.2s ease',
+              minWidth: '80px', textAlign: 'center'
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.11)'; e.currentTarget.style.borderColor = 'rgba(129,140,248,0.4)'; e.currentTarget.style.color = '#fff'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#CBD5E1'; }}
+          >
+            {language === 'en' ? '🇲🇲 မြန်မာ' : '🇬🇧 English'}
+          </button>
+          {!loading && isAuthenticated ? (
+            <button type="button" className="button-secondary nav-auth-button" onClick={handleLogout}>
+              <LogOut size={18} />
+              {t('navbar.logout')}
+            </button>
+          ) : !loading ? (
+            <Link href="/login" className="button-primary nav-auth-button">
+              <LogIn size={18} />
+              {t('navbar.login')}
+            </Link>
+          ) : null}
+        </div>
+
+        {/* Mobile Toggle Button */}
         <button
           type="button"
-          onClick={toggleLanguage}
-          style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            padding: '0.38rem 0.9rem', fontSize: '0.82rem', fontWeight: 600,
-            cursor: 'pointer', borderRadius: '8px',
-            background: 'rgba(255,255,255,0.06)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            color: '#CBD5E1',
-            backdropFilter: 'blur(8px)',
-            transition: 'all 0.2s ease',
-            minWidth: '80px', textAlign: 'center'
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.11)'; e.currentTarget.style.borderColor = 'rgba(129,140,248,0.4)'; e.currentTarget.style.color = '#fff'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; e.currentTarget.style.color = '#CBD5E1'; }}
+          className="mobile-menu-toggle"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle Navigation Menu"
         >
-          {language === 'en' ? '🇲🇲 မြန်မာ' : '🇬🇧 English'}
+          {menuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-        {!loading && isAuthenticated ? (
-          <button type="button" className="button-secondary nav-auth-button" onClick={handleLogout}>
-            <LogOut size={18} />
-            {t('navbar.logout')}
-          </button>
-        ) : !loading ? (
-          <Link href="/login" className="button-primary nav-auth-button">
-            <LogIn size={18} />
-            {t('navbar.login')}
-          </Link>
-        ) : null}
-      </div>
-    </nav >
+      </nav >
+
+      {/* Mobile Menu Panel */}
+      {menuOpen && (
+        <div className="mobile-menu-panel card-glass">
+          <div className="mobile-menu-links">
+            <Link href="/" className={`mobile-nav-link ${isActive('/') ? 'active' : ''}`} onClick={handleNavLinkClick}>
+              {t('navbar.home')}
+            </Link>
+            {!loading && isAuthenticated && (
+              <Link href="/dashboard" className={`mobile-nav-link ${isActive('/dashboard') ? 'active' : ''}`} onClick={handleNavLinkClick}>
+                {t('navbar.dashboard')}
+              </Link>
+            )}
+          </div>
+          <div className="mobile-menu-actions">
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              className="mobile-lang-btn"
+            >
+              {language === 'en' ? '🇲🇲 မြန်မာ' : '🇬🇧 English'}
+            </button>
+            {!loading && isAuthenticated ? (
+              <button type="button" className="button-secondary mobile-auth-btn" onClick={handleLogout}>
+                <LogOut size={18} />
+                {t('navbar.logout')}
+              </button>
+            ) : !loading ? (
+              <Link href="/login" className="button-primary mobile-auth-btn" onClick={handleNavLinkClick}>
+                <LogIn size={18} />
+                {t('navbar.login')}
+              </Link>
+            ) : null}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
