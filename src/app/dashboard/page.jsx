@@ -27,6 +27,7 @@ import {
     Download
 } from 'lucide-react';
 import AgentRediscoveryOverlay from '../components/AgentRediscoveryOverlay';
+import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 
 // Lightweight Markdown to HTML string converter for dynamic print iframes
 function convertMarkdownToHTML(mdText) {
@@ -132,6 +133,7 @@ export default function DashboardPage() {
     const supabase = useMemo(() => createClient(), []);
     const {
         businessInfo,
+        startupIdea,
         refinedConcept,
         marketResearch,
         financeModel,
@@ -155,7 +157,8 @@ export default function DashboardPage() {
         updateDigitalPresenceDirect,
         updateGrowthPlanDirect,
         updateRefinedConceptDirect,
-        triggerRediscovery
+        triggerRediscovery,
+        verifiedBlueprint
     } = useWorkflow();
 
     // Editing & Rediscovery States
@@ -163,6 +166,101 @@ export default function DashboardPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [statusMessage, setStatusMessage] = useState('');
     const [steps, setSteps] = useState([]);
+
+    // Executive Action Center States
+    const [executingActions, setExecutingActions] = useState(false);
+    const [actionResults, setActionResults] = useState({
+        excel_model: null,
+        word_proposal: null,
+        calendar_schedule: null,
+        outreach_campaign: null
+    });
+
+    const handleRestart = () => {
+        resetWorkflow();
+        router.push('/onboarding');
+    };
+
+    const handleExecuteAll = async () => {
+        setExecutingActions(true);
+        try {
+            const { executeAllDeliverables } = await import('../../agents/executionAgent');
+            const res = await executeAllDeliverables((verifiedBlueprint && verifiedBlueprint.company_name !== "GrantFlow AI") ? verifiedBlueprint : {
+                company_name: refinedConcept?.companyName || businessInfo?.company_name || businessInfo?.title || (startupIdea ? startupIdea.split(' ').slice(0, 3).join(' ').replace(/[^a-zA-Z0-9 ]/g, '') : "EduBot Myanmar"),
+                verified_unit_economics: {
+                    initial_capital_mmk: 3000000,
+                    monthly_burn_rate_mmk: 1500000,
+                    verified_cac_usd: 12,
+                    target_pricing_standard_mmk: 150000,
+                    projected_breakeven_month: financeModel?.breakevenMonth || 4,
+                    verified_runway_months: 24.2,
+                    gross_margin_percent: 82
+                },
+                consensus_strategic_narrative: {
+                    improved_summary: refinedConcept?.improved_summary || startupIdea || "AI-powered platform providing localized solutions across Myanmar.",
+                    verified_tam: marketResearch?.tam || "$4.2B TAM",
+                    key_differentiators: refinedConcept?.key_differentiators || []
+                },
+                actionable_roadmap_milestones: growthPlan?.roadmap90Day ? growthPlan.roadmap90Day.map((item, idx) => ({
+                    phase: `Phase ${idx + 1}`,
+                    date: `Month ${idx + 1}`,
+                    title: `Roadmap Step ${idx + 1}`,
+                    desc: item
+                })) : [
+                    { phase: "Phase 1", date: "Month 1", title: "Alpha MVP Launch", desc: "Alpha testers & validation" },
+                    { phase: "Phase 2", date: "Month 2", title: "Growth & Marketing Push", desc: "Targeted campaigns and local outreach" },
+                    { phase: "Phase 3", date: "Month 3", title: "Public Beta & Scale", desc: "Scale revenue tiers and partnerships" }
+                ],
+                verified_target_personas: marketResearch?.target_personas || []
+            });
+            setActionResults(res);
+        } catch (err) {
+            console.error("Execution error:", err);
+        } finally {
+            setExecutingActions(false);
+        }
+    };
+
+    const handleExecuteSingle = async (type) => {
+        setExecutingActions(true);
+        try {
+            const { executeAllDeliverables } = await import('../../agents/executionAgent');
+            const options = { excel: false, docx: false, calendar: false, email: false, [type]: true };
+            const res = await executeAllDeliverables((verifiedBlueprint && verifiedBlueprint.company_name !== "GrantFlow AI") ? verifiedBlueprint : {
+                company_name: refinedConcept?.companyName || businessInfo?.company_name || businessInfo?.title || (startupIdea ? startupIdea.split(' ').slice(0, 3).join(' ').replace(/[^a-zA-Z0-9 ]/g, '') : "EduBot Myanmar"),
+                verified_unit_economics: {
+                    initial_capital_mmk: 3000000,
+                    monthly_burn_rate_mmk: 1500000,
+                    verified_cac_usd: 12,
+                    target_pricing_standard_mmk: 150000,
+                    projected_breakeven_month: financeModel?.breakevenMonth || 4,
+                    verified_runway_months: 24.2,
+                    gross_margin_percent: 82
+                },
+                consensus_strategic_narrative: {
+                    improved_summary: refinedConcept?.improved_summary || startupIdea || "AI-powered platform providing localized solutions across Myanmar.",
+                    verified_tam: marketResearch?.tam || "$4.2B TAM",
+                    key_differentiators: refinedConcept?.key_differentiators || []
+                },
+                actionable_roadmap_milestones: growthPlan?.roadmap90Day ? growthPlan.roadmap90Day.map((item, idx) => ({
+                    phase: `Phase ${idx + 1}`,
+                    date: `Month ${idx + 1}`,
+                    title: `Roadmap Step ${idx + 1}`,
+                    desc: item
+                })) : [
+                    { phase: "Phase 1", date: "Month 1", title: "Alpha MVP Launch", desc: "Alpha testers & validation" },
+                    { phase: "Phase 2", date: "Month 2", title: "Growth & Marketing Push", desc: "Targeted campaigns and local outreach" },
+                    { phase: "Phase 3", date: "Month 3", title: "Public Beta & Scale", desc: "Scale revenue tiers and partnerships" }
+                ],
+                verified_target_personas: marketResearch?.target_personas || []
+            }, options);
+            setActionResults(prev => ({ ...prev, ...res }));
+        } catch (err) {
+            console.error("Single execution error:", err);
+        } finally {
+            setExecutingActions(false);
+        }
+    };
 
     // Temporary editing form states
     const [editConcept, setEditConcept] = useState('');
@@ -342,7 +440,7 @@ export default function DashboardPage() {
             fallbackFinance.markdown_deliverable,
             fallbackBrand.markdown_deliverable,
             fallbackDigital.markdown_deliverable,
-            fallbackMarketing.markdown_deliverable
+            fallbackGrowth.markdown_deliverable
         ].join('\n\n');
 
         const element = document.createElement("a");
@@ -419,7 +517,7 @@ export default function DashboardPage() {
                 { title: 'Financial Model & Projections', md: fallbackFinance.markdown_deliverable },
                 { title: 'Brand Identity & Style Guide', md: fallbackBrand.markdown_deliverable },
                 { title: 'Digital Presence Specification', md: fallbackDigital.markdown_deliverable },
-                { title: 'Growth & Marketing Plan', md: fallbackMarketing.markdown_deliverable }
+                { title: 'Growth & Marketing Plan', md: fallbackGrowth.markdown_deliverable }
             ];
 
             docs.forEach((d) => {
@@ -490,13 +588,15 @@ export default function DashboardPage() {
                     .maybeSingle();
 
                 if (error) {
-                    console.error(`Supabase error for table ${table}:`, error);
+                    if (error.code !== 'PGRST116') {
+                        console.warn(`[Supabase Note] Table ${table} info:`, error.message || error.code || JSON.stringify(error) || error);
+                    }
                     return null;
                 }
 
                 return data;
             } catch (err) {
-                console.error(`Fetch exception for table ${table}:`, err);
+                console.warn(`[Supabase Note] Fetch exception for table ${table}:`, err?.message || err);
                 return null;
             }
         };
@@ -592,7 +692,7 @@ export default function DashboardPage() {
                     });
                 }
             } catch (error) {
-                console.error('Failed to load saved dashboard:', error);
+                console.warn('[Supabase Note] Could not load saved history dashboard:', error?.message || error);
                 if (mounted) {
                     setHistoryLoadError(error.message || 'Unable to load saved dashboard.');
                 }
@@ -617,106 +717,212 @@ export default function DashboardPage() {
         updateCurrentIdeaId
     ]);
 
-    // Fallback data in case the user visits dashboard directly without executing agents
-    const fallbackConcept = refinedConcept || {
-        concept: "GrantFlow AI is a specialized Software-as-a-Service (SaaS) platform that streamlines the entire grant acquisition process. Users upload their organization's historical impact data, financial needs, and project goals. The platform then automatically drafts highly tailored, compelling, and fully compliant grant proposals.",
-        improved_summary: "Tailored grant proposals drafted in minutes for non-profits.",
-        key_differentiators: [
-            "NLP matching engines checking compliance criteria against strict grant guidelines.",
-            "Historical narrative compiler mapping past impact benchmarks into structured paragraphs.",
-            "Budget-to-proposal compiler automatically formatting cost tables to grant specifications."
-        ],
-        target_audience_refined: "Small-to-medium non-profits (NPOs), academic researchers, and social impact startups without full-time grant writers."
-    };
+    // Dynamic base info derived from live user workflow, Onboarding, or Meeting Room output
+        const activeType = businessInfo?.business_type || "SaaS / Digital App";
+        const activeCountry = businessInfo?.target_country || "Myanmar";
 
-    const fallbackMarket = marketResearch || {
-        tam: "$1.8B TAM",
-        saturation_level: 25,
-        competitors: [
-            { name: "GrantWriter Pro", url: "https://grantwriterpro.com", weakness: "High subscription price points and manual templates." },
-            { name: "ProposalAI", url: "https://proposalai.io", weakness: "Generic NLP outputs lacking compliance-specific narratives." },
-            { name: "FundraisingHub", url: "Not Publicly Available", weakness: "Focuses on CRM donation pipelines rather than grant writing." }
-        ],
-        opportunities: [
-            "Expanding philanthropic government grants globally.",
-            "NPOs seeking digitized automation solutions post-inflation budget squeezes.",
-            "Higher academic institutions demanding faster micro-grant writing automation tools."
-        ],
-        target_personas: [
-            { name: "Executive Director Emily", role: "NPO Director", pain_points: ["Spends 20+ hours per grant proposal", "Lacks writing budget"], budget_limit: "300,000 MMK/mo max" },
-            { name: "Researcher Roger", role: "University Grant Applicant", pain_points: ["Compliance checklist overload", "Missed submission deadlines"], budget_limit: "450,000 MMK/mo research budget" }
-        ],
-        markdown_deliverable: `# Market Intelligence Report: GrantFlow AI\n\n## Target Market & Personas\nGrantFlow AI targets small-to-medium non-profits, academic researchers, and social impact startups.\n\n### Ideal Customer Personas (ICPs)\n- **Executive Director Emily**: Manages a local community service non-profit. Spends 20+ hours per grant and has zero writing budget.\n- **Researcher Roger**: University researcher who deals with complex compliance requirements.\n\n## Competitor Mapping\n| Competitor | URL | Weakness |\n|---|---|---|\n| GrantWriter Pro | https://grantwriterpro.com | High pricing & templates only |\n| ProposalAI | https://proposalai.io | Generic copy, low compliance checks |\n| FundraisingHub | Not Publicly Available | Focuses on donation CRMs, not writing |\n\n## Market Trends & Opportunities\n- Growth in government micro-grants.\n- Increasing demand for low-cost automated proposal writers.\n- Saturation Level: **25%** (Low-medium market penetration).`
-    };
+        const isPhysicalProduct = (() => {
+            const text = `${activeType || ''} ${businessInfo?.business_type || ''} ${verifiedBlueprint?.consensus_strategic_narrative?.improved_summary || ''} ${startupIdea || ''} ${businessInfo?.core_painpoint || ''}`.toLowerCase();
+            const physicalKeywords = ['physical', 'food', 'beverage', 'retail', 'hardware', 'clothing', 'fashion', 'cosmetics', 'snack', 'drink', 'manufacturing', 'cogs', 'packaging', 'factory', 'goods', 'product', 'restaurant', 'cafe', 'store'];
+            const digitalKeywords = ['saas', 'software', 'app', 'edtech', 'platform', 'ai', 'cloud', 'portal', 'token', 'website'];
+            const hasPhysical = physicalKeywords.some(kw => text.includes(kw));
+            const hasDigital = digitalKeywords.some(kw => text.includes(kw));
+            return hasPhysical && !hasDigital;
+        })();
 
-    const fallbackFinance = financeModel || {
-        costBreakdown: [
-            { item: "Gemini API token costs", cost: 360000 },
-            { item: "Hosting & Server infrastructure", cost: 240000 },
-            { item: "Domain & SSL registration", cost: 45000 },
-            { item: "Customer support software license", cost: 105000 },
-            { item: "Basic marketing and ads", cost: 750000 }
-        ],
-        revenueForecast: "15,000,000 MMK monthly recurring revenue (MRR) projected in Month 6.",
-        pricingStrategy: "Tiered subscription model: Standard (150,000 MMK/mo) and Premium (300,000 MMK/mo) with credits-based drafting caps.",
-        breakevenMonth: 4,
-        markdown_deliverable: `# Financial Model & Projections: GrantFlow AI\n\n## Startup Capital Allocation\nBelow is the itemized budget allocation mapping back to our 3,000,000 MMK setup limit:\n\n| Expense Item | Monthly Cost (MMK) |\n|---|---|\n| Gemini API token costs | 360,000 MMK |\n| Hosting & Server infrastructure | 240,000 MMK |\n| Domain & SSL registration | 45,000 MMK |\n| Customer support software | 105,000 MMK |\n| Marketing campaigns | 750,000 MMK |\n| **Total Estimated Run-rate** | **1,500,000 MMK/mo** |\n\n## Revenue Forecast\n- Projecting **Month 4 Breakeven**.\n- Targeting 100 active non-profit subscribers by Month 6 (15,000,000 MMK MRR).\n\n## Pricing Strategy\n- **Standard Plan**: 150,000 MMK/mo (up to 3 proposals monthly)\n- **Premium Plan**: 300,000 MMK/mo (unlimited proposals & compliance checking)`
-    };
+        const activeIdea = (verifiedBlueprint?.consensus_strategic_narrative?.improved_summary && !verifiedBlueprint.consensus_strategic_narrative.improved_summary.toLowerCase().includes('grant')) 
+            ? verifiedBlueprint.consensus_strategic_narrative.improved_summary 
+            : (refinedConcept?.improved_summary || startupIdea || businessInfo?.core_painpoint || (isPhysicalProduct ? "Locally sourced quality physical products with robust supply chain distribution across Myanmar." : "AI-powered digital platform solving local user pain points across Myanmar."));
 
-    const fallbackBrand = brandPackage || {
-        names: ["GrantFlow AI", "ProposalLift", "FundForge", "BidDraft", "NarrateGrant"],
-        tagline: "Tailored grant proposals drafted in minutes.",
-        voice: "Empathetic, structured, professional, and compliant.",
-        palette: { primary: "#1b0624", secondary: "#aeec1d", background: "#ffffff" },
-        logoConcept: "A stylized feather quill that transitions into a rising network bar graph, representing written proposals leading to business growth.",
-        markdown_deliverable: `# Brand Identity & Style Guide: GrantFlow AI\n\n## Brand Naming Suggestions\n1. **GrantFlow AI** (Primary suggestion)\n2. **ProposalLift**\n3. **FundForge**\n4. **BidDraft**\n5. **NarrateGrant**\n\n## Brand Voice Guidelines\n- **Empathetic**: Recognizing NPOs' lack of resources.\n- **Structured & Compliant**: Focused on precision and guidelines compliance.\n\n## Visual Guidelines\n- **Primary Color**: \`#1b0624\` (Minimalist dark purple)\n- **Secondary Accent**: \`#aeec1d\` (Neon lime green)\n- **Background**: \`#ffffff\` (Pure white)\n- **Typography**: Display headings in sans-serif, body copy in Inter.\n\n## Logo Concept\nA minimalist quill combined with an upward-trending bar graph icon.`
-    };
+        const activeName = (verifiedBlueprint?.company_name && verifiedBlueprint.company_name !== "GrantFlow AI") 
+            ? verifiedBlueprint.company_name 
+            : (refinedConcept?.companyName || businessInfo?.company_name || businessInfo?.title || (startupIdea ? startupIdea.split(' ').slice(0, 3).join(' ').replace(/[^a-zA-Z0-9 ]/g, '') : (isPhysicalProduct ? "Myanmar Craft Consumer Goods" : "EduBot Myanmar")));
 
-    const fallbackDigital = digitalPresence || {
-        landingPageOutline: [
-            { section_id: "hero", title: "Write winning grants in minutes, not weeks.", body: "Leverage automated narrative compilers trained on compliance criteria to draft compelling grant proposals instantly.", cta_text: "Get Started Free" },
-            { section_id: "features", title: "Compliance-First Drafting Engine", body: "Upload past reports and grant requirements. Our system checks against 100+ compliance rules to prevent simple format rejections.", cta_text: "See How It Works" },
-            { section_id: "pricing", title: "Affordable plans for non-profits", body: "Choose a tier that grows with your fundraising needs. No upfront agency fees required.", cta_text: "View Plans" }
-        ],
-        features: [
-            "compliance Narrative Compiler",
-            "Past Impact Narrative Mapper",
-            "Automatic Budget Table Formatter"
-        ],
-        stack: ["React Next.js", "Gemini API", "Zustand State", "Tailwind CSS", "Vercel"],
-        markdown_deliverable: `# Digital Presence Specification: GrantFlow AI\n\n## Website Landing Page Layout\n\n### 1. Hero Section\n- **Heading**: Write winning grants in minutes, not weeks.\n- **Subheading**: Leverage automated narrative compilers trained on compliance criteria to draft compelling grant proposals instantly.\n- **CTA**: Get Started Free\n\n### 2. Features Grid\n- **Heading**: Compliance-First Drafting Engine\n- **Copy**: Upload past reports and grant requirements. Our system checks against 100+ compliance rules.\n\n## Key App Capabilities\n- Compliance Narrative Compiler\n- Past Impact Narrative Mapper\n- Automatic Budget Table Formatter\n\n## Recommended Technical Stack\n- Frontend: React Next.js\n- API & Orchestration: Node.js (deepagents)\n- Hosting: Vercel`
-    };
+        const activeAudience = Array.isArray(verifiedBlueprint?.verified_target_personas) && verifiedBlueprint.verified_target_personas.length > 0
+            ? verifiedBlueprint.verified_target_personas.map(p => `${p.name || 'Persona'} (${p.role || 'Segment'})`).join(', ')
+            : (businessInfo?.target_customers || "Students, Professionals & Businesses across Myanmar");
+        const activePain = businessInfo?.core_painpoint || "High operational costs and lack of modern automated tools in the local market.";
+        const activeBudget = businessInfo?.budget || "8,000,000 MMK";
+        const activeCAC = verifiedBlueprint?.verified_unit_economics?.verified_cac_usd || 12;
 
-    const fallbackMarketing = growthPlan || {
-        channels: ["Organic Search / SEO", "B2B Non-Profit Partnerships", "Strategic Cold Outreach"],
-        acquisitionPlan: "Optimize SEO around keywords like 'nonprofit grant writer' and 'write microgrant proposal'. Partner directly with non-profit incubators and research labs to offer early pilot credits.",
-        roadmap90Day: [
-            "Days 1-30: Launch MVP and secure 5 non-profit alpha testers to build case studies.",
-            "Days 31-60: Index blog posts for search traffic and run email campaigns targeting local foundations.",
-            "Days 61-90: Scale platform to premium subscription pricing and recruit affiliate partners."
-        ],
-        markdown_deliverable: `# Growth & Marketing Plan: GrantFlow AI\n\n## Acquisition Channels\n1. **Organic Search / SEO**: Target keywords targeting non-profit grant writing tips.\n2. **NPO Partnerships**: Partner with incubator programs.\n3. **Direct Email Outreach**: Target directors of foundation portals.\n\n## Launch Roadmap (First 90 Days)\n- **Phase 1 (Days 1-30)**: Alpha launch with 5 test non-profits. Collect compliance case studies.\n- **Phase 2 (Days 31-60)**: Push organic content articles. Run outreach sequences.\n- **Phase 3 (Days 61-90)**: Open paid tiers. Scale via partner affiliates.`
-    };
+        // Fallback and dynamic override data when connected to verifiedBlueprint or Onboarding data
+        const fallbackConcept = {
+            concept: verifiedBlueprint?.consensus_strategic_narrative?.improved_summary || refinedConcept?.concept || activeIdea,
+            improved_summary: verifiedBlueprint?.consensus_strategic_narrative?.improved_summary || refinedConcept?.improved_summary || activeIdea,
+            key_differentiators: Array.isArray(verifiedBlueprint?.consensus_strategic_narrative?.key_differentiators) && verifiedBlueprint.consensus_strategic_narrative.key_differentiators.length > 0
+                ? verifiedBlueprint.consensus_strategic_narrative.key_differentiators
+                : (Array.isArray(refinedConcept?.key_differentiators) && refinedConcept.key_differentiators.length > 0
+                    ? refinedConcept.key_differentiators
+                    : (isPhysicalProduct ? [
+                        `High-grade locally sourced raw materials and rigorous quality control checks across ${activeCountry}.`,
+                        `Eco-friendly retail packaging box design optimized for store shelf appeal and unboxing.`,
+                        `Verified 68% gross margin unit economics with scalable production batches.`
+                    ] : [
+                        `AI matching engine tailored specifically for ${activeAudience}.`,
+                        `Automated workflow resolution addressing: ${activePain.substring(0, 80)}...`,
+                        `Built specifically for ${activeCountry} market requirements and local behavior.`
+                    ])),
+            target_audience_refined: activeAudience
+        };
 
-    // Alias fallbackMarketing to fallbackGrowth to prevent reference error
-    const fallbackGrowth = fallbackMarketing;
+        const fallbackMarket = {
+            tam: verifiedBlueprint?.consensus_strategic_narrative?.verified_tam || marketResearch?.tam || (isPhysicalProduct ? "65,000,000,000 MMK TAM" : "45,000,000,000 MMK TAM"),
+            saturation_level: verifiedBlueprint?.consensus_strategic_narrative?.verified_saturation || marketResearch?.saturation_level || (isPhysicalProduct ? 34 : 28),
+            competitors: Array.isArray(verifiedBlueprint?.verified_competitors) && verifiedBlueprint.verified_competitors.length > 0
+                ? verifiedBlueprint.verified_competitors
+                : (Array.isArray(marketResearch?.competitors) && marketResearch.competitors.length > 0
+                    ? marketResearch.competitors
+                    : (isPhysicalProduct ? [
+                        { name: "Imported Overseas Brands", url: "Thailand / China Imports", weakness: "High currency import tariffs and inconsistent supply stock." },
+                        { name: "Traditional Local Producers", url: "Offline Market", weakness: "Lacks modern packaging appeal and quality consistency." },
+                        { name: "Generic Supermarket Items", url: "Retail Stores", weakness: `Missing tailored ${activeCountry} cultural branding and premium quality.` }
+                    ] : [
+                        { name: "Traditional Offline Services", url: "Offline Market", weakness: "High cost, slow turnaround, and rigid schedules." },
+                        { name: "Generic Global Alternatives", url: "https://globalcompetitor.com", weakness: `Lacks ${activeCountry} localization, currency integration, and local support.` },
+                        { name: "Manual Excel & Paper Workflows", url: "Internal Processes", weakness: "Prone to human error, time-consuming, and hard to scale." }
+                    ])),
+            opportunities: Array.isArray(marketResearch?.opportunities) && marketResearch.opportunities.length > 0
+                ? marketResearch.opportunities
+                : (isPhysicalProduct ? [
+                    `High demand for reliable, premium quality local physical goods in ${activeCountry}.`,
+                    `Rapid expansion of modern supermarkets, convenience mini-marts, and TikTok Shop social selling.`,
+                    `Import substitution opportunity offering better pricing and local quality assurance.`
+                ] : [
+                    `High demand from ${activeAudience} looking for digital automation.`,
+                    `Expanding mobile internet and digital wallet adoption across ${activeCountry}.`,
+                    `Cost reduction potential compared to traditional manual solutions.`
+                ]),
+            target_personas: Array.isArray(verifiedBlueprint?.verified_target_personas) && verifiedBlueprint.verified_target_personas.length > 0
+                ? verifiedBlueprint.verified_target_personas.map(p => ({
+                    name: p.name || "Target Persona",
+                    role: p.role || "Customer Segment",
+                    pain_points: Array.isArray(p.pain_points) ? p.pain_points : (p.painPoint ? [p.painPoint] : [activePain]),
+                    budget_limit: p.budget_limit || p.customPitchAngle || (isPhysicalProduct ? "15,000 MMK/purchase" : "30,000 MMK/mo subscription")
+                }))
+                : (Array.isArray(marketResearch?.target_personas) && marketResearch.target_personas.length > 0
+                    ? marketResearch.target_personas.map(p => ({
+                        name: p.name || "Persona",
+                        role: p.role || "Customer Segment",
+                        pain_points: Array.isArray(p.pain_points) ? p.pain_points : (p.painPoint ? [p.painPoint] : [activePain]),
+                        budget_limit: p.budget_limit || p.customPitchAngle || (isPhysicalProduct ? "15,000 MMK/purchase" : "30,000 MMK/mo subscription")
+                    }))
+                    : (isPhysicalProduct ? [
+                        { name: "Retail Shopper Thandar", role: "Everyday Consumer", pain_points: [activePain, "Inconsistent quality from cheap imported goods"], budget_limit: "12,000 MMK/item budget" },
+                        { name: "Store Distributor U Kyaw", role: "Wholesale Retailer", pain_points: ["Stock shortages from overseas suppliers", "High import exchange rates"], budget_limit: "500,000 MMK wholesale order" }
+                    ] : [
+                        { name: "Primary Persona A", role: activeAudience.split(',')[0] || "Target Customer", pain_points: [activePain, "Time-consuming daily operations"], budget_limit: "25,000 MMK/mo max" },
+                        { name: "Secondary Persona B", role: "Decision Maker / Manager", pain_points: ["High expense overhead", "Lack of real-time insights"], budget_limit: "50,000 MMK/mo budget" }
+                    ])),
+            markdown_deliverable: marketResearch?.markdown_deliverable || `# Market Intelligence Report: ${activeName}\n\n## Target Market & Personas\n${activeName} targets ${activeAudience}.\n\n### Ideal Customer Personas (ICPs)\n${
+                Array.isArray(verifiedBlueprint?.verified_target_personas) && verifiedBlueprint.verified_target_personas.length > 0
+                    ? verifiedBlueprint.verified_target_personas.map(p => `- **${p.name || 'Persona'}** (${p.role || 'Segment'}): ${p.painPoint || (Array.isArray(p.pain_points) ? p.pain_points.join(', ') : activePain)}`).join('\n')
+                    : `- **Primary Persona**: ${activeAudience}. Pain point: ${activePain}\n- **Decision Maker**: Seeking reliable localized solutions in ${activeCountry}.`
+            }\n\n## Competitor Mapping\n| Competitor | Weakness |\n|---|---|\n| Traditional Offline Services / Imports | High cost & rigid delivery |\n| Generic Alternatives | Lacks ${activeCountry} localization |\n\n## Market Trends & Opportunities\n- Verified TAM: **${verifiedBlueprint?.consensus_strategic_narrative?.verified_tam || marketResearch?.tam || (isPhysicalProduct ? '65,000,000,000 MMK TAM' : '45,000,000,000 MMK TAM')}**\n- High opportunity for localized ${activeType} solutions.`
+        };
 
-    const fallbackBusiness = businessPlan || {
-        lean_canvas_markdown: `# Business Overview: Lean Canvas (GrantFlow AI)
- 
+        const fallbackFinance = {
+            costBreakdown: Array.isArray(financeModel?.costBreakdown || financeModel?.cost_breakdown) && (financeModel?.costBreakdown || financeModel?.cost_breakdown).length > 0
+                ? (financeModel.costBreakdown || financeModel.cost_breakdown)
+                : (isPhysicalProduct ? [
+                    { item: "Raw Materials & Supplier Procurement", cost: verifiedBlueprint?.verified_unit_economics ? Math.round(verifiedBlueprint.verified_unit_economics.monthly_burn_rate_mmk * 0.35) : 875000 },
+                    { item: "Manufacturing, Tooling & Quality Control", cost: verifiedBlueprint?.verified_unit_economics ? Math.round(verifiedBlueprint.verified_unit_economics.monthly_burn_rate_mmk * 0.25) : 625000 },
+                    { item: `Packaging, Box Printing & Labeling`, cost: verifiedBlueprint?.verified_unit_economics ? Math.round(verifiedBlueprint.verified_unit_economics.monthly_burn_rate_mmk * 0.15) : 375000 },
+                    { item: `Logistics, Warehousing & Store Distribution`, cost: verifiedBlueprint?.verified_unit_economics ? Math.round(verifiedBlueprint.verified_unit_economics.monthly_burn_rate_mmk * 0.15) : 375000 },
+                    { item: `Retail Marketing & Influencer Gifting (CAC: $${activeCAC})`, cost: verifiedBlueprint?.verified_unit_economics ? Math.round(verifiedBlueprint.verified_unit_economics.monthly_burn_rate_mmk * 0.10) : 250000 }
+                ] : [
+                    { item: "Core Platform Development & AI Compute", cost: verifiedBlueprint?.verified_unit_economics ? Math.round(verifiedBlueprint.verified_unit_economics.monthly_burn_rate_mmk * 0.30) : 450000 },
+                    { item: "Cloud Servers, Hosting & CDN", cost: verifiedBlueprint?.verified_unit_economics ? Math.round(verifiedBlueprint.verified_unit_economics.monthly_burn_rate_mmk * 0.20) : 300000 },
+                    { item: `Customer Acquisition & Marketing (CAC: $${activeCAC})`, cost: verifiedBlueprint?.verified_unit_economics ? Math.round(verifiedBlueprint.verified_unit_economics.monthly_burn_rate_mmk * 0.35) : 525000 },
+                    { item: "Customer Support & Operations", cost: verifiedBlueprint?.verified_unit_economics ? Math.round(verifiedBlueprint.verified_unit_economics.monthly_burn_rate_mmk * 0.10) : 150000 },
+                    { item: "Domain, SSL & Local Compliance", cost: verifiedBlueprint?.verified_unit_economics ? Math.round(verifiedBlueprint.verified_unit_economics.monthly_burn_rate_mmk * 0.05) : 75000 }
+                ]),
+            revenueForecast: verifiedBlueprint?.verified_unit_economics
+                ? `Breakeven projected in Month ${verifiedBlueprint.verified_unit_economics.projected_breakeven_month} with verified runway of ${verifiedBlueprint.verified_unit_economics.verified_runway_months} months (${verifiedBlueprint.verified_unit_economics.gross_margin_percent}% Gross Margin).`
+                : (financeModel?.revenueForecast || financeModel?.revenue_forecast || (isPhysicalProduct ? "18,500,000 MMK monthly wholesale & retail sales projected by Month 6 via distributor networks." : "12,000,000 MMK monthly recurring revenue (MRR) projected by Month 6 via active subscribers.")),
+            pricingStrategy: verifiedBlueprint?.verified_unit_economics
+                ? `Verified Target Price Plan: ${(verifiedBlueprint.verified_unit_economics.target_pricing_standard_mmk || (isPhysicalProduct ? 8500 : 15000)).toLocaleString()} MMK (${verifiedBlueprint.verified_unit_economics.gross_margin_percent}% Gross Margin).`
+                : (financeModel?.pricingStrategy || financeModel?.pricing_strategy || (isPhysicalProduct ? "Retail Price: 8,500 MMK per unit (Wholesale carton discounts at 6,800 MMK/unit for distributors)." : "Freemium access tier + Pro Subscription at 15,000 MMK/month for unlimited advanced features.")),
+            breakevenMonth: verifiedBlueprint?.verified_unit_economics?.projected_breakeven_month || financeModel?.breakevenMonth || financeModel?.breakeven_month || 4,
+            markdown_deliverable: financeModel?.markdown_deliverable || `# Financial Model & Projections: ${activeName}\n\n## Startup Capital & Runway\n- **Initial Capital Allocation**: ${activeBudget}\n- **Monthly Burn Rate**: ${(verifiedBlueprint?.verified_unit_economics?.monthly_burn_rate_mmk || (isPhysicalProduct ? 2500000 : 1500000)).toLocaleString()} MMK/mo\n- **Verified Runway**: ${verifiedBlueprint?.verified_unit_economics?.verified_runway_months || (isPhysicalProduct ? 18.5 : 24.2)} months\n- **Verified CAC**: $${activeCAC}/user\n- **Gross Margin**: ${verifiedBlueprint?.verified_unit_economics?.gross_margin_percent || (isPhysicalProduct ? 68 : 82)}%\n\n## Revenue Forecast\n- Projecting **Month ${verifiedBlueprint?.verified_unit_economics?.projected_breakeven_month || financeModel?.breakevenMonth || 4} Breakeven**.`
+        };
+
+        const fallbackBrand = {
+            names: Array.isArray(brandPackage?.names) && brandPackage.names.length > 0
+                ? brandPackage.names
+                : (verifiedBlueprint?.company_name ? [verifiedBlueprint.company_name, `${activeName} Pro`, `${activeName} Hub`, `${activeName} AI`, `Smart${activeName}`] : [activeName, `${activeName} Pro`, `${activeName} Hub`, `${activeName} AI`, `Smart${activeName}`]),
+            tagline: verifiedBlueprint?.consensus_strategic_narrative?.improved_summary || brandPackage?.tagline || `${activeName}: Smarter localized solutions for ${activeAudience.split(',')[0] || 'your daily lifestyle'}.`,
+            voice: brandPackage?.voice || "Empathetic, clear, structured, engaging, and trustworthy across Myanmar.",
+            palette: {
+                primary: brandPackage?.palette?.primary || "#1e1b4b",
+                secondary: brandPackage?.palette?.secondary || "#38bdf8",
+                background: brandPackage?.palette?.background || "#0f172a"
+            },
+            logoConcept: brandPackage?.logoConcept || brandPackage?.logo_concept || `A sleek, modern emblem combining quality assurance with ${activeName}, symbolizing growth and trust across ${activeCountry}.`,
+            markdown_deliverable: brandPackage?.markdown_deliverable || `# Brand Identity & Style Guide: ${activeName}\n\n## Brand Naming Suggestions\n1. **${activeName}** (Primary suggestion)\n2. **${activeName} Pro**\n3. **${activeName} Hub**\n\n## Brand Voice Guidelines\n- **Localized & Clear**: Easy to understand across all customer segments.\n- **Trustworthy**: Emphasizing reliability and high quality in ${activeCountry}.`
+        };
+
+        const fallbackDigital = {
+            landingPageOutline: Array.isArray(digitalPresence?.landingPageOutline || digitalPresence?.landing_page_outline) && (digitalPresence.landingPageOutline || digitalPresence.landing_page_outline).length > 0
+                ? (digitalPresence.landingPageOutline || digitalPresence.landing_page_outline)
+                : [
+                    { section_id: "hero", title: isPhysicalProduct ? `Experience superior quality with ${activeName}.` : `Elevate your workflow with ${activeName}.`, body: activeIdea, cta_text: isPhysicalProduct ? "Order Now / Buy Sample" : "Get Started Free" },
+                    { section_id: "features", title: `Tailored for ${activeCountry}`, body: `Designed to eliminate ${activePain.substring(0, 80)} with premium quality assurance and local support.`, cta_text: isPhysicalProduct ? "View Product Catalog" : "See Features" },
+                    { section_id: "pricing", title: isPhysicalProduct ? "Accessible wholesale & retail pricing" : "Transparent, flexible pricing", body: `Affordable options scaling from individual purchases to wholesale distributor packages.`, cta_text: isPhysicalProduct ? "View Price List" : "View Plans" }
+                ],
+            features: Array.isArray(digitalPresence?.features) && digitalPresence.features.length > 0
+                ? digitalPresence.features
+                : (isPhysicalProduct ? [
+                    "Online E-Commerce Product Catalog & Ordering Portal",
+                    "Real-time Stock Tracking & Social Chat-to-Order Sync",
+                    "Store Locator Map & Wholesale Distributor Application"
+                ] : [
+                    `${activeType} Core Automation Engine`,
+                    "Real-time Analytics & Activity Tracking",
+                    "Localized Support & Multi-device Sync"
+                ]),
+            stack: Array.isArray(digitalPresence?.stack) && digitalPresence.stack.length > 0
+                ? digitalPresence.stack
+                : (isPhysicalProduct ? ["Shopify / WooCommerce", "TikTok & Facebook Shop Sync", "Local Order & Inventory API", "KBZPay & WavePay Gateway", "Logistics Delivery Portal"] : ["React Next.js", "Gemini AI API", "Supabase DB", "Tailwind CSS", "Vercel Cloud"]),
+            markdown_deliverable: digitalPresence?.markdown_deliverable || `# Digital Presence Specification: ${activeName}\n\n## Website Landing Page Layout\n\n### 1. Hero Section\n- **Heading**: ${isPhysicalProduct ? `Experience superior quality with ${activeName}.` : `Elevate your workflow with ${activeName}.`}\n- **Subheading**: ${activeIdea}\n- **CTA**: ${isPhysicalProduct ? 'Order Now' : 'Get Started Free'}\n\n### 2. Features Grid\n- **Heading**: Tailored for ${activeCountry}\n\n## Recommended Technical Stack\n- Frontend: ${isPhysicalProduct ? 'Shopify / React Next.js Catalog' : 'React Next.js'}\n- Payments: KBZPay & WavePay`
+        };
+
+        const fallbackGrowth = {
+            channels: Array.isArray(growthPlan?.channels) && growthPlan.channels.length > 0
+                ? growthPlan.channels
+                : (isPhysicalProduct ? ["TikTok Shop Live Selling & Facebook Commerce", "Influencer Unboxing & Product Reviews", "Supermarket & Retail Store Placement"] : ["TikTok & Facebook Short Video Ads", "Direct B2B/Community Partnerships", "Viral Referral Invite Codes"]),
+            acquisitionPlan: growthPlan?.acquisitionPlan || growthPlan?.acquisition_plan || `Target ${activeAudience} via verified CAC ($${activeCAC}) across ${isPhysicalProduct ? 'social commerce live selling and physical store placement' : 'digital social channels and community partnerships'}.`,
+            roadmap90Day: Array.isArray(verifiedBlueprint?.actionable_roadmap_milestones) && verifiedBlueprint.actionable_roadmap_milestones.length > 0
+                ? verifiedBlueprint.actionable_roadmap_milestones.map(m => `${m.phase || ''} (${m.date || ''}): ${m.title || ''} - ${m.desc || ''}`)
+                : (Array.isArray(growthPlan?.roadmap90Day || growthPlan?.roadmap_90_day) && (growthPlan.roadmap90Day || growthPlan.roadmap_90_day).length > 0
+                    ? (growthPlan.roadmap90Day || growthPlan.roadmap_90_day)
+                    : (isPhysicalProduct ? [
+                        "Days 1-30: Prototype batch sampling (200 units), supplier quality inspection and final packaging box design.",
+                        "Days 31-60: Initial production run of 1,000 units, influencer unboxing gifting and social commerce pre-orders.",
+                        "Days 61-90: Retail placement in local supermarkets, wholesale restock partnerships across " + activeCountry + "."
+                    ] : [
+                        "Days 1-30: Launch MVP and onboard initial 200 active users to validate core metrics and gather feedback.",
+                        "Days 31-60: Run targeted social media video campaigns and activate community referral programs.",
+                        "Days 61-90: Scale paid subscription tiers and establish local institutional partnerships across " + activeCountry + "."
+                    ])),
+            markdown_deliverable: growthPlan?.markdown_deliverable || `# Growth & Marketing Plan: ${activeName}\n\n## Acquisition Channels\n1. **${isPhysicalProduct ? 'TikTok Shop Live Selling' : 'TikTok & Facebook Video Ads'}**\n2. **${isPhysicalProduct ? 'Influencer Unboxing Reviews' : 'Community Partnerships'}**\n3. **${isPhysicalProduct ? 'Offline Retail Placement' : 'Referral Invite Codes'}**\n\n## Launch Roadmap (Verified Milestones)\n${
+                Array.isArray(verifiedBlueprint?.actionable_roadmap_milestones) && verifiedBlueprint.actionable_roadmap_milestones.length > 0
+                    ? verifiedBlueprint.actionable_roadmap_milestones.map(m => `- **${m.phase} (${m.date})**: ${m.title} - ${m.desc}`).join('\n')
+                    : `- **Phase 1 (Days 1-30)**: ${isPhysicalProduct ? 'Prototype sampling & packaging design.' : 'Alpha launch with 200 active users.'}\n- **Phase 2 (Days 31-60)**: ${isPhysicalProduct ? 'Small batch 1,000 units & social commerce.' : 'Push social video content & referrals.'}\n- **Phase 3 (Days 61-90)**: ${isPhysicalProduct ? 'Supermarket retail placement.' : 'Open paid tiers.'}`
+            }`
+        };
+        const fallbackMarketing = fallbackGrowth;
+
+        const fallbackBusiness = {
+            lean_canvas_markdown: businessPlan?.lean_canvas_markdown || `# Business Overview: Lean Canvas (${activeName})
+  
 | PROBLEM | SOLUTION | UNIQUE VALUE PROP | UNFAIR ADVANTAGE | CUSTOMER SEGMENTS |
 |---|---|---|---|---|
-| • NPOs spend hundreds of hours researching grants.<br/>• High compliance rejection rates.<br/>• Lacks budget for professional grant writers. | • Tailored, automated grant proposal drafting SaaS.<br/>• High-precision compliance checking tools. | • Winning proposal narratives compiled in minutes instead of weeks at a fraction of agency costs. | • Compliance matching algorithm checking rules in real-time. | • Small-to-medium non-profits (NPOs).<br/>• Higher academic independent researchers. |
- 
+| • ${activePain} | • ${activeIdea} | • Modern, localized ${activeType} built specifically for ${activeCountry} at affordable rates. | • ${isPhysicalProduct ? 'Local manufacturing quality control and established wholesale distributor networks.' : 'Proprietary AI matching algorithms & localized workflow integration.'} | • ${activeAudience} |
+  
 | KEY METRICS | CHANNELS | COST STRUCTURE | REVENUE STREAMS |
 |---|---|---|---|
-| • Proposal compilation count.<br/>• Success rate ratio.<br/>• Monthly recurring revenue (MRR). | • Organic Search / SEO.<br/>• Direct NPO Partnerships.<br/>• Referral programs. | • LLM Token API consumption.<br/>• Cloud servers infrastructure.<br/>• Ads & basic marketing. | • Subscription plans ($49/mo & $99/mo).<br/>• Customized extra proposal generation credits. |`
-    };
-
-    const handleRestart = () => {
-        resetWorkflow();
-        router.push('/onboarding');
-    };
+| • ${isPhysicalProduct ? 'Monthly unit sales volume.<br/>• Inventory turnover rate.<br/>• Retail shelf sell-through.' : 'Active daily/monthly users (DAU/MAU).<br/>• Customer conversion rate.<br/>• Monthly recurring revenue (MRR).'} | • ${isPhysicalProduct ? 'TikTok Shop & Facebook Live.<br/>• Supermarket retail placement.<br/>• Wholesale distributors.' : 'TikTok & Facebook Ads.<br/>• Direct Community Partnerships.<br/>• Referral programs.'} | • ${isPhysicalProduct ? 'Raw materials & procurement.<br/>• Manufacturing & packaging.<br/>• Warehousing & logistics.' : 'AI Compute & API tokens.<br/>• Cloud server infrastructure.<br/>• Marketing campaigns.'} ($${activeCAC} CAC) | • ${isPhysicalProduct ? 'Direct DTC retail purchases.<br/>• Wholesale distributor bulk orders.' : `${businessInfo?.revenue_stream || 'Monthly Subscription & Freemium tiers'}.<br/>• Premium add-on features.`} |`
+        };
 
     const handleStartEdit = () => {
         setIsEditing(true);
@@ -840,7 +1046,7 @@ export default function DashboardPage() {
         { id: 'finance', label: t('dashboard.tabFinance'), icon: DollarSign, deliverable: fallbackFinance.markdown_deliverable, filename: 'financial_model.md' },
         { id: 'brand', label: t('dashboard.tabBrand'), icon: Sparkles, deliverable: fallbackBrand.markdown_deliverable, filename: 'brand_package.md' },
         { id: 'digital', label: t('dashboard.tabDigital'), icon: Globe, deliverable: fallbackDigital.markdown_deliverable, filename: 'digital_presence.md' },
-        { id: 'growth', label: t('dashboard.tabGrowth'), icon: Megaphone, deliverable: fallbackMarketing.markdown_deliverable, filename: 'growth_plan.md' },
+        { id: 'growth', label: t('dashboard.tabGrowth'), icon: Megaphone, deliverable: fallbackGrowth.markdown_deliverable, filename: 'growth_plan.md' },
         { id: 'calendar', label: language === 'en' ? 'Roadmap Calendar' : 'တိုးတက်မှု ပြက္ခဒိန်', icon: CalendarIcon, deliverable: '', filename: '' },
         { id: 'investor', label: t('dashboard.tabInvestor'), icon: FileText, deliverable: '', filename: '' }
     ];
@@ -856,9 +1062,14 @@ export default function DashboardPage() {
             {/* Dashboard Header */}
             <div className="perplexity-dashboard-header">
                 <div>
-                    <div className="perplexity-dashboard-header-badge">
+                    <div className="perplexity-dashboard-header-badge" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                         <Sparkles size={12} style={{ color: 'var(--color-accent)' }} />
                         <span>{language === 'en' ? 'SYSTEM BLUEPRINT GENERATED' : 'လုပ်ငန်းစီမံချက် ဖန်တီးပြီးပါပြီ'}</span>
+                        {verifiedBlueprint?.consensus_score && (
+                            <span style={{ backgroundColor: 'rgba(174, 236, 29, 0.15)', color: '#aeec1d', padding: '2px 8px', borderRadius: '6px', fontWeight: 800, fontSize: '11px', border: '1px solid rgba(174, 236, 29, 0.3)' }}>
+                                {language === 'en' ? `VERIFIED CONSENSUS: ${verifiedBlueprint.consensus_score}%` : `အတည်ပြုပြီး သဘောတူညီမှု: ${verifiedBlueprint.consensus_score}%`}
+                            </span>
+                        )}
                     </div>
                     <h2 className="perplexity-dashboard-header-title">
                         {fallbackBrand.names[0] || (language === 'en' ? 'Startup Blueprint' : 'လုပ်ငန်းစီမံချက်')}
@@ -869,10 +1080,10 @@ export default function DashboardPage() {
                 </div>
 
                 <div>
-                    <button 
-                        className="button-secondary" 
-                        onClick={handleRestart} 
-                        style={{ 
+                    <button
+                        className="button-secondary"
+                        onClick={handleRestart}
+                        style={{
                             borderRadius: '12px',
                             padding: '10px 18px',
                             fontSize: '14px',
@@ -1262,14 +1473,31 @@ export default function DashboardPage() {
                                                             <p className="perplexity-dashboard-stat-label">{language === 'en' ? 'Total Addressable Market' : 'စုစုပေါင်း TAM'}</p>
                                                             <h4 className="perplexity-dashboard-stat-value">{fallbackMarket.tam}</h4>
                                                         </div>
-                                                        <div className="perplexity-dashboard-stat-card">
-                                                            <p className="perplexity-dashboard-stat-label">{language === 'en' ? 'Market Saturation Index' : 'ဈေးကွက် ပြည့်နှက်မှု အညွှန်းကိန်း'}</p>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                                                <h4 className="perplexity-dashboard-stat-value">{fallbackMarket.saturation_level}%</h4>
-                                                                <div className="perplexity-dashboard-progress-track">
-                                                                    <div className="perplexity-dashboard-progress-bar" style={{ width: `${fallbackMarket.saturation_level}%` }} />
-                                                                </div>
+                                                        <div className="perplexity-dashboard-stat-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                                            <p className="perplexity-dashboard-stat-label" style={{ marginBottom: 0 }}>{language === 'en' ? 'Market Saturation Index' : 'ဈေးကွက် ပြည့်နှက်မှု အညွှန်းကိန်း'}</p>
+                                                            <div style={{ height: '140px', width: '100%', marginTop: '10px' }}>
+                                                                <ResponsiveContainer width="100%" height="100%">
+                                                                    <PieChart>
+                                                                        <Pie
+                                                                            isAnimationActive={false}
+                                                                            data={[
+                                                                                { name: 'Saturated', value: fallbackMarket.saturation_level },
+                                                                                { name: 'Available', value: 100 - fallbackMarket.saturation_level }
+                                                                            ]}
+                                                                            cx="50%" cy="100%"
+                                                                            startAngle={180} endAngle={0}
+                                                                            innerRadius={70} outerRadius={90}
+                                                                            paddingAngle={2}
+                                                                            dataKey="value"
+                                                                            stroke="none"
+                                                                        >
+                                                                            <Cell fill="var(--color-primary)" />
+                                                                            <Cell fill="rgba(255,255,255,0.05)" />
+                                                                        </Pie>
+                                                                    </PieChart>
+                                                                </ResponsiveContainer>
                                                             </div>
+                                                            <h4 className="perplexity-dashboard-stat-value" style={{ marginTop: '-40px' }}>{fallbackMarket.saturation_level}%</h4>
                                                         </div>
                                                     </div>
 
@@ -1440,21 +1668,66 @@ export default function DashboardPage() {
                                             ) : (
                                                 <>
                                                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                                                        <div className="perplexity-dashboard-stat-card">
-                                                            <p className="perplexity-dashboard-stat-label">{t('dashboard.breakeven')}</p>
-                                                            <h4 className="perplexity-dashboard-stat-value">{fallbackFinance.breakevenMonth} {t('dashboard.months')}</h4>
-                                                        </div>
-                                                        <div className="perplexity-dashboard-stat-card">
-                                                            <p className="perplexity-dashboard-stat-label">{t('dashboard.monthlyRevenue')}</p>
-                                                            <p style={{ margin: 0, fontSize: '15px', color: '#ffffff', lineHeight: '1.4', fontWeight: 700 }}>{fallbackFinance.revenueForecast}</p>
+                                                        <div className="perplexity-dashboard-stat-card" style={{ gridColumn: 'span 2' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                                <div>
+                                                                    <p className="perplexity-dashboard-stat-label">{t('dashboard.breakeven')} Timeline</p>
+                                                                    <h4 className="perplexity-dashboard-stat-value" style={{ fontSize: '20px' }}>{fallbackFinance.breakevenMonth} {t('dashboard.months')}</h4>
+                                                                </div>
+                                                                <div style={{ textAlign: 'right' }}>
+                                                                    <p className="perplexity-dashboard-stat-label">{t('dashboard.monthlyRevenue')}</p>
+                                                                    <p style={{ margin: 0, fontSize: '14px', color: '#ffffff', fontWeight: 700 }}>{fallbackFinance.revenueForecast}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div style={{ height: '200px', width: '100%', marginTop: '20px' }}>
+                                                                <ResponsiveContainer width="100%" height="100%">
+                                                                    <AreaChart data={Array.from({ length: (Number(fallbackFinance.breakevenMonth) || 12) + 4 }, (_, i) => ({ month: i===0?'Start':`M${i}`, cash: i < (Number(fallbackFinance.breakevenMonth) || 12) ? -2500*((Number(fallbackFinance.breakevenMonth) || 12)-i) : 2500*(i-(Number(fallbackFinance.breakevenMonth) || 12)) }))}>
+                                                                        <defs>
+                                                                            <linearGradient id="colorCash" x1="0" y1="0" x2="0" y2="1">
+                                                                                <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.6}/>
+                                                                                <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0}/>
+                                                                            </linearGradient>
+                                                                        </defs>
+                                                                        <XAxis dataKey="month" stroke="rgba(255,255,255,0.2)" fontSize={11} tickLine={false} axisLine={false} />
+                                                                        <YAxis stroke="rgba(255,255,255,0.2)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(val) => val === 0 ? '0' : val > 0 ? `+${val}` : val} />
+                                                                        <RechartsTooltip contentStyle={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border-light)', borderRadius: '12px', color: '#fff' }} />
+                                                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                                                        <Area isAnimationActive={false} type="monotone" dataKey="cash" stroke="var(--color-primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorCash)" />
+                                                                    </AreaChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
                                                         </div>
                                                     </div>
 
                                                     {/* Cost table */}
                                                     <div>
                                                         <h4 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '16px', color: '#ffffff' }}>{t('dashboard.initialCost')}</h4>
-                                                        <div className="perplexity-dashboard-table-container">
-                                                            <table className="perplexity-dashboard-table">
+                                                        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                                                            <div style={{ flex: '1 1 300px', height: '300px', backgroundColor: 'rgba(255,255,255,0.02)', borderRadius: '20px', padding: '20px', border: '1px solid var(--color-border-light)' }}>
+                                                                <ResponsiveContainer width="100%" height="100%">
+                                                                    <PieChart>
+                                                                        <Pie
+                                                                            isAnimationActive={false}
+                                                                            data={fallbackFinance.costBreakdown.map(i => ({ name: i.item, value: Number(i.cost) || 0 }))}
+                                                                            cx="50%" cy="50%"
+                                                                            innerRadius={70} outerRadius={95}
+                                                                            paddingAngle={4}
+                                                                            dataKey="value"
+                                                                            stroke="none"
+                                                                        >
+                                                                            {fallbackFinance.costBreakdown.map((_, index) => (
+                                                                                <Cell key={`cell-${index}`} fill={['#6366F1', '#8B5CF6', '#EC4899', '#14B8A6', '#F59E0B', '#3B82F6'][index % 6]} />
+                                                                            ))}
+                                                                        </Pie>
+                                                                        <RechartsTooltip 
+                                                                            contentStyle={{ backgroundColor: 'var(--color-surface-card)', borderColor: 'var(--color-border-light)', borderRadius: '12px', color: '#fff' }}
+                                                                            itemStyle={{ color: '#fff' }}
+                                                                        />
+                                                                    </PieChart>
+                                                                </ResponsiveContainer>
+                                                            </div>
+                                                            <div className="perplexity-dashboard-table-container" style={{ flex: '2 1 400px' }}>
+                                                                <table className="perplexity-dashboard-table">
                                                                 <thead>
                                                                     <tr className="perplexity-dashboard-table-header-row">
                                                                         <th className="perplexity-dashboard-table-header-cell">{language === 'en' ? 'Expense Item' : 'အသုံးစရိတ် အမျိုးအစား'}</th>
@@ -1472,8 +1745,9 @@ export default function DashboardPage() {
                                                             </table>
                                                         </div>
                                                     </div>
+                                                </div>
 
-                                                    <div className="perplexity-dashboard-glass-box">
+                                                <div className="perplexity-dashboard-glass-box">
                                                         <h4 style={{ fontSize: '16px', fontWeight: 900, marginBottom: '12px', color: '#ffffff' }}>{language === 'en' ? 'Pricing & Subscription Tiers' : 'စျေးနှုန်းနှင့် လစဉ်ကြေး သတ်မှတ်ချက်များ'}</h4>
                                                         <p style={{ margin: 0, fontSize: '15px', color: 'var(--color-text-secondary)', lineHeight: '1.6' }}>{fallbackFinance.pricingStrategy}</p>
                                                     </div>
@@ -1542,8 +1816,8 @@ export default function DashboardPage() {
                                                         <h4 style={{ fontSize: '18px', fontWeight: 900, marginBottom: '16px', color: '#ffffff' }}>{language === 'en' ? 'Brainstormed Brand Names' : 'အမှတ်တံဆိပ် အမည်များ'}</h4>
                                                         <div className="perplexity-dashboard-names-container">
                                                             {fallbackBrand.names.map((name, idx) => (
-                                                                <span 
-                                                                    key={idx} 
+                                                                <span
+                                                                    key={idx}
                                                                     className={`perplexity-dashboard-name-badge ${idx === 0 ? 'primary' : ''}`}
                                                                 >
                                                                     {name} {idx === 0 && '✦'}
@@ -1574,7 +1848,7 @@ export default function DashboardPage() {
                                                                 { label: language === 'en' ? 'Canvas Background' : 'နောက်ခံ အရောင်', hex: fallbackBrand.palette.background }
                                                             ].map((color, i) => (
                                                                 <div key={i} className="perplexity-dashboard-color-item">
-                                                                    <div 
+                                                                    <div
                                                                         className="perplexity-dashboard-color-swatch"
                                                                         style={{ backgroundColor: color.hex }}
                                                                     />
@@ -1742,7 +2016,7 @@ export default function DashboardPage() {
                                     {/* 7. ROADMAP CALENDAR TAB */}
                                     {activeTab === 'calendar' && (
                                         <RoadmapCalendar
-                                            growthPlan={growthPlan || fallbackMarketing}
+                                            growthPlan={growthPlan || fallbackGrowth}
                                             businessInfo={businessInfo}
                                             refinedConcept={refinedConcept || fallbackConcept}
                                             ideaId={ideaId || currentIdeaId}
@@ -1807,7 +2081,7 @@ export default function DashboardPage() {
                                                             finance: { title: language === 'en' ? 'Financial Model & Projections' : 'ဘဏ္ဍာရေးပုံစံနှင့် ခန့်မှန်းချက်များ', filename: 'financial_model.md', content: fallbackFinance.markdown_deliverable },
                                                             brand: { title: language === 'en' ? 'Brand Identity & Style Guide' : 'အမှတ်တံဆိပ်ပုံဖော်မှု လမ်းညွှန်', filename: 'brand_package.md', content: fallbackBrand.markdown_deliverable },
                                                             digital: { title: language === 'en' ? 'Digital Presence & Website Specs' : 'ဒီဂျစ်တယ်တည်ရှိမှုနှင့် ဝဘ်ဆိုက်ပုံစံ', filename: 'digital_presence.md', content: fallbackDigital.markdown_deliverable },
-                                                            growth: { title: language === 'en' ? 'Growth & Marketing Strategy' : 'တိုးတက်မှုစီမံချက်နှင့် မားကက်တင်း', filename: 'growth_plan.md', content: fallbackMarketing.markdown_deliverable }
+                                                            growth: { title: language === 'en' ? 'Growth & Marketing Strategy' : 'တိုးတက်မှုစီမံချက်နှင့် မားကက်တင်း', filename: 'growth_plan.md', content: fallbackGrowth.markdown_deliverable }
                                                         };
                                                         const cur = activeDocMap[selectedInvestorDoc];
                                                         if (!cur) return null;

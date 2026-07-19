@@ -23,6 +23,7 @@
     "next": "^15.5.20",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "recharts": "^3.9.2",
     "typewriter-effect": "^2.22.0",
     "zod": "^4.4.3"
   },
@@ -30,6 +31,7 @@
     "@types/node": "20.17.6",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "docx": "^9.7.1",
     "oxlint": "^1.71.0",
     "typescript": "5.8.2"
   }

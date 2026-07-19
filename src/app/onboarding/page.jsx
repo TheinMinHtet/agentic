@@ -23,7 +23,7 @@ const BOTH_CATEGORIES = [
 
 export default function OnboardingPage() {
     const router = useRouter();
-    const { executeOnboardingChat, onboardingChatHistory, onboardingProgress, setActiveStep, updateStartupIdea, updateBusinessInfo } = useWorkflow();
+    const { executeOnboardingChat, onboardingChatHistory, onboardingProgress, setActiveStep, updateStartupIdea, updateBusinessInfo, updateRefinedConceptDirect } = useWorkflow();
     const { user, loading } = useAuth();
     const { language, t } = useLanguage();
 
@@ -175,6 +175,57 @@ export default function OnboardingPage() {
             >
                 <div className="onboarding-container" style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '800px', flex: 1, display: 'flex', flexDirection: 'column' }}>
 
+                    {/* Developer Mode Auto-Fill Banner */}
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px', marginBottom: '8px' }}>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                updateBusinessInfo({
+                                    company_name: "EduBot Myanmar",
+                                    title: "EduBot Myanmar",
+                                    location: "Yangon, Myanmar",
+                                    target_country: "Myanmar",
+                                    budget: "8,000,000 MMK",
+                                    target_customers: "High School Students, University Undergrads & Parents across Myanmar",
+                                    business_type: "EdTech / SaaS",
+                                    experience_level: "Intermediate",
+                                    goal: "local",
+                                    core_painpoint: "High private tuition costs and limited access to quality educators outside major cities leave students struggling with complex subjects and exam preparations without 24/7 support.",
+                                    launch_timeline: "6 months",
+                                    revenue_stream: "Freemium & Monthly Subscription"
+                                });
+                                updateStartupIdea("EduBot Myanmar is an AI-powered EdTech platform that provides bilingual (Burmese-English) 24/7 tutoring, interactive courses, and personalized learning paths for high school and university students across Myanmar.");
+                                if (updateRefinedConceptDirect) {
+                                    updateRefinedConceptDirect({
+                                        companyName: "EduBot Myanmar",
+                                        concept: "EduBot Myanmar EdTech Platform",
+                                        improved_summary: "AI-powered EdTech platform providing bilingual 24/7 tutoring and personalized learning paths across Myanmar.",
+                                        target_country: "Myanmar"
+                                    });
+                                }
+                                setActiveStep('planning');
+                                router.push('/specialized-agents');
+                            }}
+                            style={{
+                                padding: '8px 16px',
+                                borderRadius: '9999px',
+                                background: 'linear-gradient(135deg, rgba(174, 236, 29, 0.2) 0%, rgba(0, 242, 254, 0.2) 100%)',
+                                border: '1px solid rgba(174, 236, 29, 0.5)',
+                                color: '#aeec1d',
+                                fontSize: '13px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 4px 15px rgba(174, 236, 29, 0.15)',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            ⚡ Dev Mode: Auto-Fill Default & Jump to WarRoom →
+                        </button>
+                    </div>
+
                     {/* ── Idea History Panel ── */}
                     {pastIdeas.length > 0 && (
                         <div style={{ marginTop: '28px', marginBottom: '8px', borderRadius: '16px', border: '1px solid var(--color-border-light)', background: 'var(--color-surface-card)', overflow: 'hidden' }}>
@@ -323,12 +374,12 @@ export default function OnboardingPage() {
                                 {/* Progress Bar */}
                                 <div style={{ width: '100%' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontWeight: 600 }}>Blueprint Progress</span>
-                                        <span style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 700 }}>{Math.round(((onboardingProgress || 0) / 5) * 100)}%</span>
+                                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', fontWeight: 600 }}>Blueprint Progress ({onboardingProgress || 0}/6)</span>
+                                        <span style={{ fontSize: '12px', color: 'var(--color-accent)', fontWeight: 700 }}>{Math.round(((onboardingProgress || 0) / 6) * 100)}%</span>
                                     </div>
                                     <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '99px', overflow: 'hidden' }}>
                                         <div style={{
-                                            width: `${Math.min(100, ((onboardingProgress || 0) / 5) * 100)}%`,
+                                            width: `${Math.min(100, ((onboardingProgress || 0) / 6) * 100)}%`,
                                             height: '100%',
                                             background: 'linear-gradient(90deg, #A78BFA, var(--color-accent))',
                                             transition: 'width 0.5s ease-out',
