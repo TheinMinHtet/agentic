@@ -1948,9 +1948,9 @@
     min-height: auto !important;
   }
 
-  /* Target all inline grid-template-columns divs inside main panel and force stack them */
-  .perplexity-dashboard-main-card div[style*="grid-template-columns"],
-  .perplexity-dashboard-main-card div[style*="gridTemplateColumns"] {
+  /* Target all inline grid-template-columns divs inside main panel and force stack them, EXCEPT calendar layouts */
+  .perplexity-dashboard-main-card div[style*="grid-template-columns"]:not(.calendar-week-headers):not(.calendar-days-grid),
+  .perplexity-dashboard-main-card div[style*="gridTemplateColumns"]:not(.calendar-week-headers):not(.calendar-days-grid) {
     grid-template-columns: 1fr !important;
     gap: 16px !important;
   }
@@ -1976,6 +1976,32 @@
 
   .calendar-task-badge-list {
     display: none !important; /* Hide long task descriptions in grid day box */
+  }
+
+  .calendar-card {
+    padding: 16px !important;
+    border-radius: 24px !important;
+  }
+
+  .calendar-week-headers {
+    font-size: 10px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .calendar-day-cell span {
+    font-size: 10px !important;
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .calendar-details-modal {
+    padding: 20px !important;
+    border-radius: 24px !important;
+  }
+
+  .calendar-agent-modal {
+    padding: 20px !important;
+    border-radius: 24px !important;
   }
 
   /* Refinement Studio */
