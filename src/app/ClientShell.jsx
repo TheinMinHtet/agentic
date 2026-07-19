@@ -42,8 +42,21 @@ function Navbar() {
         <div className="nav-center-links">
           <span className="nav-link" style={{ opacity: 0 }}>{t('navbar.home')}</span>
         </div>
-        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '1.2rem', opacity: 0 }}>
-          <button type="button" className="button-secondary">{language === 'en' ? 'မြန်မာ' : 'English'}</button>
+        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', opacity: 0 }}>
+          <button
+            type="button"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              padding: '0.38rem 0.9rem', fontSize: '0.82rem', fontWeight: 600,
+              borderRadius: '8px',
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              color: '#CBD5E1',
+              minWidth: '80px', textAlign: 'center'
+            }}
+          >
+            {language === 'en' ? '🇲🇲 မြန်မာ' : '🇬🇧 English'}
+          </button>
         </div>
       </nav>
     );
