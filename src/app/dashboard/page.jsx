@@ -2131,57 +2131,50 @@ export default function DashboardPage() {
                                                 </div>
                                             </div>
 
-                                            {/* Main Dual Grid */}
-                                            <div className="perplexity-investor-grid">
-                                                {/* Left selectors list */}
-                                                <div className="perplexity-investor-doc-list">
-                                                    {[
-                                                        { id: 'overview', title: language === 'en' ? 'Business Overview (Lean Canvas)' : 'ခြုံငုံသုံးသပ်ချက် (Lean Canvas)', filename: 'business_overview.md' },
-                                                        { id: 'market', title: language === 'en' ? 'Market Intelligence Report' : 'ဈေးကွက်ဆန်းစစ်ချက် အစီရင်ခံစာ', filename: 'market_intelligence.md' },
-                                                        { id: 'finance', title: language === 'en' ? 'Financial Model & Projections' : 'ဘဏ္ဍာရေးပုံစံနှင့် ခန့်မှန်းချက်များ', filename: 'financial_model.md' },
-                                                        { id: 'brand', title: language === 'en' ? 'Brand Identity & Style Guide' : 'အမှတ်တံဆိပ်ပုံဖော်မှု လမ်းညွှန်', filename: 'brand_package.md' },
-                                                        { id: 'digital', title: language === 'en' ? 'Digital Presence & Website Specs' : 'ဒီဂျစ်တယ်တည်ရှိမှုနှင့် ဝဘ်ဆိုက်ပုံစံ', filename: 'digital_presence.md' },
-                                                        { id: 'growth', title: language === 'en' ? 'Growth & Marketing Strategy' : 'တိုးတက်မှုစီမံချက်နှင့် မားကက်တင်း', filename: 'growth_plan.md' }
-                                                    ].map((docItem) => (
-                                                        <button
-                                                            key={docItem.id}
-                                                            onClick={() => setSelectedInvestorDoc(docItem.id)}
-                                                            className={`perplexity-investor-doc-btn ${selectedInvestorDoc === docItem.id ? 'active' : ''}`}
-                                                        >
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                                <div className="perplexity-investor-doc-status-dot" />
-                                                                <div style={{ textAlign: 'left' }}>
-                                                                    <div style={{ fontWeight: 700, fontSize: '12.5px', color: selectedInvestorDoc === docItem.id ? '#FFF' : '#E2E8F0', transition: 'color 0.2s' }}>{docItem.title}</div>
-                                                                    <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', marginTop: '2px' }}>{docItem.filename}</div>
-                                                                </div>
+                                            {/* Unified Document Grid */}
+                                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px', marginTop: '24px' }}>
+                                                {[
+                                                    { id: 'overview', title: language === 'en' ? 'Business Overview (Lean Canvas)' : 'ခြုံငုံသုံးသပ်ချက် (Lean Canvas)', filename: 'business_overview.md', content: fallbackBusiness.lean_canvas_markdown },
+                                                    { id: 'market', title: language === 'en' ? 'Market Intelligence Report' : 'ဈေးကွက်ဆန်းစစ်ချက် အစီရင်ခံစာ', filename: 'market_intelligence.md', content: fallbackMarket.markdown_deliverable },
+                                                    { id: 'finance', title: language === 'en' ? 'Financial Model & Projections' : 'ဘဏ္ဍာရေးပုံစံနှင့် ခန့်မှန်းချက်များ', filename: 'financial_model.md', content: fallbackFinance.markdown_deliverable },
+                                                    { id: 'brand', title: language === 'en' ? 'Brand Identity & Style Guide' : 'အမှတ်တံဆိပ်ပုံဖော်မှု လမ်းညွှန်', filename: 'brand_package.md', content: fallbackBrand.markdown_deliverable },
+                                                    { id: 'digital', title: language === 'en' ? 'Digital Presence & Website Specs' : 'ဒီဂျစ်တယ်တည်ရှိမှုနှင့် ဝဘ်ဆိုက်ပုံစံ', filename: 'digital_presence.md', content: fallbackDigital.markdown_deliverable },
+                                                    { id: 'growth', title: language === 'en' ? 'Growth & Marketing Strategy' : 'တိုးတက်မှုစီမံချက်နှင့် မားကက်တင်း', filename: 'growth_plan.md', content: fallbackGrowth.markdown_deliverable }
+                                                ].map((docItem) => (
+                                                    <div key={docItem.id} style={{
+                                                        background: 'var(--color-surface-card)',
+                                                        border: '1px solid var(--color-border-light)',
+                                                        borderRadius: '16px',
+                                                        padding: '24px',
+                                                        display: 'flex',
+                                                        flexDirection: 'column',
+                                                        gap: '16px',
+                                                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)'
+                                                    }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                                                            <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: 'rgba(0, 242, 254, 0.1)', border: '1px solid rgba(0, 242, 254, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                                <FileText size={20} color="var(--color-accent)" />
                                                             </div>
-                                                        </button>
-                                                    ))}
-                                                </div>
-
-                                                {/* Right Preview Card */}
-                                                <div className="perplexity-investor-preview-container">
-                                                    {(() => {
-                                                        const activeDocMap = {
-                                                            overview: { title: language === 'en' ? 'Business Overview (Lean Canvas)' : 'ခြုံငုံသုံးသပ်ချက် (Lean Canvas)', filename: 'business_overview.md', content: fallbackBusiness.lean_canvas_markdown },
-                                                            market: { title: language === 'en' ? 'Market Intelligence Report' : 'ဈေးကွက်ဆန်းစစ်ချက် အစီရင်ခံစာ', filename: 'market_intelligence.md', content: fallbackMarket.markdown_deliverable },
-                                                            finance: { title: language === 'en' ? 'Financial Model & Projections' : 'ဘဏ္ဍာရေးပုံစံနှင့် ခန့်မှန်းချက်များ', filename: 'financial_model.md', content: fallbackFinance.markdown_deliverable },
-                                                            brand: { title: language === 'en' ? 'Brand Identity & Style Guide' : 'အမှတ်တံဆိပ်ပုံဖော်မှု လမ်းညွှန်', filename: 'brand_package.md', content: fallbackBrand.markdown_deliverable },
-                                                            digital: { title: language === 'en' ? 'Digital Presence & Website Specs' : 'ဒီဂျစ်တယ်တည်ရှိမှုနှင့် ဝဘ်ဆိုက်ပုံစံ', filename: 'digital_presence.md', content: fallbackDigital.markdown_deliverable },
-                                                            growth: { title: language === 'en' ? 'Growth & Marketing Strategy' : 'တိုးတက်မှုစီမံချက်နှင့် မားကက်တင်း', filename: 'growth_plan.md', content: fallbackGrowth.markdown_deliverable }
-                                                        };
-                                                        const cur = activeDocMap[selectedInvestorDoc];
-                                                        if (!cur) return null;
-
-                                                        return (
-                                                            <MarkdownPreviewer
-                                                                markdown={cur.content}
-                                                                filename={cur.filename}
-                                                                onDownloadPDF={() => handleDownloadPDF(cur.title, cur.content, cur.filename)}
-                                                            />
-                                                        );
-                                                    })()}
-                                                </div>
+                                                            <div>
+                                                                <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: 'var(--color-text-primary)', lineHeight: 1.3 }}>{docItem.title}</h4>
+                                                                <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--color-text-secondary)' }}>{docItem.filename}</p>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div style={{ marginTop: 'auto', display: 'flex', gap: '10px' }}>
+                                                            <button 
+                                                                className="button-secondary"
+                                                                onClick={() => handleDownloadPDF(docItem.title, docItem.content, docItem.filename)}
+                                                                style={{ flex: 1, padding: '10px', fontSize: '13px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: 600, border: '1px solid var(--color-border-light)', backgroundColor: 'transparent', color: 'var(--color-text-primary)', cursor: 'pointer' }}
+                                                                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'; }}
+                                                                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                                                            >
+                                                                <Download size={14} />
+                                                                {language === 'en' ? 'Download PDF' : 'PDF ဒေါင်းလုဒ်'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
                                     )}
