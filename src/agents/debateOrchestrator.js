@@ -182,7 +182,7 @@ Return ONLY a valid JSON object with:
 async function marketAgentNode(state) {
     const currentIter = state.iteration_count || 0;
     const concept = state.business_concept || {};
-    const ideaName = concept.companyName || concept.name || "GrantFlow AI";
+    const ideaName = concept.companyName || concept.name || (isPhysicalProductConcept(concept) ? "Myanmar Craft Consumer Goods" : "EduBot Myanmar");
     const apiKey = concept.apiKey || process.env.NEXT_PUBLIC_GOOGLE_API_KEY || process.env.GOOGLE_API_KEY || process.env.VITE_GOOGLE_API_KEY;
     const userOption = state.user_selected_option;
 
@@ -326,7 +326,15 @@ async function supervisorJudgeNode(state) {
     const needsHuman = state.needs_human_decision;
     const concept = state.business_concept || {};
     const isPhysical = isPhysicalProductConcept(concept);
-    const companyName = concept.companyName || concept.name || (isPhysical ? "Myanmar Craft Consumer Goods" : "EduBot Myanmar");
+    let companyName = concept.companyName || concept.name;
+    if (!companyName || companyName === "GrantFlow AI") {
+        const desc = (concept.description || concept.concept || '').toLowerCase();
+        if (!desc.includes('grant')) {
+            companyName = isPhysical ? "Myanmar Craft Consumer Goods" : (desc.includes('edubot') || desc.includes('tutoring') || desc.includes('education') ? "EduBot Myanmar" : "Local Innovation Hub");
+        } else {
+            companyName = companyName || "GrantFlow AI";
+        }
+    }
     const summary = concept.description || concept.concept || (isPhysical ? "High-quality localized consumer product with robust supply chain and packaging." : "24/7 bilingual AI tutoring and exam practice customized for Myanmar students.");
     const audience = concept.targetAudience || concept.target_audience_refined || (isPhysical ? "Everyday consumers & retail distributors across Myanmar" : "High School Students, University Undergrads & Parents across Myanmar");
 

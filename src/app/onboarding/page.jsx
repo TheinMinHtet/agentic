@@ -23,7 +23,7 @@ const BOTH_CATEGORIES = [
 
 export default function OnboardingPage() {
     const router = useRouter();
-    const { executeOnboardingChat, onboardingChatHistory, onboardingProgress, setActiveStep, updateStartupIdea, updateBusinessInfo } = useWorkflow();
+    const { executeOnboardingChat, onboardingChatHistory, onboardingProgress, setActiveStep, updateStartupIdea, updateBusinessInfo, updateRefinedConceptDirect } = useWorkflow();
     const { user, loading } = useAuth();
     const { language, t } = useLanguage();
 
@@ -181,6 +181,8 @@ export default function OnboardingPage() {
                             type="button"
                             onClick={() => {
                                 updateBusinessInfo({
+                                    company_name: "EduBot Myanmar",
+                                    title: "EduBot Myanmar",
                                     location: "Yangon, Myanmar",
                                     target_country: "Myanmar",
                                     budget: "8,000,000 MMK",
@@ -193,6 +195,14 @@ export default function OnboardingPage() {
                                     revenue_stream: "Freemium & Monthly Subscription"
                                 });
                                 updateStartupIdea("EduBot Myanmar is an AI-powered EdTech platform that provides bilingual (Burmese-English) 24/7 tutoring, interactive courses, and personalized learning paths for high school and university students across Myanmar.");
+                                if (updateRefinedConceptDirect) {
+                                    updateRefinedConceptDirect({
+                                        companyName: "EduBot Myanmar",
+                                        concept: "EduBot Myanmar EdTech Platform",
+                                        improved_summary: "AI-powered EdTech platform providing bilingual 24/7 tutoring and personalized learning paths across Myanmar.",
+                                        target_country: "Myanmar"
+                                    });
+                                }
                                 setActiveStep('planning');
                                 router.push('/specialized-agents');
                             }}
