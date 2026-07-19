@@ -939,11 +939,6 @@ export default function DashboardPage() {
 | • ${isPhysicalProduct ? 'Monthly unit sales volume.<br/>• Inventory turnover rate.<br/>• Retail shelf sell-through.' : 'Active daily/monthly users (DAU/MAU).<br/>• Customer conversion rate.<br/>• Monthly recurring revenue (MRR).'} | • ${isPhysicalProduct ? 'TikTok Shop & Facebook Live.<br/>• Supermarket retail placement.<br/>• Wholesale distributors.' : 'TikTok & Facebook Ads.<br/>• Direct Community Partnerships.<br/>• Referral programs.'} | • ${isPhysicalProduct ? 'Raw materials & procurement.<br/>• Manufacturing & packaging.<br/>• Warehousing & logistics.' : 'AI Compute & API tokens.<br/>• Cloud server infrastructure.<br/>• Marketing campaigns.'} ($${activeCAC} CAC) | • ${isPhysicalProduct ? 'Direct DTC retail purchases.<br/>• Wholesale distributor bulk orders.' : `${businessInfo?.revenue_stream || 'Monthly Subscription & Freemium tiers'}.<br/>• Premium add-on features.`} |`
     };
 
-    const handleRestart = () => {
-        resetWorkflow();
-        router.push('/onboarding');
-    };
-
     const handleStartEdit = () => {
         setIsEditing(true);
         setEditConcept(fallbackConcept.concept);
