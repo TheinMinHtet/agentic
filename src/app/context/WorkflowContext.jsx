@@ -16,6 +16,7 @@ import {
   runOnboardingAgent,
   runAgenticUpdateAgent
 } from '../../agents/orchestrator';
+import { runCalendarUpdateAgent } from '../../agents/calendarUpdateAgent';
 
 const WorkflowContext = createContext();
 
@@ -689,6 +690,27 @@ export function WorkflowProvider({ children }) {
     }));
   };
 
+  const updateRoadmapMilestonesDirect = async (newMilestones) => {
+    if (verifiedBlueprint) {
+      const updatedBlueprint = {
+        ...verifiedBlueprint,
+        actionable_roadmap_milestones: newMilestones
+      };
+      updateVerifiedBlueprint(updatedBlueprint);
+    }
+    const currentGrowthPlan = growthPlan || {};
+    const updatedGrowth = {
+      ...currentGrowthPlan,
+      roadmap90Day: newMilestones.map(m => `${m.phase || ''} (${m.date || ''}): ${m.title || ''} - ${m.desc || ''}`)
+    };
+    await updateGrowthPlanDirect(updatedGrowth);
+  };
+
+  const executeCalendarUpdate = async (prompt, currentMilestones) => {
+    const key = getApiKey();
+    return await runCalendarUpdateAgent(prompt, currentMilestones, key, language);
+  };
+
   const triggerRediscovery = async (changedModelName, updatedModelDirect = null) => {
     const key = getApiKey();
     
@@ -1055,6 +1077,8 @@ export function WorkflowProvider({ children }) {
       updateDigitalPresenceDirect,
       updateGrowthPlanDirect,
       updateRefinedConceptDirect,
+      updateRoadmapMilestonesDirect,
+      executeCalendarUpdate,
       triggerRediscovery
     }}>
       {children}

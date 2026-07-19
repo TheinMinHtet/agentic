@@ -29,10 +29,12 @@ import {
     History,
     ChevronDown,
     ChevronUp,
-    Lightbulb
+    Lightbulb,
+    Mail
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import AgentRediscoveryOverlay from '../components/AgentRediscoveryOverlay';
+import InvestorEmailModal from '../components/InvestorEmailModal';
 
 // Lightweight Markdown to HTML string converter for dynamic print iframes
 function convertMarkdownToHTML(mdText) {
@@ -187,6 +189,8 @@ export default function DashboardPage() {
 
     // Editing & Rediscovery States
     const [isEditing, setIsEditing] = useState(false);
+    const [isEditingCalendarModal, setIsEditingCalendarModal] = useState(false);
+    const [emailModal, setEmailModal] = useState({ isOpen: false, docTitle: '', docContent: '' });
     const [isSaving, setIsSaving] = useState(false);
     const [statusMessage, setStatusMessage] = useState('');
     const [steps, setSteps] = useState([]);
@@ -1236,7 +1240,7 @@ export default function DashboardPage() {
                         </h3>
 
                         <div style={{ display: 'flex', gap: '12px' }}>
-                            {!previewDoc && activeTab !== 'calendar' && activeTab !== 'investor' && (
+                            {!previewDoc && activeTab !== 'investor' && (
                                 isEditing ? (
                                     <>
                                         <button
@@ -1280,29 +1284,55 @@ export default function DashboardPage() {
                                         </button>
                                     </>
                                 ) : (
-                                    <button
-                                        className="button-secondary"
-                                        onClick={handleStartEdit}
-                                        style={{
-                                            borderRadius: '12px',
-                                            fontSize: '13.5px',
-                                            fontWeight: 600,
-                                            minHeight: '38px',
-                                            padding: '8px 16px',
-                                            cursor: 'pointer',
-                                            backgroundColor: 'rgba(255,255,255,0.04)',
-                                            border: '1px solid rgba(255,255,255,0.08)',
-                                            color: '#E2E8F0',
-                                            display: 'inline-flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            outline: 'none'
-                                        }}
-                                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'}
-                                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'}
-                                    >
-                                        <span>✏️</span> {language === 'en' ? 'Edit Config' : 'ပြင်ဆင်ရန်'}
-                                    </button>
+                                    activeTab === 'calendar' ? (
+                                        <button
+                                            className="button-secondary"
+                                            onClick={() => setIsEditingCalendarModal(true)}
+                                            style={{
+                                                borderRadius: '12px',
+                                                fontSize: '13.5px',
+                                                fontWeight: 600,
+                                                minHeight: '38px',
+                                                padding: '8px 16px',
+                                                cursor: 'pointer',
+                                                backgroundColor: 'rgba(255,255,255,0.04)',
+                                                border: '1px solid rgba(255,255,255,0.08)',
+                                                color: '#E2E8F0',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                outline: 'none'
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'}
+                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'}
+                                        >
+                                            <span>✏️</span> {language === 'en' ? 'Edit Config' : 'ပြင်ဆင်ရန်'}
+                                        </button>
+                                    ) : (
+                                        <button
+                                            className="button-secondary"
+                                            onClick={handleStartEdit}
+                                            style={{
+                                                borderRadius: '12px',
+                                                fontSize: '13.5px',
+                                                fontWeight: 600,
+                                                minHeight: '38px',
+                                                padding: '8px 16px',
+                                                cursor: 'pointer',
+                                                backgroundColor: 'rgba(255,255,255,0.04)',
+                                                border: '1px solid rgba(255,255,255,0.08)',
+                                                color: '#E2E8F0',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '6px',
+                                                outline: 'none'
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.08)'}
+                                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'}
+                                        >
+                                            <span>✏️</span> {language === 'en' ? 'Edit Config' : 'ပြင်ဆင်ရန်'}
+                                        </button>
+                                    )
                                 )
                             )}
                         </div>
@@ -2103,6 +2133,8 @@ export default function DashboardPage() {
                                             businessInfo={businessInfo}
                                             refinedConcept={refinedConcept || fallbackConcept}
                                             ideaId={ideaId || currentIdeaId}
+                                            externalIsEditing={isEditingCalendarModal}
+                                            externalSetIsEditing={setIsEditingCalendarModal}
                                         />
                                     )}
 
@@ -2119,7 +2151,15 @@ export default function DashboardPage() {
                                                         {language === 'en' ? 'Export individual business segments or generate a single cohesive investor prospectus PDF.' : 'လုပ်ငန်းကဏ္ဍတစ်ခုချင်းစီအလိုက် သို့မဟုတ် စုစည်းထားသော ရင်းနှီးမြှုပ်နှံမှု အဆိုပြုလွှာ PDF စာအုပ်ကို တစ်ပြိုင်နက် ထုတ်ယူနိုင်ပါသည်'}
                                                     </p>
                                                 </div>
-                                                <div className="perplexity-investor-banner-actions">
+                                                <div className="perplexity-investor-banner-actions" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                                    <button
+                                                        className="button-secondary"
+                                                        onClick={() => setEmailModal({ isOpen: true, docTitle: language === 'en' ? 'Complete Startup Prospectus' : 'အပြည့်အစုံ ရင်းနှီးမြှုပ်နှံမှု အဆိုပြုလွှာ PDF စာအုပ်', docContent: (fallbackConcept.concept || '') + '\n\n' + (fallbackBusiness.lean_canvas_markdown || '') })}
+                                                        style={{ borderRadius: '12px', fontSize: '13.5px', padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '8px', minHeight: '38px', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: '#FFF', cursor: 'pointer' }}
+                                                    >
+                                                        <Mail size={16} color="#00F2FE" />
+                                                        <span>{language === 'en' ? 'Email Prospectus Draft' : '📧 အီးမေးလ်ဖြင့် ကြမ်းခင်းပို့ရန်'}</span>
+                                                    </button>
                                                     <button className="button-primary" onClick={handleDownloadAllPDF} style={{ borderRadius: '12px', fontSize: '13.5px', padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '8px', minHeight: '38px', background: 'linear-gradient(135deg, #6366F1 0%, #3B82F6 100%)', border: 'none', color: '#FFF' }}>
                                                         <FileText size={16} />
                                                         <span>{language === 'en' ? 'Download Prospectus (PDF)' : 'Prospectus PDF ဒေါင်းလုဒ်လုပ်ရန်'}</span>
@@ -2168,10 +2208,29 @@ export default function DashboardPage() {
                                                                 <Download size={14} />
                                                                 {language === 'en' ? 'Download PDF' : 'PDF ဒေါင်းလုဒ်'}
                                                             </button>
+                                                            <button 
+                                                                className="button-secondary"
+                                                                onClick={() => setEmailModal({ isOpen: true, docTitle: docItem.title, docContent: docItem.content })}
+                                                                style={{ flex: 1, padding: '10px', fontSize: '13px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: 600, border: '1px solid rgba(0, 242, 254, 0.3)', background: 'rgba(0, 242, 254, 0.08)', color: '#00F2FE', cursor: 'pointer' }}
+                                                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0, 242, 254, 0.15)'; }}
+                                                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0, 242, 254, 0.08)'; }}
+                                                            >
+                                                                <Mail size={14} />
+                                                                {language === 'en' ? 'Email Draft' : '📧 အီးမေးလ်ပို့ရန်'}
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 ))}
                                             </div>
+
+                                            {/* AI Investor Email Drafter Modal */}
+                                            <InvestorEmailModal
+                                                isOpen={emailModal.isOpen}
+                                                onClose={() => setEmailModal({ isOpen: false, docTitle: '', docContent: '' })}
+                                                docTitle={emailModal.docTitle}
+                                                docContent={emailModal.docContent}
+                                                businessName={fallbackBrand?.names?.[0] || 'Our Startup'}
+                                            />
                                         </div>
                                     )}
 

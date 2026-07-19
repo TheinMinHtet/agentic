@@ -1,12 +1,22 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, CheckCircle2, Circle, AlertCircle, Sparkles } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, CheckCircle2, Circle, AlertCircle, Sparkles, Bot, Wrench, X, CheckCircle, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useWorkflow } from '../context/WorkflowContext';
 import { runRoadmapBreakdownAgent } from '../../agents/roadmapBreakdownAgent';
 
-export default function RoadmapCalendar({ growthPlan, businessInfo, refinedConcept, ideaId }) {
+export default function RoadmapCalendar({ growthPlan, businessInfo, refinedConcept, ideaId, externalIsEditing, externalSetIsEditing }) {
     const { language } = useLanguage();
+    const { verifiedBlueprint, executeCalendarUpdate, updateRoadmapMilestonesDirect } = useWorkflow();
+    
+    const [isEditingCalendar, setIsEditingCalendar] = useState(false);
+    const isModalOpen = externalIsEditing !== undefined ? externalIsEditing : isEditingCalendar;
+    const setIsModalOpen = externalSetIsEditing || setIsEditingCalendar;
+    const [editPrompt, setEditPrompt] = useState('');
+    const [isRunningAgent, setIsRunningAgent] = useState(false);
+    const [agentFeedback, setAgentFeedback] = useState(null);
+    const [agentError, setAgentError] = useState(null);
     
     // Default launch date to today (or when the dashboard loaded)
     const [launchDate] = useState(() => {
@@ -96,6 +106,59 @@ export default function RoadmapCalendar({ growthPlan, businessInfo, refinedConce
         if (typeof window !== 'undefined') {
             const key = ideaId ? `agentic:completedTasks:${ideaId}` : `agentic:completedTasks:default`;
             localStorage.setItem(key, JSON.stringify(updated));
+        }
+    };
+
+    const handleRunCalendarAgent = async () => {
+        if (!editPrompt.trim() || !executeCalendarUpdate) return;
+        setIsRunningAgent(true);
+        setAgentFeedback(null);
+        setAgentError(null);
+
+        const currentMilestones = Array.isArray(verifiedBlueprint?.actionable_roadmap_milestones) && verifiedBlueprint.actionable_roadmap_milestones.length > 0
+            ? verifiedBlueprint.actionable_roadmap_milestones
+            : (Array.isArray(growthPlan?.roadmap90Day || growthPlan?.roadmap_90_day)
+                ? (growthPlan.roadmap90Day || growthPlan.roadmap_90_day).map((m, idx) => {
+                    if (typeof m === 'object' && m.title) return m;
+                    const text = typeof m === 'string' ? m : JSON.stringify(m);
+                    return {
+                        phase: `Phase ${idx + 1}`,
+                        date: new Date(Date.now() + (idx + 1) * 30 * 86400000).toISOString().split('T')[0],
+                        title: text.slice(0, 60),
+                        desc: text
+                    };
+                })
+                : [
+                    { phase: "Phase 1", date: new Date().toISOString().split('T')[0], title: "Alpha Launch MVP", desc: "Initial launch testing with early cohort." },
+                    { phase: "Phase 2", date: new Date(Date.now() + 30*86400000).toISOString().split('T')[0], title: "Growth & Scaling", desc: "Customer acquisition and channel scaling." },
+                    { phase: "Phase 3", date: new Date(Date.now() + 60*86400000).toISOString().split('T')[0], title: "Market Expansion", desc: "Retail placement and regional scaling." }
+                ]);
+
+        try {
+            const res = await executeCalendarUpdate(editPrompt, currentMilestones);
+            if (res && res.success && res.updated_milestones) {
+                setAgentFeedback({
+                    status: 'success',
+                    message: res.message,
+                    toolCalled: res.tool_called,
+                    milestones: res.updated_milestones
+                });
+                if (updateRoadmapMilestonesDirect) {
+                    await updateRoadmapMilestonesDirect(res.updated_milestones);
+                }
+                const key = ideaId ? `agentic:roadmapBreakdown:${ideaId}` : `agentic:roadmapBreakdown:default`;
+                if (typeof window !== 'undefined') localStorage.removeItem(key);
+            } else {
+                setAgentFeedback({
+                    status: 'rejected',
+                    message: res?.message || "Invalid or unrelated prompt rejected by agent.",
+                    toolCalled: null
+                });
+            }
+        } catch (err) {
+            setAgentError(err.message || "An error occurred while running the Calendar Update Agent.");
+        } finally {
+            setIsRunningAgent(false);
         }
     };
 
@@ -578,6 +641,190 @@ export default function RoadmapCalendar({ growthPlan, businessInfo, refinedConce
                         <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--color-border-light)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', color: 'var(--color-text-muted)' }}>
                             <Sparkles size={13} className="text-purple-400" />
                             <span>Timeline maps relative to the proposal launch setup.</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* AI Calendar Editor Modal (True Tool-Calling Agent Modal) */}
+            {isModalOpen && (
+                <div 
+                    style={{ 
+                        position: 'fixed', 
+                        inset: 0, 
+                        backgroundColor: 'rgba(8, 11, 17, 0.8)', 
+                        backdropFilter: 'blur(10px)', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        zIndex: 1100 
+                    }}
+                    onClick={() => setIsModalOpen(false)}
+                >
+                    <div 
+                        className="card" 
+                        style={{ 
+                            width: '620px', 
+                            maxWidth: '94%', 
+                            maxHeight: '90vh', 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            backgroundColor: 'rgba(15, 19, 29, 0.98)', 
+                            border: '1px solid rgba(0, 242, 254, 0.3)', 
+                            boxShadow: '0 20px 60px rgba(0, 242, 254, 0.15)',
+                            borderRadius: '32px',
+                            padding: '32px',
+                            overflowY: 'auto'
+                        }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid rgba(255, 255, 255, 0.1)', paddingBottom: '16px' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(0, 242, 254, 0.1)', border: '1px solid #00F2FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <Bot size={22} color="#00F2FE" />
+                                </div>
+                                <div>
+                                    <h5 style={{ fontSize: '17px', fontWeight: 900, color: '#F8FAFC', margin: 0 }}>
+                                        {language === 'en' ? 'AI Roadmap Calendar Editor' : '🤖 AI ပြက္ခဒိန်နှင့် ရက်ချိန်း ပြင်ဆင်ရေး System'}
+                                    </h5>
+                                    <span style={{ fontSize: '11px', color: '#00F2FE', fontWeight: 700 }}>
+                                        True Tool-Calling ReAct Agent &bull; LangChain / Gemini
+                                    </span>
+                                </div>
+                            </div>
+                            <button type="button" onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', padding: '4px' }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Tool Definition Card (As requested: "ဘာ tool ကိုခေါ်မယ်ဆိုတာ define လုပ်ပေး") */}
+                        <div style={{
+                            background: 'rgba(99, 102, 241, 0.08)',
+                            border: '1px solid rgba(99, 102, 241, 0.25)',
+                            borderRadius: '16px',
+                            padding: '16px',
+                            marginBottom: '20px'
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', color: '#818CF8', fontWeight: 800, fontSize: '13px' }}>
+                                <Wrench size={16} />
+                                <span>{language === 'en' ? 'Bound Tool Definition: schedule_calendar_tool' : 'အသုံးပြုမည့် AI Tool အဓိပ္ပာယ်သတ်မှတ်ချက် - schedule_calendar_tool'}</span>
+                            </div>
+                            <p style={{ fontSize: '12px', color: 'var(--color-text-secondary)', margin: '0 0 8px 0', lineHeight: 1.5 }}>
+                                {language === 'en'
+                                    ? 'This agent enforces strict tool calling. When you instruct dates shifts or milestone updates, the agent evaluates the prompt and invokes `schedule_calendar_tool` (`{ milestones: [...] }`) to calculate standardized YYYY-MM-DD dates, build one-click Google Calendar links, and re-sync the entire UI.'
+                                    : 'ဤ Agent သည် Tool-Calling ReAct Agent အစစ်အမှန် ဖြစ်ပါသည်။ သင်၏ ညွှန်ကြားချက်ကို ဖတ်ရှုပြီး ပြက္ခဒိန်ရက်ပြောင်းလဲခြင်း (ရက်ရွှေ့ဆိုင်းခြင်း) နှင့် ဆိုင်ပါက `schedule_calendar_tool` ကို မဖြစ်မနေ ခေါ်ဆိုပြီး ရက်စွဲ (YYYY-MM-DD)၊ Google Calendar One-click Links များနှင့် ၉၀-ရက် ပြက္ခဒိန်တစ်ခုလုံးကို Auto-sync ပြုလုပ်ပေးပါမည်။'}
+                            </p>
+                            <div style={{ fontSize: '11px', color: '#F59E0B', fontWeight: 700 }}>
+                                ⚠️ {language === 'en' ? 'Strict Guardrail: Any non-calendar or unrelated instruction will be rejected instantly.' : 'သတိပြုရန် - ပြက္ခဒိန်ရက်ချိန်းနှင့် မဆိုင်သော ပြင်ပမေးခွန်းများ၊ ဟာသများ၊ ညွှန်ကြားချက်များကို Agent က လက်ခံမည် မဟုတ်ပါ။'}
+                            </div>
+                        </div>
+
+                        {/* Prompt Input Area */}
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: 700, color: '#F8FAFC', marginBottom: '8px' }}>
+                                {language === 'en' ? 'Enter Calendar Edit Instructions:' : 'ပြက္ခဒိန် ပြင်ဆင်လိုသည့် ညွှန်ကြားချက် ထည့်သွင်းပါ -'}
+                            </label>
+                            <textarea
+                                value={editPrompt}
+                                onChange={e => setEditPrompt(e.target.value)}
+                                placeholder={language === 'en' 
+                                    ? 'e.g., "Shift Phase 1 Alpha Launch 2 weeks later to 2026-09-01, and reschedule Phase 2 Beta Launch to October 15th with 100 testers..."'
+                                    : 'ဥပမာ - "Phase 1 Alpha Launch ရက်စွဲကို နောက် ၂ ပတ်ဆွဲဆန့်ပြီး ၂၀၂၆ စက်တင်ဘာ ၁ ရက်နေ့သို့ ရွှေ့ပေးပါ။ Phase 2 Beta Launch ကို အောက်တိုဘာ ၁၅ ရက်သို့ ပြောင်းပေးပါ။"'}
+                                rows={4}
+                                disabled={isRunningAgent}
+                                style={{
+                                    width: '100%',
+                                    padding: '14px',
+                                    borderRadius: '16px',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+                                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                                    color: '#FFF',
+                                    fontSize: '13.5px',
+                                    fontFamily: 'inherit',
+                                    outline: 'none',
+                                    resize: 'vertical'
+                                }}
+                            />
+                        </div>
+
+                        {/* Feedback / Error display */}
+                        {agentFeedback && (
+                            <div style={{
+                                padding: '16px',
+                                borderRadius: '16px',
+                                marginBottom: '20px',
+                                background: agentFeedback.status === 'success' ? 'rgba(20, 184, 166, 0.12)' : 'rgba(244, 63, 94, 0.12)',
+                                border: agentFeedback.status === 'success' ? '1px solid rgba(20, 184, 166, 0.3)' : '1px solid rgba(244, 63, 94, 0.3)',
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: '12px'
+                            }}>
+                                {agentFeedback.status === 'success' ? <CheckCircle size={22} color="#14b8a6" /> : <AlertTriangle size={22} color="#f43f5e" />}
+                                <div>
+                                    <h6 style={{ margin: '0 0 4px 0', fontSize: '13.5px', fontWeight: 800, color: agentFeedback.status === 'success' ? '#14b8a6' : '#f43f5e' }}>
+                                        {agentFeedback.status === 'success' ? '✅ Tool Executed & Calendar Saved!' : '❌ Prompt Rejected by Agent'}
+                                    </h6>
+                                    <p style={{ margin: 0, fontSize: '12.5px', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
+                                        {agentFeedback.message}
+                                    </p>
+                                    {agentFeedback.toolCalled && (
+                                        <span style={{ display: 'inline-block', marginTop: '6px', fontSize: '10.5px', fontWeight: 700, padding: '2px 8px', borderRadius: '6px', background: 'rgba(0, 242, 254, 0.1)', color: '#00F2FE', border: '1px solid rgba(0, 242, 254, 0.3)' }}>
+                                            Tool Invoked: {agentFeedback.toolCalled}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {agentError && (
+                            <div style={{ padding: '14px', borderRadius: '14px', backgroundColor: 'rgba(244, 63, 94, 0.15)', border: '1px solid rgba(244, 63, 94, 0.3)', color: '#f43f5e', fontSize: '13px', marginBottom: '20px' }}>
+                                {agentError}
+                            </div>
+                        )}
+
+                        {/* Actions */}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', paddingTop: '20px' }}>
+                            <button
+                                type="button"
+                                className="button-secondary"
+                                onClick={() => setIsModalOpen(false)}
+                                disabled={isRunningAgent}
+                                style={{ padding: '10px 18px', borderRadius: '12px', fontSize: '13px' }}
+                            >
+                                {language === 'en' ? 'Close' : 'ပိတ်ရန်'}
+                            </button>
+                            <button
+                                type="button"
+                                className="button-primary"
+                                onClick={handleRunCalendarAgent}
+                                disabled={isRunningAgent || !editPrompt.trim()}
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '10px 22px',
+                                    borderRadius: '12px',
+                                    fontSize: '13.5px',
+                                    fontWeight: 700,
+                                    background: isRunningAgent ? 'var(--color-surface-medium)' : 'linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%)',
+                                    color: isRunningAgent ? 'var(--color-text-muted)' : '#080B11',
+                                    border: 'none',
+                                    cursor: isRunningAgent || !editPrompt.trim() ? 'not-allowed' : 'pointer'
+                                }}
+                            >
+                                {isRunningAgent ? (
+                                    <>
+                                        <div style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid rgba(0,0,0,0.2)', borderTopColor: '#080B11', animation: 'spin 1s linear infinite' }} />
+                                        <span>{language === 'en' ? 'Invoking schedule_calendar_tool...' : 'AI Tool ခေါ်ပြီး တွက်ချက်နေသည်...'}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Bot size={16} />
+                                        <span>{language === 'en' ? 'Run Calendar Agent & Save' : '🚀 Agent မောင်းနှင်ပြီး သိမ်းဆည်းရန်'}</span>
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </div>
                 </div>

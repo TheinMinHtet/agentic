@@ -44,7 +44,7 @@ CRITICAL DIRECTIVES:
 
 export async function runRoadmapBreakdownAgent(refinedConcept, businessInfo, growthPlan, apiKey, language) {
   const model = new ChatGoogleGenerativeAI({
-    apiKey: apiKey,
+    apiKey: process.env.UPDATE_AGENT_API_KEY || process.env.NEXT_PUBLIC_UPDATE_AGENT_API_KEY || apiKey || process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_API_KEY,
     model: 'gemini-3.1-flash-lite',
     maxOutputTokens: 8192,
   });
