@@ -109,7 +109,7 @@ export default function ClientShell({ children }) {
     <LanguageProvider>
       <AuthProvider>
         <WorkflowProvider>
-          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }} suppressHydrationWarning>
             <Navbar />
             <main className="app-main" style={{ position: 'relative', zIndex: 10 }}>
               <GlobalStepper />

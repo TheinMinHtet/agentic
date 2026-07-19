@@ -1419,7 +1419,7 @@
   height: 44px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .perplexity-dashboard-color-label {
@@ -1525,7 +1525,7 @@
   flex-direction: column;
   gap: 24px;
   padding-left: 24px;
-  border-left: 2px solid rgba(255,255,255,0.05);
+  border-left: 2px solid rgba(255, 255, 255, 0.05);
 }
 
 .perplexity-dashboard-timeline-dot {
@@ -1547,20 +1547,139 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Global justification for paragraphs inside the dashboard */
-.perplexity-dashboard-container p,
-.perplexity-dashboard-container li {
-  text-align: justify;
+/* Perplexity Investor Suite Styles */
+.perplexity-investor-suite {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-/* Exclude specific labels and small text elements from being justified */
-.perplexity-dashboard-stat-label,
-.perplexity-dashboard-persona-section-label,
-.perplexity-dashboard-persona-name,
-.perplexity-dashboard-persona-role,
-.perplexity-dashboard-persona-budget,
-.perplexity-dashboard-color-label,
-.perplexity-dashboard-wireframe-badge,
-.perplexity-dashboard-header-subtitle {
-  text-align: left;
+.perplexity-investor-banner {
+  background: rgba(99, 102, 241, 0.04);
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.perplexity-investor-banner-info {
+  flex: 1;
+}
+
+.perplexity-investor-banner-title {
+  margin: 0 0 6px 0;
+  font-size: 17px;
+  font-weight: 900;
+  color: #FFFFFF;
+}
+
+.perplexity-investor-banner-desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.perplexity-investor-banner-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.perplexity-investor-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.perplexity-investor-doc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.perplexity-investor-doc-btn {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.perplexity-investor-doc-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateX(2px);
+}
+
+.perplexity-investor-doc-btn.active {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: inset 0 1px 1px rgba(99, 102, 241, 0.2);
+}
+
+.perplexity-investor-doc-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  box-shadow: 0 0 4px var(--color-accent);
+}
+
+.perplexity-investor-doc-btn.active .perplexity-investor-doc-status-dot {
+  background-color: #00F2FE;
+  box-shadow: 0 0 6px #00F2FE;
+}
+
+.perplexity-investor-preview-container {
+  min-width: 0;
+  /* Prevents overflow in grid flex items */
+}
+
+/* Mobile & Tablet Responsiveness */
+@media (max-width: 900px) {
+  .perplexity-investor-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .perplexity-investor-doc-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    gap: 8px;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .perplexity-investor-doc-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    padding: 8px 12px;
+  }
+
+  .perplexity-investor-doc-btn:hover {
+    transform: none;
+  }
+
+  .perplexity-investor-banner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .perplexity-investor-banner-actions {
+    justify-content: stretch;
+  }
+
+  .perplexity-investor-banner-actions button {
+    flex: 1;
+    justify-content: center;
+  }
 }
