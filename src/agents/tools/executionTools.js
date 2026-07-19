@@ -234,3 +234,39 @@ export const sendOutreachEmailTool = tool(
         })
     }
 );
+
+/**
+ * 5. Draft Investor Email Tool (True Tool-Calling for Investor Suite)
+ * Generates a structured, highly polished, executive-ready investor pitch email or report cover letter.
+ */
+export const draftInvestorEmailTool = tool(
+    async ({ recipientName, recipientEmail, subject, greeting, executiveSummary, keyBulletPoints, callToAction, closing }) => {
+        const draftPayload = {
+            recipient_name: recipientName,
+            recipient_email: recipientEmail,
+            subject: subject,
+            greeting: greeting,
+            executive_summary: executiveSummary,
+            key_bullet_points: keyBulletPoints || [],
+            call_to_action: callToAction,
+            closing: closing || "Best regards,\nExecutive Founding Team",
+            generated_at: new Date().toISOString(),
+            status: "SUCCESS_DRAFT_GENERATED"
+        };
+        return JSON.stringify(draftPayload);
+    },
+    {
+        name: 'draft_investor_email_tool',
+        description: 'Generates a structured, professional, executive-ready investor pitch email or report cover letter customized for a specific recipient based on startup document contents.',
+        schema: z.object({
+            recipientName: z.string().describe('Name and title of the investor or recipient (e.g. Mr. John, Partner at VC)'),
+            recipientEmail: z.string().describe('Email address of the recipient (e.g. john@investor.vc)'),
+            subject: z.string().describe('Compelling, professional email subject line tailored to the report and startup'),
+            greeting: z.string().describe('Personalized salutation (e.g. Dear Mr. John,)'),
+            executiveSummary: z.string().describe('Concise 2-3 paragraph executive summary highlighting key insights from the document'),
+            keyBulletPoints: z.array(z.string()).describe('3-4 high-impact bullet points with metrics, differentiators, or financial projections'),
+            callToAction: z.string().describe('Clear next steps proposing a brief presentation or follow-up call'),
+            closing: z.string().optional().describe('Professional sign-off (e.g. Best regards, Executive Team)')
+        })
+    }
+);
