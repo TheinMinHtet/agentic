@@ -389,13 +389,6 @@ export default function LandingPage() {
                         <ArrowRight size={18} />
                     </button>
 
-                    <button
-                        type="button"
-                        className="warroom-secondary-link"
-                        onClick={() => router.push(isAuthenticated ? '/onboarding' : '/login')}
-                    >
-                        <span>{t('landing.buttonStart')}</span>
-                    </button>
                 </div>
 
                 {/* BOTTOM HALF: Two-Column pi.dev Layout (Node Graph Left + Lorem Ipsum Text Right) */}
