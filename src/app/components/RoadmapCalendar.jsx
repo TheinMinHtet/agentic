@@ -394,7 +394,7 @@ export default function RoadmapCalendar({ growthPlan, businessInfo, refinedConce
     return (
         <div style={{ width: '100%', position: 'relative' }}>
             {/* Calendar monthly grid card */}
-            <div className="card" style={{ padding: '28px', borderRadius: '32px', backgroundColor: 'var(--color-surface-medium)', display: 'flex', flexDirection: 'column' }}>
+            <div className="card calendar-card" style={{ padding: '28px', borderRadius: '32px', backgroundColor: 'var(--color-surface-medium)', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
                     <button type="button" className="button-secondary" style={{ padding: '6px 12px', minWidth: '40px', minHeight: '34px', borderRadius: '8px', cursor: 'pointer' }} onClick={handlePrevMonth}>
                         <ChevronLeft size={16} />
@@ -543,7 +543,7 @@ export default function RoadmapCalendar({ growthPlan, businessInfo, refinedConce
                     onClick={() => setSelectedDate(null)}
                 >
                     <div 
-                        className="card" 
+                        className="card calendar-details-modal" 
                         style={{ 
                             width: '450px', 
                             maxWidth: '92%', 
@@ -662,7 +662,7 @@ export default function RoadmapCalendar({ growthPlan, businessInfo, refinedConce
                     onClick={() => setIsModalOpen(false)}
                 >
                     <div 
-                        className="card" 
+                        className="card calendar-agent-modal" 
                         style={{ 
                             width: '620px', 
                             maxWidth: '94%', 
