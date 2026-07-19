@@ -61,7 +61,8 @@ export default function RefinementPage() {
     };
 
     // Load active blueprint configurations for left side panel view
-    const names = brandPackage?.names || ["GrantFlow AI", "ProposalLift", "FundForge"];
+    const activeIdeaName = businessInfo?.company_name || businessInfo?.title || "EduBot Myanmar";
+    const names = brandPackage?.names || [activeIdeaName, `${activeIdeaName} Pro`, `${activeIdeaName} Hub`];
     const colors = brandPackage?.palette || { primary: '#1b0624', secondary: '#aeec1d' };
     const stack = digitalPresence?.stack || ["React Next.js", "Gemini API"];
     const tam = marketResearch?.tam || "5,400,000,000 MMK TAM";

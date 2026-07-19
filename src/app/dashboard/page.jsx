@@ -200,12 +200,17 @@ export default function DashboardPage() {
         outreach_campaign: null
     });
 
+    const handleRestart = () => {
+        resetWorkflow();
+        router.push('/onboarding');
+    };
+
     const handleExecuteAll = async () => {
         setExecutingActions(true);
         try {
             const { executeAllDeliverables } = await import('../../agents/executionAgent');
-            const res = await executeAllDeliverables(verifiedBlueprint || {
-                company_name: refinedConcept?.companyName || refinedConcept?.concept?.split(' ')[0] || "GrantFlow AI",
+            const res = await executeAllDeliverables((verifiedBlueprint && verifiedBlueprint.company_name !== "GrantFlow AI") ? verifiedBlueprint : {
+                company_name: refinedConcept?.companyName || businessInfo?.company_name || businessInfo?.title || (startupIdea ? startupIdea.split(' ').slice(0, 3).join(' ').replace(/[^a-zA-Z0-9 ]/g, '') : "EduBot Myanmar"),
                 verified_unit_economics: {
                     initial_capital_mmk: 3000000,
                     monthly_burn_rate_mmk: 1500000,
@@ -216,7 +221,7 @@ export default function DashboardPage() {
                     gross_margin_percent: 82
                 },
                 consensus_strategic_narrative: {
-                    improved_summary: refinedConcept?.improved_summary || "Automated compliance grant drafting.",
+                    improved_summary: refinedConcept?.improved_summary || startupIdea || "AI-powered platform providing localized solutions across Myanmar.",
                     verified_tam: marketResearch?.tam || "$4.2B TAM",
                     key_differentiators: refinedConcept?.key_differentiators || []
                 },
@@ -226,9 +231,9 @@ export default function DashboardPage() {
                     title: `Roadmap Step ${idx + 1}`,
                     desc: item
                 })) : [
-                    { phase: "Phase 1", date: "2026-09-01", title: "Alpha MVP Launch", desc: "Alpha testers & case studies" },
-                    { phase: "Phase 2", date: "2026-10-01", title: "Growth & SEO Push", desc: "Index blog posts & foundation outreach" },
-                    { phase: "Phase 3", date: "2026-11-01", title: "Public Beta & Scale", desc: "Scale premium subscription pricing" }
+                    { phase: "Phase 1", date: "Month 1", title: "Alpha MVP Launch", desc: "Alpha testers & validation" },
+                    { phase: "Phase 2", date: "Month 2", title: "Growth & Marketing Push", desc: "Targeted campaigns and local outreach" },
+                    { phase: "Phase 3", date: "Month 3", title: "Public Beta & Scale", desc: "Scale revenue tiers and partnerships" }
                 ],
                 verified_target_personas: marketResearch?.target_personas || []
             });
@@ -245,8 +250,8 @@ export default function DashboardPage() {
         try {
             const { executeAllDeliverables } = await import('../../agents/executionAgent');
             const options = { excel: false, docx: false, calendar: false, email: false, [type]: true };
-            const res = await executeAllDeliverables(verifiedBlueprint || {
-                company_name: refinedConcept?.companyName || refinedConcept?.concept?.split(' ')[0] || "GrantFlow AI",
+            const res = await executeAllDeliverables((verifiedBlueprint && verifiedBlueprint.company_name !== "GrantFlow AI") ? verifiedBlueprint : {
+                company_name: refinedConcept?.companyName || businessInfo?.company_name || businessInfo?.title || (startupIdea ? startupIdea.split(' ').slice(0, 3).join(' ').replace(/[^a-zA-Z0-9 ]/g, '') : "EduBot Myanmar"),
                 verified_unit_economics: {
                     initial_capital_mmk: 3000000,
                     monthly_burn_rate_mmk: 1500000,
@@ -257,7 +262,7 @@ export default function DashboardPage() {
                     gross_margin_percent: 82
                 },
                 consensus_strategic_narrative: {
-                    improved_summary: refinedConcept?.improved_summary || "Automated compliance grant drafting.",
+                    improved_summary: refinedConcept?.improved_summary || startupIdea || "AI-powered platform providing localized solutions across Myanmar.",
                     verified_tam: marketResearch?.tam || "$4.2B TAM",
                     key_differentiators: refinedConcept?.key_differentiators || []
                 },
@@ -267,9 +272,9 @@ export default function DashboardPage() {
                     title: `Roadmap Step ${idx + 1}`,
                     desc: item
                 })) : [
-                    { phase: "Phase 1", date: "2026-09-01", title: "Alpha MVP Launch", desc: "Alpha testers & case studies" },
-                    { phase: "Phase 2", date: "2026-10-01", title: "Growth & SEO Push", desc: "Index blog posts & foundation outreach" },
-                    { phase: "Phase 3", date: "2026-11-01", title: "Public Beta & Scale", desc: "Scale premium subscription pricing" }
+                    { phase: "Phase 1", date: "Month 1", title: "Alpha MVP Launch", desc: "Alpha testers & validation" },
+                    { phase: "Phase 2", date: "Month 2", title: "Growth & Marketing Push", desc: "Targeted campaigns and local outreach" },
+                    { phase: "Phase 3", date: "Month 3", title: "Public Beta & Scale", desc: "Scale revenue tiers and partnerships" }
                 ],
                 verified_target_personas: marketResearch?.target_personas || []
             }, options);
@@ -826,8 +831,8 @@ export default function DashboardPage() {
                     { name: "Secondary Persona B", role: "Decision Maker / Manager", pain_points: ["High expense overhead", "Lack of real-time insights"], budget_limit: "50,000 MMK/mo budget" }
                 ])),
         markdown_deliverable: marketResearch?.markdown_deliverable || `# Market Intelligence Report: ${activeName}\n\n## Target Market & Personas\n${activeName} targets ${activeAudience}.\n\n### Ideal Customer Personas (ICPs)\n${Array.isArray(verifiedBlueprint?.verified_target_personas) && verifiedBlueprint.verified_target_personas.length > 0
-                ? verifiedBlueprint.verified_target_personas.map(p => `- **${p.name || 'Persona'}** (${p.role || 'Segment'}): ${p.painPoint || (Array.isArray(p.pain_points) ? p.pain_points.join(', ') : activePain)}`).join('\n')
-                : `- **Primary Persona**: ${activeAudience}. Pain point: ${activePain}\n- **Decision Maker**: Seeking reliable localized solutions in ${activeCountry}.`
+            ? verifiedBlueprint.verified_target_personas.map(p => `- **${p.name || 'Persona'}** (${p.role || 'Segment'}): ${p.painPoint || (Array.isArray(p.pain_points) ? p.pain_points.join(', ') : activePain)}`).join('\n')
+            : `- **Primary Persona**: ${activeAudience}. Pain point: ${activePain}\n- **Decision Maker**: Seeking reliable localized solutions in ${activeCountry}.`
             }\n\n## Competitor Mapping\n| Competitor | Weakness |\n|---|---|\n| Traditional Offline Services / Imports | High cost & rigid delivery |\n| Generic Alternatives | Lacks ${activeCountry} localization |\n\n## Market Trends & Opportunities\n- Verified TAM: **${verifiedBlueprint?.consensus_strategic_narrative?.verified_tam || marketResearch?.tam || (isPhysicalProduct ? '65,000,000,000 MMK TAM' : '45,000,000,000 MMK TAM')}**\n- High opportunity for localized ${activeType} solutions.`
     };
 
@@ -916,8 +921,8 @@ export default function DashboardPage() {
                     "Days 61-90: Scale paid subscription tiers and establish local institutional partnerships across " + activeCountry + "."
                 ])),
         markdown_deliverable: growthPlan?.markdown_deliverable || `# Growth & Marketing Plan: ${activeName}\n\n## Acquisition Channels\n1. **${isPhysicalProduct ? 'TikTok Shop Live Selling' : 'TikTok & Facebook Video Ads'}**\n2. **${isPhysicalProduct ? 'Influencer Unboxing Reviews' : 'Community Partnerships'}**\n3. **${isPhysicalProduct ? 'Offline Retail Placement' : 'Referral Invite Codes'}**\n\n## Launch Roadmap (Verified Milestones)\n${Array.isArray(verifiedBlueprint?.actionable_roadmap_milestones) && verifiedBlueprint.actionable_roadmap_milestones.length > 0
-                ? verifiedBlueprint.actionable_roadmap_milestones.map(m => `- **${m.phase} (${m.date})**: ${m.title} - ${m.desc}`).join('\n')
-                : `- **Phase 1 (Days 1-30)**: ${isPhysicalProduct ? 'Prototype sampling & packaging design.' : 'Alpha launch with 200 active users.'}\n- **Phase 2 (Days 31-60)**: ${isPhysicalProduct ? 'Small batch 1,000 units & social commerce.' : 'Push social video content & referrals.'}\n- **Phase 3 (Days 61-90)**: ${isPhysicalProduct ? 'Supermarket retail placement.' : 'Open paid tiers.'}`
+            ? verifiedBlueprint.actionable_roadmap_milestones.map(m => `- **${m.phase} (${m.date})**: ${m.title} - ${m.desc}`).join('\n')
+            : `- **Phase 1 (Days 1-30)**: ${isPhysicalProduct ? 'Prototype sampling & packaging design.' : 'Alpha launch with 200 active users.'}\n- **Phase 2 (Days 31-60)**: ${isPhysicalProduct ? 'Small batch 1,000 units & social commerce.' : 'Push social video content & referrals.'}\n- **Phase 3 (Days 61-90)**: ${isPhysicalProduct ? 'Supermarket retail placement.' : 'Open paid tiers.'}`
             }`
     };
     const fallbackMarketing = fallbackGrowth;
@@ -1156,11 +1161,11 @@ export default function DashboardPage() {
                                                 window.location.href = `/dashboard?ideaId=${idea.idea_id}`;
                                             }
                                         }}
-                                        style={{ 
-                                            padding: '12px 14px', 
-                                            borderRadius: '12px', 
-                                            border: idea.idea_id === ideaId ? '1px solid var(--color-accent)' : '1px solid var(--color-border-light)', 
-                                            background: idea.idea_id === ideaId ? 'rgba(0,242,254,0.05)' : 'rgba(255,255,255,0.02)', 
+                                        style={{
+                                            padding: '12px 14px',
+                                            borderRadius: '12px',
+                                            border: idea.idea_id === ideaId ? '1px solid var(--color-accent)' : '1px solid var(--color-border-light)',
+                                            background: idea.idea_id === ideaId ? 'rgba(0,242,254,0.05)' : 'rgba(255,255,255,0.02)',
                                             cursor: 'pointer',
                                             transition: 'all 0.2s'
                                         }}

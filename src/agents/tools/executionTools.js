@@ -145,7 +145,7 @@ export const scheduleCalendarTool = tool(
             const eventDateStr = m.date || baseDate.toISOString().split('T')[0];
 
             // Google Calendar one-click add link format
-            const gcalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(m.title)}&details=${encodeURIComponent(m.desc || 'Scheduled milestone from GrantFlow AI WarRoom OS')}&dates=${eventDateStr.replace(/-/g, '')}/${eventDateStr.replace(/-/g, '')}`;
+            const gcalLink = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(m.title)}&details=${encodeURIComponent(m.desc || 'Scheduled milestone from WarRoom OS')}&dates=${eventDateStr.replace(/-/g, '')}/${eventDateStr.replace(/-/g, '')}`;
 
             return {
                 phase: m.phase || `Phase ${idx + 1}`,
@@ -187,9 +187,9 @@ export const scheduleCalendarTool = tool(
 export const sendOutreachEmailTool = tool(
     async ({ targetPersonas = [], companyName, attachExcel = true, attachDocx = true }) => {
         const dispatchedEmails = targetPersonas.map((persona, index) => {
-            const recipientEmail = persona.contactPortal || `contact@${persona.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.org`;
-            const subject = `Solving the 20-Hour Grant Compliance Bottleneck for ${persona.name}`;
-            const body = `Dear ${persona.name} (${persona.role}),\n\nWe noticed that organizations like yours spend over 20 hours drafting compliance-heavy grant proposals. At ${companyName}, we have developed an automated NLP compliance compiler that drafts verified grant proposals in minutes while preserving your exact historical narrative voice.\n\nAttached to this email, please find our verified unit economics calculation sheet (${companyName}_Financial_Model.xlsx) and corporate strategy blueprint (${companyName}_Proposal.docx) tailored for local NPO directors under standard budget constraints.\n\nWould you be open to a 10-minute alpha demonstration this week?\n\nBest regards,\nThe ${companyName} WarRoom Team`;
+            const recipientEmail = persona.contactPortal || `contact@${(persona.name || 'target').toLowerCase().replace(/[^a-z0-9]/g, '')}.org`;
+            const subject = `Partnership & Innovation Opportunity with ${companyName} for ${persona.name}`;
+            const body = `Dear ${persona.name} (${persona.role}),\n\nWe noticed that ${persona.role || 'organizations'} like yours face significant operational challenges around ${persona.painPoint || 'efficiency and scaling'}. At ${companyName}, we have developed verified tailored solutions designed to solve this in minutes with reliable local support across Myanmar.\n\nAttached to this email, please find our verified unit economics calculation sheet (${companyName}_Financial_Model.xlsx) and corporate strategy blueprint (${companyName}_Proposal.docx) tailored for your review.\n\nWould you be open to a 10-minute introduction call this week?\n\nBest regards,\nThe ${companyName} WarRoom Team`;
 
             const mailtoUrl = `mailto:${recipientEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
