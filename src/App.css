@@ -1,4 +1,35 @@
 /* Custom App styles that don't belong in index.css global tokens */
+
+/* Custom Global Scrollbar Styles - extremely minimalist and subtle (almost invisible) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 99px;
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Firefox support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.04) transparent;
+}
+
 .navbar {
   position: sticky;
   top: 0;
@@ -1015,7 +1046,7 @@
   position: relative;
   overflow: hidden;
   z-index: 1;
-  padding-top: 40px;
+  padding-top: 72px;
   padding-bottom: 60px;
 }
 
@@ -1054,8 +1085,8 @@
 .perplexity-dashboard-header-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 12px;
+  gap: 10px;
+  padding: 8px 16px;
   border-radius: 999px;
   background: rgba(99, 102, 241, 0.06);
   border: 1px solid rgba(99, 102, 241, 0.15);
@@ -1064,7 +1095,8 @@
   letter-spacing: 0.08em;
   color: var(--color-primary);
   text-transform: uppercase;
-  margin-bottom: 14px;
+  margin-top: 12px;
+  margin-bottom: 24px;
 }
 
 .perplexity-dashboard-header-title {
@@ -1879,6 +1911,10 @@
 
 /* Dashboard & Refinement Studio Mobile Responsiveness overrides */
 @media (max-width: 900px) {
+  .perplexity-dashboard-container {
+    padding-top: 72px !important;
+  }
+
   .perplexity-dashboard-grid-layout {
     grid-template-columns: 1fr !important;
     gap: 24px !important;
