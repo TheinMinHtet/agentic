@@ -9,6 +9,7 @@ import { useLanguage } from '../context/LanguageContext';
 import RoadmapCalendar from '../components/RoadmapCalendar';
 import { jsPDF } from 'jspdf';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PieChart, Pie, Cell, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip } from 'recharts';
 import {
     ArrowLeft,
     FileText,
@@ -24,8 +25,13 @@ import {
     RefreshCw,
     Plus,
     Trash2,
-    Download
+    Download,
+    History,
+    ChevronDown,
+    ChevronUp,
+    Lightbulb
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import AgentRediscoveryOverlay from '../components/AgentRediscoveryOverlay';
 
 // Lightweight Markdown to HTML string converter for dynamic print iframes
@@ -130,6 +136,25 @@ export default function DashboardPage() {
     const { language, t } = useLanguage();
     const ideaId = searchParams.get('ideaId');
     const supabase = useMemo(() => createClient(), []);
+    const { user } = useAuth();
+    const [pastIdeas, setPastIdeas] = useState([]);
+    const [historyExpanded, setHistoryExpanded] = useState(true);
+
+    useEffect(() => {
+        const fetchHistory = async () => {
+            if (user) {
+                const { data, error } = await supabase
+                    .from('agent_refinements')
+                    .select('idea_id, created_at, improved_summary, concept')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false });
+                if (error) { console.error('History fetch error:', error); return; }
+                if (data) setPastIdeas(data);
+            }
+        };
+        fetchHistory();
+    }, [user, supabase]);
+
     const {
         businessInfo,
         startupIdea,
@@ -909,6 +934,11 @@ export default function DashboardPage() {
 | • ${isPhysicalProduct ? 'Monthly unit sales volume.<br/>• Inventory turnover rate.<br/>• Retail shelf sell-through.' : 'Active daily/monthly users (DAU/MAU).<br/>• Customer conversion rate.<br/>• Monthly recurring revenue (MRR).'} | • ${isPhysicalProduct ? 'TikTok Shop & Facebook Live.<br/>• Supermarket retail placement.<br/>• Wholesale distributors.' : 'TikTok & Facebook Ads.<br/>• Direct Community Partnerships.<br/>• Referral programs.'} | • ${isPhysicalProduct ? 'Raw materials & procurement.<br/>• Manufacturing & packaging.<br/>• Warehousing & logistics.' : 'AI Compute & API tokens.<br/>• Cloud server infrastructure.<br/>• Marketing campaigns.'} ($${activeCAC} CAC) | • ${isPhysicalProduct ? 'Direct DTC retail purchases.<br/>• Wholesale distributor bulk orders.' : `${businessInfo?.revenue_stream || 'Monthly Subscription & Freemium tiers'}.<br/>• Premium add-on features.`} |`
     };
 
+    const handleRestart = () => {
+        resetWorkflow();
+        router.push('/onboarding');
+    };
+
     const handleStartEdit = () => {
         setIsEditing(true);
         setEditConcept(fallbackConcept.concept);
@@ -1097,33 +1127,105 @@ export default function DashboardPage() {
 
                 {/* Left Sidebar Navigation */}
                 <aside className="perplexity-dashboard-sidebar">
-                    {tabsList.map(({ id, label, icon: Icon }) => (
+                    {/* Past Ideas History Panel */}
+                    <div style={{ borderRadius: '16px', border: '1px solid var(--color-border-light)', background: 'var(--color-surface-card)', overflow: 'hidden' }}>
                         <button
-                            key={id}
-                            onClick={() => {
-                                setActiveTab(id);
-                                setPreviewDoc(false);
-                            }}
-                            className={`perplexity-dashboard-tab-btn ${activeTab === id ? 'active' : ''}`}
-                            style={{ position: 'relative' }}
+                            onClick={() => setHistoryExpanded(v => !v)}
+                            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text-primary)' }}
                         >
-                            {activeTab === id && (
-                                <motion.div
-                                    layoutId="activeTabIndicator"
-                                    className="perplexity-dashboard-active-pill"
-                                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                                />
-                            )}
-                            <span style={{ zIndex: 1, display: 'flex', alignItems: 'center', gap: '12px', width: '100%' }}>
-                                <Icon size={18} style={{ color: activeTab === id ? 'var(--color-accent)' : 'inherit', transition: 'color 0.2s' }} />
-                                <span style={{ flex: 1 }}>{label}</span>
-                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <History size={18} color="var(--color-accent)" />
+                                <span style={{ fontWeight: 700, fontSize: '15px' }}>
+                                    {language === 'en' ? `Your Past Ideas (${pastIdeas.length})` : `သင်၏ ယမန်ကစိတ်ကူးများ (${pastIdeas.length})`}
+                                </span>
+                            </div>
+                            {historyExpanded ? <ChevronUp size={18} color="var(--color-text-muted)" /> : <ChevronDown size={18} color="var(--color-text-muted)" />}
                         </button>
-                    ))}
+
+                        {historyExpanded && (
+                            <div style={{ padding: '0 16px 16px', display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '600px', overflowY: 'auto' }}>
+                                {pastIdeas.length === 0 ? (
+                                    <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '13px', margin: '10px 0' }}>
+                                        {language === 'en' ? 'No past ideas found.' : 'ယခင်စိတ်ကူးများ မရှိသေးပါ။'}
+                                    </p>
+                                ) : pastIdeas.map((idea, idx) => (
+                                    <div
+                                        key={`${idea.idea_id}-${idx}`}
+                                        onClick={() => {
+                                            if (idea.idea_id !== ideaId) {
+                                                window.location.href = `/dashboard?ideaId=${idea.idea_id}`;
+                                            }
+                                        }}
+                                        style={{ 
+                                            padding: '12px 14px', 
+                                            borderRadius: '12px', 
+                                            border: idea.idea_id === ideaId ? '1px solid var(--color-accent)' : '1px solid var(--color-border-light)', 
+                                            background: idea.idea_id === ideaId ? 'rgba(0,242,254,0.05)' : 'rgba(255,255,255,0.02)', 
+                                            cursor: 'pointer',
+                                            transition: 'all 0.2s'
+                                        }}
+                                        onMouseEnter={e => {
+                                            if (idea.idea_id !== ideaId) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
+                                        }}
+                                        onMouseLeave={e => {
+                                            if (idea.idea_id !== ideaId) e.currentTarget.style.borderColor = 'var(--color-border-light)';
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                                            <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(0,242,254,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                                <Lightbulb size={14} color="var(--color-accent)" />
+                                            </div>
+                                            <div style={{ minWidth: 0 }}>
+                                                <p style={{ margin: 0, fontWeight: 700, fontSize: '13px', color: 'var(--color-text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {idea.improved_summary || 'Untitled Idea'}
+                                                </p>
+                                                <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                                                    {new Date(idea.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </aside>
 
                 {/* Right Tab Panel Content */}
                 <main className="perplexity-dashboard-main-card">
+                    {/* Top Tab Pagination */}
+                    <div style={{ display: 'flex', overflowX: 'auto', gap: '8px', paddingBottom: '16px', marginBottom: '24px', borderBottom: '1px solid var(--color-border-light)' }} className="hide-scrollbar">
+                        {tabsList.map(({ id, label, icon: Icon }) => (
+                            <button
+                                key={id}
+                                onClick={() => {
+                                    setActiveTab(id);
+                                    setPreviewDoc(false);
+                                }}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    padding: '10px 16px',
+                                    borderRadius: '999px',
+                                    whiteSpace: 'nowrap',
+                                    background: activeTab === id ? 'rgba(0, 242, 254, 0.1)' : 'transparent',
+                                    border: activeTab === id ? '1px solid rgba(0, 242, 254, 0.3)' : '1px solid transparent',
+                                    color: activeTab === id ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                                    fontWeight: activeTab === id ? 600 : 500,
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s',
+                                    outline: 'none'
+                                }}
+                                onMouseEnter={e => { if (activeTab !== id) e.currentTarget.style.color = 'var(--color-text-primary)'; }}
+                                onMouseLeave={e => { if (activeTab !== id) e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
+                            >
+                                <Icon size={16} />
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+
                     {/* Glowing Scan Overlay */}
                     <AgentRediscoveryOverlay
                         isVisible={isSaving}
