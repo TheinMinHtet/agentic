@@ -26,96 +26,97 @@ const CURRENT_IDEA_ID_KEY = 'agentic:currentIdeaId';
 
 const DEFAULT_BUSINESS_INFO = {
   location: "Yangon, Myanmar",
-  budget: "3,000,000 MMK",
-  target_customers: "Billionare",
-  business_type: "SaaS",
-  experience_level: "Beginner",
+  target_country: "Myanmar",
+  budget: "8,000,000 MMK",
+  target_customers: "High School Students, University Undergrads & Parents across Myanmar",
+  business_type: "EdTech / SaaS",
+  experience_level: "Intermediate",
   goal: "local",
-  core_painpoint: "Small to medium-sized non-profit organizations (NPOs) and independent researchers spend hundreds of hours annually searching for and writing grant proposals. They often lack the budget to hire full-time, specialized grant writers, which leads to high rejection rates caused by minor compliance errors, missed deadlines, or poorly structured narratives.",
-  launch_timeline: "3 months",
-  revenue_stream: "Subscription"
+  core_painpoint: "High private tuition costs and limited access to quality educators outside major cities leave students struggling with complex subjects and exam preparations without 24/7 support.",
+  launch_timeline: "6 months",
+  revenue_stream: "Freemium & Monthly Subscription"
 };
 
-const DEFAULT_STARTUP_IDEA = "GrantFlow AI is a specialized Software-as-a-Service (SaaS) platform that streamlines the entire grant acquisition process. Users upload their organization's historical impact data, financial needs, and project goals. The platform then automatically drafts highly tailored, compelling, and fully compliant grant proposals in a fraction of the time.";
+const DEFAULT_STARTUP_IDEA = "EduBot Myanmar is an AI-powered EdTech platform that provides bilingual (Burmese-English) 24/7 tutoring, interactive courses, and personalized learning paths for high school and university students across Myanmar.";
 
 const DEFAULT_CONCEPT_FALLBACK = {
-  concept: "GrantFlow AI is a specialized Software-as-a-Service (SaaS) platform that streamlines the entire grant acquisition process. Users upload their organization's historical impact data, financial needs, and project goals. The platform then automatically drafts highly tailored, compelling, and fully compliant grant proposals.",
-  improved_summary: "Tailored grant proposals drafted in minutes for non-profits.",
+  concept: "EduBot Myanmar is an AI-powered EdTech platform that provides bilingual (Burmese-English) 24/7 tutoring, interactive courses, and personalized learning paths for high school and university students across Myanmar.",
+  improved_summary: "24/7 bilingual AI tutoring and exam practice customized for Myanmar students.",
   key_differentiators: [
-    "NLP matching engines checking compliance criteria against strict grant guidelines.",
-    "Historical narrative compiler mapping past impact benchmarks into structured paragraphs.",
-    "Budget-to-proposal compiler automatically formatting cost tables to grant specifications."
+    "AI matching engine tailored specifically for high school curricula and university entrance exams.",
+    "Bilingual (Burmese-English) step-by-step problem solver eliminating language barriers.",
+    "Gamified practice tests with instant feedback designed for local study behavior."
   ],
-  target_audience_refined: "Small-to-medium non-profits (NPOs), academic researchers, and social impact startups without full-time grant writers."
+  target_audience_refined: "High School Students, University Undergrads & Parents across Myanmar."
 };
 
 const DEFAULT_MARKET_FALLBACK = {
-  tam: "5,400,000,000 MMK TAM",
-  saturation_level: 25,
+  tam: "45,000,000,000 MMK TAM",
+  saturation_level: 28,
   competitors: [
-    { name: "GrantWriter Pro", url: "https://grantwriterpro.com", weakness: "High subscription price points and manual templates." },
-    { name: "ProposalAI", url: "https://proposalai.io", weakness: "Generic NLP outputs lacking compliance-specific narratives." },
-    { name: "FundraisingHub", url: "Not Publicly Available", weakness: "Focuses on CRM donation pipelines rather than grant writing." }
+    { name: "Traditional Offline Tuition Centers", url: "Offline Centers", weakness: "Extremely expensive (200k-500k MMK/mo) and rigid schedules." },
+    { name: "Generic Global AI Chatbots", url: "https://chatgpt.com", weakness: "Lacks Myanmar curriculum alignment and Burmese pedagogical explanations." },
+    { name: "Recorded Video Platforms", url: "https://myanlearn.com", weakness: "One-way video lectures with zero interactive Q&A or instant feedback." }
   ],
   opportunities: [
-    "Expanding philanthropic government grants globally.",
-    "NPOs seeking digitized automation solutions post-inflation budget squeezes.",
-    "Higher academic institutions demanding faster micro-grant writing automation tools."
+    "Growing smartphone and mobile data adoption among Myanmar youth seeking self-study alternatives.",
+    "Parents looking for affordable high-quality tutoring during economic inflation.",
+    "Integration of interactive AI practice with local matriculation exam preparation."
   ],
   target_personas: [
-    { name: "Executive Director Emily", role: "NPO Director", pain_points: ["Spends 20+ hours per grant proposal", "Lacks writing budget"], budget_limit: "300,000 MMK/mo max" },
-    { name: "Researcher Roger", role: "University Grant Applicant", pain_points: ["Compliance checklist overload", "Missed submission deadlines"], budget_limit: "450,000 MMK/mo research budget" }
+    { name: "Student Min Thant", role: "Grade 11 Exam Candidate", pain_points: ["Struggling with Physics & Math without evening tutor access"], budget_limit: "25,000 MMK/mo subscription" },
+    { name: "Parent Daw Hla", role: "Working Mother", pain_points: ["Cannot afford 300,000 MMK monthly private tuition fees"], budget_limit: "50,000 MMK/mo family budget" }
   ],
-  markdown_deliverable: `# Market Intelligence Report: GrantFlow AI\n\n## Target Market & Personas\nGrantFlow AI targets small-to-medium non-profits, academic researchers, and social impact startups.\n\n### Ideal Customer Personas (ICPs)\n- **Executive Director Emily**: Manages a local community service non-profit. Spends 20+ hours per grant and has zero writing budget.\n- **Researcher Roger**: University researcher who deals with complex compliance requirements.\n\n## Competitor Mapping\n| Competitor | URL | Weakness |\n|---|---|---|\n| GrantWriter Pro | https://grantwriterpro.com | High pricing & templates only |\n| ProposalAI | https://proposalai.io | Generic copy, low compliance checks |\n| FundraisingHub | Not Publicly Available | Focuses on donation CRMs, not writing |\n\n## Market Trends & Opportunities\n- Growth in government micro-grants.\n- Increasing demand for low-cost automated proposal writers.\n- Saturation Level: **25%** (Low-medium market penetration).`
+  markdown_deliverable: `# Market Intelligence Report: EduBot Myanmar\n\n## Target Market & Personas\nEduBot Myanmar targets high school students, undergraduates, and parents across Myanmar.\n\n### Ideal Customer Personas (ICPs)\n- **Student Min Thant (Grade 11)**: Needs instant step-by-step homework help late at night.\n- **Parent Daw Hla**: Seeks affordable, reliable quality education support for her children.\n\n## Competitor Mapping\n| Competitor | URL | Weakness |\n|---|---|---|\n| Offline Tuition Centers | Offline | High cost (200k+ MMK) & rigid times |\n| Generic AI Chatbots | https://chatgpt.com | Lacks Myanmar curriculum & Burmese pedagogical style |\n| Recorded Video Apps | https://myanlearn.com | No interactive Q&A or live feedback |\n\n## Market Trends & Opportunities\n- Verified TAM: **45,000,000,000 MMK**\n- High demand for low-cost mobile tutoring.\n- Saturation Level: **28%**.`
 };
 
 const DEFAULT_FINANCE_FALLBACK = {
   costBreakdown: [
-    { item: "Gemini API token costs", cost: 360000 },
-    { item: "Hosting & Server infrastructure", cost: 240000 },
-    { item: "Domain & SSL registration", cost: 45000 },
-    { item: "Customer support software license", cost: 105000 },
-    { item: "Basic marketing and ads", cost: 750000 }
+    { item: "Core Platform & AI Model Tuning", cost: 450000 },
+    { item: "Cloud Servers, Hosting & CDN", cost: 300000 },
+    { item: "Customer Acquisition & Social Video Ads", cost: 525000 },
+    { item: "Customer Support & Operations", cost: 150000 },
+    { item: "Domain, SSL & Local Curriculum Compliance", cost: 75000 }
   ],
-  revenueForecast: "15,000,000 MMK monthly recurring revenue (MRR) projected in Month 6.",
-  pricingStrategy: "Tiered subscription model: Standard (150,000 MMK/mo) and Premium (300,000 MMK/mo) with credits-based drafting caps.",
+  revenueForecast: "12,000,000 MMK monthly recurring revenue (MRR) projected by Month 6 via 800 active paid subscribers.",
+  pricingStrategy: "Freemium access tier (Basic AI tutoring) + Pro Subscription at 15,000 MMK/month for unlimited practice & live exam feedback.",
   breakevenMonth: 4,
-  markdown_deliverable: `# Financial Model & Projections: GrantFlow AI\n\n## Startup Capital Allocation\nBelow is the itemized budget allocation mapping back to our 3,000,000 MMK setup limit:\n\n| Expense Item | Monthly Cost (MMK) |\n|---|---|\n| Gemini API token costs | 360,000 MMK |\n| Hosting & Server infrastructure | 240,000 MMK |\n| Domain & SSL registration | 45,000 MMK |\n| Customer support software | 105,000 MMK |\n| Marketing campaigns | 750,000 MMK |\n| **Total Estimated Run-rate** | **1,500,000 MMK/mo** |\n\n## Revenue Forecast\n- Projecting **Month 4 Breakeven**.\n- Targeting 100 active non-profit subscribers by Month 6 (15,000,000 MMK MRR).\n\n## Pricing Strategy\n- **Standard Plan**: 150,000 MMK/mo (up to 3 proposals monthly)\n- **Premium Plan**: 300,000 MMK/mo (unlimited proposals & compliance checking)`
+  markdown_deliverable: `# Financial Model & Projections: EduBot Myanmar\n\n## Startup Capital Allocation\nBelow is the itemized monthly burn allocation:\n\n| Expense Item | Monthly Cost (MMK) |\n|---|---|\n| Core Platform & AI Model Tuning | 450,000 MMK |\n| Cloud Servers, Hosting & CDN | 300,000 MMK |\n| Customer Acquisition & Social Ads | 525,000 MMK |\n| Customer Support & Operations | 150,000 MMK |\n| Domain & Curriculum Compliance | 75,000 MMK |\n| **Total Run-rate** | **1,500,000 MMK/mo** |\n\n## Revenue Forecast\n- Projecting **Month 4 Breakeven**.\n- Targeting 800 active paid students by Month 6 (12,000,000 MMK MRR).\n\n## Pricing Strategy\n- **Freemium Tier**: Free basic homework solver\n- **Pro Tier**: 15,000 MMK/mo (Unlimited practice tests & AI step-by-step explanations)`
 };
 
 const DEFAULT_BRAND_FALLBACK = {
-  names: ["GrantFlow AI", "ProposalLift", "FundForge", "BidDraft", "NarrateGrant"],
-  tagline: "Tailored grant proposals drafted in minutes.",
-  voice: "Empathetic, structured, professional, and compliant.",
-  palette: { primary: "#1b0624", secondary: "#aeec1d", background: "#ffffff" },
-  logoConcept: "A stylized feather quill that transitions into a rising network bar graph, representing written proposals leading to business growth.",
-  markdown_deliverable: `# Brand Identity & Style Guide: GrantFlow AI\n\n## Brand Naming Suggestions\n1. **GrantFlow AI** (Primary suggestion)\n2. **ProposalLift**\n3. **FundForge**\n4. **BidDraft**\n5. **NarrateGrant**\n\n## Brand Voice Guidelines\n- **Empathetic**: Recognizing NPOs' lack of resources.\n- **Structured & Compliant**: Focused on precision and guidelines compliance.\n\n## Visual Guidelines\n- **Primary Color**: \`#1b0624\` (Minimalist dark purple)\n- **Secondary Accent**: \`#aeec1d\` (Neon lime green)\n- **Background**: \`#ffffff\` (Pure white)\n- **Typography**: Display headings in sans-serif, body copy in Inter.\n\n## Logo Concept\nA minimalist quill combined with an upward-trending bar graph icon.`
+  names: ["EduBot Myanmar", "BurmaLearn AI", "PinyaTutor", "SmartStudent MM", "NextGen Academy"],
+  tagline: "24/7 AI tutoring customized for Myanmar students.",
+  voice: "Encouraging, pedagogical, clear, bilingual (Burmese/English), and accessible.",
+  palette: { primary: "#1e1b4b", secondary: "#38bdf8", background: "#0f172a" },
+  logoConcept: "A glowing digital graduation cap intertwined with an AI neural network node, representing futuristic education for Myanmar youth.",
+  markdown_deliverable: `# Brand Identity & Style Guide: EduBot Myanmar\n\n## Brand Naming Suggestions\n1. **EduBot Myanmar** (Primary suggestion)\n2. **BurmaLearn AI**\n3. **PinyaTutor**\n4. **SmartStudent MM**\n\n## Brand Voice Guidelines\n- **Encouraging & Pedagogical**: Explaining patiently step-by-step.\n- **Bilingual**: Clear Burmese explanations alongside accurate English terminology.`
 };
 
 const DEFAULT_DIGITAL_FALLBACK = {
   landingPageOutline: [
-    { section_id: "hero", title: "Write winning grants in minutes, not weeks.", body: "Leverage automated narrative compilers trained on compliance criteria to draft compelling grant proposals instantly.", cta_text: "Get Started Free" },
-    { section_id: "features", title: "Compliance-First Drafting Engine", body: "Upload past reports and grant requirements. Our system checks against 100+ compliance rules to prevent simple format rejections.", cta_text: "See How It Works" },
-    { section_id: "pricing", title: "Affordable plans for non-profits", body: "Choose a tier that grows with your fundraising needs. No upfront agency fees required.", cta_text: "View Plans" }
+    { section_id: "hero", title: "Master your exams with EduBot 24/7 AI Tutor.", body: "Bilingual tutoring tailored specifically to Myanmar high school and university curricula. No expensive tuition required.", cta_text: "Start Learning Free" },
+    { section_id: "features", title: "Interactive Step-by-Step Explanations", body: "Snap a photo of any difficult homework problem or textbook question and get instant pedagogical step-by-step guidance in Burmese.", cta_text: "Try Demo Question" },
+    { section_id: "pricing", title: "Affordable plans for every student", body: "Freemium access for all, plus a low-cost Pro tier priced under a fraction of traditional private tuition.", cta_text: "Explore Plans" }
   ],
   features: [
-    "compliance Narrative Compiler",
-    "Past Impact Narrative Mapper",
-    "Automatic Budget Table Formatter"
+    "Bilingual Homework Solver & Explainer",
+    "Myanmar Curriculum Practice Test Engine",
+    "Personalized Exam Readiness Dashboard"
   ],
-  stack: ["React Next.js", "Gemini API", "Zustand State", "Tailwind CSS", "Vercel"],
-  markdown_deliverable: `# Digital Presence Specification: GrantFlow AI\n\n## Website Landing Page Layout\n\n### 1. Hero Section\n- **Heading**: Write winning grants in minutes, not weeks.\n- **Subheading**: Leverage automated narrative compilers trained on compliance criteria to draft compelling grant proposals instantly.\n- **CTA**: Get Started Free\n\n### 2. Features Grid\n- **Heading**: Compliance-First Drafting Engine\n- **Copy**: Upload past reports and grant requirements. Our system checks against 100+ compliance rules.\n\n## Key App Capabilities\n- Compliance Narrative Compiler\n- Past Impact Narrative Mapper\n- Automatic Budget Table Formatter\n\n## Recommended Technical Stack\n- Frontend: React Next.js\n- API & Orchestration: Node.js (deepagents)\n- Hosting: Vercel`
+  stack: ["React Next.js", "Gemini 2.5 AI API", "Supabase DB", "Tailwind CSS", "Vercel Cloud"],
+  markdown_deliverable: `# Digital Presence Specification: EduBot Myanmar\n\n## Website Landing Page Layout\n\n### 1. Hero Section\n- **Heading**: Master your exams with EduBot 24/7 AI Tutor.\n- **Subheading**: Bilingual tutoring tailored specifically to Myanmar high school and university curricula.\n- **CTA**: Start Learning Free\n\n### 2. Features Grid\n- **Heading**: Interactive Step-by-Step Explanations\n\n## Key App Capabilities\n- Bilingual Homework Solver & Explainer\n- Myanmar Curriculum Practice Test Engine\n- Personalized Exam Readiness Dashboard\n\n## Recommended Technical Stack\n- Frontend: React Next.js\n- API & Orchestration: Node.js (deepagents)\n- Hosting: Vercel Cloud`
 };
 
 const DEFAULT_MARKETING_FALLBACK = {
-  channels: ["Organic Search / SEO", "B2B Non-Profit Partnerships", "Strategic Cold Outreach"],
-  acquisitionPlan: "Optimize SEO around keywords like 'nonprofit grant writer' and 'write microgrant proposal'. Partner directly with non-profit incubators and research labs to offer early pilot credits.",
+  channels: ["TikTok & Facebook Short Video Ads", "Direct Campus / School Ambassador Networks", "Viral Referral Invite Codes"],
+  acquisitionPlan: "Target students and parents across Myanmar using short educational problem-solving videos on TikTok and Facebook ($12 CAC) combined with student referral contests.",
   roadmap90Day: [
-    "Days 1-30: Launch MVP and secure 5 non-profit alpha testers to build case studies.",
-    "Days 31-60: Index blog posts for search traffic and run email campaigns targeting local foundations.",
-    "Days 61-90: Scale platform to premium subscription pricing and recruit affiliate partners."
+    "Days 1-30: Launch Bilingual MVP with Grade 10-12 Math & Science solvers; onboard 200 student beta testers.",
+    "Days 31-60: Launch TikTok & Facebook educational mini-lessons and activate campus ambassador referral contest.",
+    "Days 61-90: Introduce Pro subscription tier (15,000 MMK/mo) and expand subject database to University level."
   ],
-  markdown_deliverable: `# Growth & Marketing Plan: GrantFlow AI\n\n## Acquisition Channels\n1. **Organic Search / SEO**: Target keywords targeting non-profit grant writing tips.\n2. **NPO Partnerships**: Partner with incubator programs.\n3. **Direct Email Outreach**: Target directors of foundation portals.\n\n## Launch Roadmap (First 90 Days)\n- **Phase 1 (Days 1-30)**: Alpha launch with 5 test non-profits. Collect compliance case studies.\n- **Phase 2 (Days 31-60)**: Push organic content articles. Run outreach sequences.\n- **Phase 3 (Days 61-90)**: Open paid tiers. Scale via partner affiliates.`
+  markdown_deliverable: `# Growth & Marketing Plan: EduBot Myanmar\n\n## Acquisition Channels\n1. **TikTok & Facebook Video Ads**: Short problem-solving clips targeting students.\n2. **Campus Ambassador Networks**: Student leaders sharing invite codes.\n3. **Viral Referral Program**: Invite 3 friends for 1 free month of Pro.\n\n## Launch Roadmap (First 90 Days)\n- **Phase 1 (Days 1-30)**: Alpha launch with 200 active student testers.\n- **Phase 2 (Days 31-60)**: Push social video content & student referrals.\n- **Phase 3 (Days 61-90)**: Open paid Pro tier at 15,000 MMK/mo.`
 };
 
 export function WorkflowProvider({ children }) {
@@ -136,6 +137,7 @@ export function WorkflowProvider({ children }) {
   const [digitalPresence, setDigitalPresence] = useState(null);
   const [growthPlan, setGrowthPlan] = useState(null);
   const [businessPlan, setBusinessPlan] = useState(null);
+  const [verifiedBlueprint, setVerifiedBlueprint] = useState(null);
 
   // Flow statuses
   const [agentProgress, setAgentProgress] = useState({
@@ -184,6 +186,16 @@ export function WorkflowProvider({ children }) {
       setBusinessInfo(DEFAULT_BUSINESS_INFO);
     }
 
+    // Verified Blueprint
+    const savedBlueprint = localStorage.getItem('agentic:verifiedBlueprint');
+    if (savedBlueprint) {
+      try {
+        setVerifiedBlueprint(JSON.parse(savedBlueprint));
+      } catch (e) {
+        console.error("Error parsing stored verifiedBlueprint:", e);
+      }
+    }
+
     // Force auth active for this agentic workflow
     localStorage.setItem(AUTH_KEY, 'true');
 
@@ -192,6 +204,15 @@ export function WorkflowProvider({ children }) {
       setCurrentIdeaId(savedIdeaId);
     }
   }, []);
+
+  const updateVerifiedBlueprint = (data) => {
+    if (data) {
+      localStorage.setItem('agentic:verifiedBlueprint', JSON.stringify(data));
+    } else {
+      localStorage.removeItem('agentic:verifiedBlueprint');
+    }
+    setVerifiedBlueprint(data);
+  };
 
   const updateCurrentIdeaId = (ideaId) => {
     if (ideaId) {
@@ -904,6 +925,8 @@ export function WorkflowProvider({ children }) {
       digitalPresence,
       growthPlan,
       businessPlan,
+      verifiedBlueprint,
+      updateVerifiedBlueprint,
       setFinanceModel,
       setBrandPackage,
       setDigitalPresence,
